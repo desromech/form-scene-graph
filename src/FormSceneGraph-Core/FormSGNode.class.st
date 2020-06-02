@@ -64,6 +64,14 @@ FormSGNode >> childrenDo: aBlock [
 ]
 
 { #category : #inspector }
+FormSGNode >> gtInspectorFormIn: composite [
+	<gtInspectorPresentationOrder: 10>  
+	^ composite morph 
+		title: 'Form';
+		display: [ self asForm asMorph ]
+]
+
+{ #category : #inspector }
 FormSGNode >> gtTreeViewIn: composite [
 	<gtInspectorPresentationOrder: 0>
 	composite tree 
@@ -80,6 +88,16 @@ FormSGNode >> isContainerNode [
 
 { #category : #testing }
 FormSGNode >> isNullNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isTransformNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isTranslationNode [
 	^ false
 ]
 

@@ -17,6 +17,11 @@ FormSGTranslationNode >> boundingBox [
 	^ child boundingBox translateBy: translation
 ]
 
+{ #category : #testing }
+FormSGTranslationNode >> isTranslationNode [
+	^ true
+]
+
 { #category : #accessing }
 FormSGTranslationNode >> translation [
 	^ translation

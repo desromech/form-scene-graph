@@ -76,7 +76,7 @@ FormSGBuilderTest >> testSolidRectangle [
 FormSGBuilderTest >> testTransformNode [
 	| node child |
 	child := builder solidRectangle: (5@5 extent: 32@32) color: Color red.
-	node := builder transform: builder identityTransform for: child.
+	node := builder transform: child with: builder identityTransform.
 	self assert: node transform equals: builder identityTransform.
 	self assert: node child equals: child.
 
@@ -86,7 +86,7 @@ FormSGBuilderTest >> testTransformNode [
 FormSGBuilderTest >> testTranslationNode [
 	| node child |
 	child := builder solidRectangle: (5@5 extent: 32@32) color: Color red.
-	node := builder translation: 4@5 for: child.
+	node := builder translate: child with: 4@5.
 	self assert: node translation equals: 4@5.
 	self assert: node child equals: child.
 

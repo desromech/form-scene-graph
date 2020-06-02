@@ -17,6 +17,11 @@ FormSGTransformNode >> boundingBox [
 	^ transform transformRectangle: child boundingBox
 ]
 
+{ #category : #testing }
+FormSGTransformNode >> isTransformNode [
+	^ true
+]
+
 { #category : #accessing }
 FormSGTransformNode >> transform [
 	^ transform

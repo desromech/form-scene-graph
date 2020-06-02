@@ -42,6 +42,19 @@ FormSGAffineTransform >> = other [
 ]
 
 { #category : #converting }
+FormSGAffineTransform >> asDisplayTransform [
+	^ MatrixTransform2x3 new
+		a11: m11; a12: m12; a13: m13;
+		a21: m21; a22: m22; a23: m23;
+		yourself
+]
+
+{ #category : #converting }
+FormSGAffineTransform >> asFormSGTransform [
+	^ self
+]
+
+{ #category : #converting }
 FormSGAffineTransform >> asRowMajorArray [
 	^ {
 		m11 . m12 . m13 .
@@ -191,7 +204,7 @@ FormSGAffineTransform >> setTranslation: translation [
 	m21 := 0.0. m22 := 1.0. m23 := translation y asFloat.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #transformation }
 FormSGAffineTransform >> transformPoint: point [
 	| x y |
 	x := point x.
@@ -199,7 +212,7 @@ FormSGAffineTransform >> transformPoint: point [
 	^ ((m11 * x) + (m12 * y) + m13) @ ((m21 * x) + (m22 * y) + m23)
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #transformation }
 FormSGAffineTransform >> transformRectangle: rectangle [
 	rectangle isEmpty ifTrue: [ ^ rectangle ].
 	^ Rectangle encompassing: {
@@ -208,4 +221,9 @@ FormSGAffineTransform >> transformRectangle: rectangle [
 		self transformPoint: rectangle topLeft.
 		self transformPoint: rectangle topRight.
 	}
+]
+
+{ #category : #accessing }
+FormSGAffineTransform >> translation [
+	^ m13 @ m23
 ]

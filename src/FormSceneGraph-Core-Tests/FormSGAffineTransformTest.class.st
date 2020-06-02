@@ -29,6 +29,7 @@ FormSGAffineTransformTest >> testTranslation [
 	transform := FormSGAffineTransform translation: 4@3.
 	self deny: transform isIdentity.
 	self assert: transform isTranslationOnly.
+	self assert: transform translation equals: 4@3.
 	self assert: transform asRowMajorArray equals: #(
 		1 0 4
 		0 1 3

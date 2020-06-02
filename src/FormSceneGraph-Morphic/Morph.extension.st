@@ -13,8 +13,7 @@ Morph >> buildChildrenSceneGraphNodeWith: builder [
 		]
 	].
 
-	submorphNodes isEmpty ifTrue: [ ^ builder null ].
-	^ builder containerWith: submorphNodes
+	^ self buildSceneGraphClippingFor: submorphNodes with: builder
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
@@ -33,6 +32,7 @@ Morph >> buildFullSceneGraphWith: builder [
 { #category : #'*FormSceneGraph-Morphic' }
 Morph >> buildSceneGraphClippingFor: submorphNodes with: builder [
 	| container |
+	submorphNodes isEmpty ifTrue: [ ^ builder null ].
 	container := builder containerWith: submorphNodes.
 	self clipSubmorphs ifTrue: [ ^ builder clip: container withRectangle: self clippingBounds ].
 	^ container

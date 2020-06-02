@@ -13,6 +13,12 @@ FormSGClipNode >> accept: visitor [
 	^ visitor visitClipNode: self
 ]
 
+{ #category : #'display box access' }
+FormSGClipNode >> boundingBox [
+	rectangle isEmpty ifTrue: [ ^ rectangle ].
+	^ rectangle intersect: child boundingBox ifNone: [ Rectangle empty]
+]
+
 { #category : #accessing }
 FormSGClipNode >> child [
 	^ child
