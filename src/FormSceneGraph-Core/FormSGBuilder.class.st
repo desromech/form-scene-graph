@@ -28,6 +28,11 @@ FormSGBuilder >> containerWith: nodes [
 		yourself
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGBuilder >> displayScannerFor: paragraph [
+	^ FormSGDisplayScanner for: paragraph with: self
+]
+
 { #category : #'node building' }
 FormSGBuilder >> identityTransform [
 	^ FormSGAffineTransform identity
@@ -47,19 +52,30 @@ FormSGBuilder >> solidRectangle: rectangle color: solidColor [
 ]
 
 { #category : #'node building' }
-FormSGBuilder >> string: string from: firstIndex to: lastIndex in: rectangle font: fontOrNil color: color underline: underline underlineColor: underlineColor strikethrough: strikethrough strikethroughColor: strikethroughColor [
+FormSGBuilder >> string: string from: firstIndex to: lastIndex in: rectangle font: font color: color kern: kern [ 
+	^ self string: string from: firstIndex to: lastIndex in: rectangle font: font color: color kern: kern underline: false underlineColor: nil strikethrough: false strikethroughColor: nil
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> string: string from: firstIndex to: lastIndex in: rectangle font: font color: color kern: kern underline: underline underlineColor: underlineColor strikethrough: strikethrough strikethroughColor: strikethroughColor [
 	^ FormSGTextNode new
 		rectangle: rectangle;
 		string: string;
 		firstIndex: firstIndex;
 		lastIndex: lastIndex;
-		font: fontOrNil;
+		font: font;
+		kern: kern;
 		color: color;
 		underline: underline;
 		underlineColor: underlineColor;
 		strikethrough: strikethrough;
 		strikethroughColor: strikethroughColor;
 		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> string: string from: firstIndex to: lastIndex in: rectangle font: font color: color underline: underline underlineColor: underlineColor strikethrough: strikethrough strikethroughColor: strikethroughColor [
+	^ self string: string from: firstIndex to: lastIndex in: rectangle font: font color: color kern: 0 underline: underline underlineColor: underlineColor strikethrough: strikethrough strikethroughColor: strikethroughColor
 ]
 
 { #category : #'node building' }

@@ -7,6 +7,7 @@ Class {
 		'lastIndex',
 		'font',
 		'color',
+		'kern',
 		'underline',
 		'underlineColor',
 		'strikethrough',
@@ -48,6 +49,16 @@ FormSGTextNode >> font [
 { #category : #accessing }
 FormSGTextNode >> font: anObject [
 	font := anObject
+]
+
+{ #category : #accessing }
+FormSGTextNode >> kern [
+	^ kern
+]
+
+{ #category : #accessing }
+FormSGTextNode >> kern: anObject [
+	kern := anObject
 ]
 
 { #category : #accessing }

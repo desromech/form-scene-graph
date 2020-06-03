@@ -71,6 +71,7 @@ FormSGCanvasRenderer >> visitTextNode: node [
 		font: node font color: node color
 		underline: node underline underlineColor: node underlineColor
 		strikethrough: node strikethrough strikethroughColor: node strikethroughColor
+		kern: node kern
 
 ]
 

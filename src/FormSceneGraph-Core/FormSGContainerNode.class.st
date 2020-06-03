@@ -10,7 +10,7 @@ Class {
 { #category : #copying }
 FormSGContainerNode >> , otherNode [
 	otherNode isNullNode ifTrue: [ ^ self ].
-	otherNode isContainerNode ifTrue: [ ^ self copy children , otherNode children ].
+	otherNode isContainerNode ifTrue: [ ^ self copy children: children , otherNode children; yourself ].
 	^ self copy children: children , {otherNode}
 ]
 
