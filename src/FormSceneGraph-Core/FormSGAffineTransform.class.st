@@ -98,7 +98,7 @@ FormSGAffineTransform >> inverseTransformPoint: aPoint [
 
 { #category : #transformation }
 FormSGAffineTransform >> inverseTransformRectangle: aRectangle [
-	^ self inverse transformRectangle: aRectangle
+	^ self inverted transformRectangle: aRectangle
 ]
 
 { #category : #converting }
