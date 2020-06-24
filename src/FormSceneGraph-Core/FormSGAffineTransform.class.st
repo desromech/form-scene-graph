@@ -91,6 +91,27 @@ FormSGAffineTransform >> initialize [
 	self setIdentity
 ]
 
+{ #category : #transformation }
+FormSGAffineTransform >> inverseTransformPoint: aPoint [
+	^ self inverted transformPoint: aPoint
+]
+
+{ #category : #transformation }
+FormSGAffineTransform >> inverseTransformRectangle: aRectangle [
+	^ self inverse transformRectangle: aRectangle
+]
+
+{ #category : #converting }
+FormSGAffineTransform >> inverted [
+	| det |
+	det := (m11*m22) - (m21*m21).
+	(det closeTo: 0.0) ifTrue: [ self error: 'Affine transform does not have an inverse.' ].
+	^ self class new
+		m11: m22 / det; m12: m12 negated / det ; m13: m13 negated;
+		m21: m21 negated / det; m22: m11 / det; m23: m23 negated;
+		yourself
+]
+
 { #category : #testing }
 FormSGAffineTransform >> isIdentity [
 	^ self = self class identity

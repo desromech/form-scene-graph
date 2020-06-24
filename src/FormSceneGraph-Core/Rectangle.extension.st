@@ -6,6 +6,11 @@ Rectangle class >> empty [
 ]
 
 { #category : #'*FormSceneGraph-Core' }
+Rectangle class >> fullSpace [
+	^ self basicNew setFullSpace
+]
+
+{ #category : #'*FormSceneGraph-Core' }
 Rectangle >> isEmpty [
 	^ origin x > corner x or: [ origin y > corner y ]
 ]
@@ -14,4 +19,10 @@ Rectangle >> isEmpty [
 Rectangle >> setEmpty [
 	origin := Float infinity @ Float infinity.
 	corner := Float negativeInfinity @ Float negativeInfinity.
+]
+
+{ #category : #'*FormSceneGraph-Core' }
+Rectangle >> setFullSpace [
+	origin := Float negativeInfinity @ Float negativeInfinity.
+	corner := Float infinity @ Float infinity.
 ]

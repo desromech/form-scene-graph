@@ -28,14 +28,14 @@ FormSGDisplayScanner >> fillTextBackground [
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #initialization }
 FormSGDisplayScanner >> initWithParagraph: paragraph andBuilder: theBuilder [
 	self text: paragraph text textStyle: paragraph textStyle.
 	builder := theBuilder.
 	textNodes := OrderedCollection new.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 FormSGDisplayScanner >> sceneGraphNode [
 	textNodes isEmpty ifTrue: [ ^ builder null ].
 	textNodes size = 1 ifTrue: [ ^ textNodes first ].

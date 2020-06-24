@@ -39,4 +39,9 @@ FormSGAffineTransformTest >> testTranslation [
 	self assert: (transform transformPoint: 0@1) equals: 4@4.
 	self assert: (transform transformPoint: 1@0) equals: 5@3.
 	self assert: (transform transformPoint: 1@1) equals: 5@4.
+
+	self assert: (transform inverseTransformPoint: 0@0) equals: -4 @ -3.
+	self assert: (transform inverseTransformPoint: 0@1) equals: -4 @ -2.
+	self assert: (transform inverseTransformPoint: 1@0) equals: -3 @ -3.
+	self assert: (transform inverseTransformPoint: 1@1) equals: -3 @ -2.
 ]

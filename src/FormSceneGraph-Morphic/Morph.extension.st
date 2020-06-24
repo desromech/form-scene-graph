@@ -2,8 +2,16 @@ Extension { #name : #Morph }
 
 { #category : #'*FormSceneGraph-Morphic' }
 Morph >> buildChildrenSceneGraphNodeWith: builder [
-	| submorphNodes |
 	submorphs isEmpty ifTrue: [ ^ builder null ].
+	^ builder withClippingBounds: self clippingBounds when: self clipSubmorphs build: [ 
+		self buildClippedChildrenSceneGraphNodeWith: builder
+	].
+
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+Morph >> buildClippedChildrenSceneGraphNodeListWith: builder [
+	| submorphNodes |
 	submorphNodes := OrderedCollection new.
 	submorphs reverseDo: [ :each |
 		| childNode |
@@ -13,7 +21,12 @@ Morph >> buildChildrenSceneGraphNodeWith: builder [
 		]
 	].
 
-	^ self buildSceneGraphClippingFor: submorphNodes with: builder
+	^ submorphNodes
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+Morph >> buildClippedChildrenSceneGraphNodeWith: builder [
+	^ builder containerWith: (self buildClippedChildrenSceneGraphNodeListWith: builder)
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
@@ -27,15 +40,6 @@ Morph >> buildFullSceneGraphWith: builder [
 	contentNode isNullNode ifTrue: [ ^ childrenNode ].
 	childrenNode isNullNode ifTrue: [ ^ contentNode ].
 	^ builder containerWith: {contentNode . childrenNode}
-]
-
-{ #category : #'*FormSceneGraph-Morphic' }
-Morph >> buildSceneGraphClippingFor: submorphNodes with: builder [
-	| container |
-	submorphNodes isEmpty ifTrue: [ ^ builder null ].
-	container := builder containerWith: submorphNodes.
-	self clipSubmorphs ifTrue: [ ^ builder clip: container withRectangle: self clippingBounds ].
-	^ container
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }

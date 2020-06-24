@@ -1,8 +1,20 @@
+"
+I am an scene graph builder. I am utility that provides a convenient API for creating 2D scene graph nodes.
+I conveneniently also provide support for keeping track of transformations and clipping bounds with the objective of avoiding building nodes that are complete obscured such as the scrolled out text in a transcript.
+"
 Class {
 	#name : #FormSGBuilder,
 	#superclass : #Object,
+	#instVars : [
+		'clippingBounds'
+	],
 	#category : #'FormSceneGraph-Core'
 }
+
+{ #category : #geometry }
+FormSGBuilder class >> extent: anExtent [
+	^ self new extent: anExtent; yourself
+]
 
 { #category : #'node building' }
 FormSGBuilder >> borderRectangle: rectangle color: color width: width [
@@ -21,6 +33,11 @@ FormSGBuilder >> clip: node withRectangle: rectangle [
 		yourself
 ]
 
+{ #category : #'building context' }
+FormSGBuilder >> clippingBounds [
+	^ clippingBounds
+]
+
 { #category : #'node building' }
 FormSGBuilder >> containerWith: nodes [
 	^ FormSGContainerNode new
@@ -28,14 +45,25 @@ FormSGBuilder >> containerWith: nodes [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #text }
 FormSGBuilder >> displayScannerFor: paragraph [
 	^ FormSGDisplayScanner for: paragraph with: self
+]
+
+{ #category : #'building context' }
+FormSGBuilder >> extent: anExtent [
+	clippingBounds := 0@0 extent: anExtent.
 ]
 
 { #category : #'node building' }
 FormSGBuilder >> identityTransform [
 	^ FormSGAffineTransform identity
+]
+
+{ #category : #initialization }
+FormSGBuilder >> initialize [
+	super initialize.
+	clippingBounds := Rectangle fullSpace.
 ]
 
 { #category : #'node building' }
@@ -116,4 +144,47 @@ FormSGBuilder >> translate: child with: translation [
 		translation: translation;
 		child: child;
 		yourself
+]
+
+{ #category : #'building context' }
+FormSGBuilder >> withClippingBounds: additionalClippingBound build: aBlock [
+	| newClippingBounds oldClippingBounds result |
+	newClippingBounds := clippingBounds intersect: additionalClippingBound ifNone: [ ^ self null ].
+	oldClippingBounds := clippingBounds.
+	clippingBounds := newClippingBounds.
+
+	result := aBlock ensure: [ clippingBounds := oldClippingBounds ].
+	result isNullNode ifTrue: [ ^ result ].
+	^ self clip: result withRectangle: additionalClippingBound
+]
+
+{ #category : #'building context' }
+FormSGBuilder >> withClippingBounds: additionalClippingBound when: clippingEnable build: aBlock [
+	clippingEnable ifFalse: [ ^ aBlock value ].
+	^ self withClippingBounds: additionalClippingBound build: aBlock
+]
+
+{ #category : #'building context' }
+FormSGBuilder >> withTransform: transform build: aBlock [
+	| child oldClippingBounds |
+	transform isTranslationOnly ifTrue: [ ^ self withTranslation: transform translation build: aBlock ].
+	oldClippingBounds := clippingBounds.
+	clippingBounds := transform inverseTransformRectangle: clippingBounds.
+	child := aBlock ensure: [ clippingBounds := oldClippingBounds ].
+
+	child := aBlock value.
+	^ child isNullNode
+		ifTrue: [ child ]
+		ifFalse: [ self transform: child with: transform ].
+]
+
+{ #category : #'building context' }
+FormSGBuilder >> withTranslation: translation build: aBlock [
+	| child oldClippingBounds |
+	oldClippingBounds := clippingBounds.
+	clippingBounds := clippingBounds translateBy: translation negated.
+	child := aBlock ensure: [ clippingBounds := oldClippingBounds ].
+	^ child isNullNode
+		ifTrue: [ child ]
+		ifFalse: [ self translate: child with: translation ].
 ]
