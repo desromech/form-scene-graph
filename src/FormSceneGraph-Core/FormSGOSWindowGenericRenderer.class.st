@@ -26,13 +26,35 @@ FormSGOSWindowGenericRenderer >> render: node with: theRenderer [
 
 { #category : #rendering }
 FormSGOSWindowGenericRenderer >> render: node with: theRenderer clippingBounds: clippingBounds [
+	self render: node with: theRenderer translation: 0@0 clippingBounds: clippingBounds
+]
+
+{ #category : #rendering }
+FormSGOSWindowGenericRenderer >> render: node with: theRenderer translation: translation clippingBounds: clippingBounds [
 	renderer := theRenderer.
 	renderer useCompositeAlphaBlending.
 
-	currentTranslation := 0@0.
+	currentTranslation := translation.
 	currentClipRectangle := clippingBounds.
 	renderer clippingBounds: clippingBounds.
 	self visitNode: node.
+]
+
+{ #category : #visiting }
+FormSGOSWindowGenericRenderer >> validateCachedSubScene: node renderTarget: renderTarget [
+	renderer withRenderTarget: renderTarget do: [
+		| translation |
+		renderer
+			color: Color transparent;
+			clear.
+		
+		translation := node rectangle origin negated.
+		self class new
+			render: node child with: renderer
+			translation: translation clippingBounds: (0@0 extent: node rectangle extent ceiling).
+			
+		renderer clippingBounds: currentClipRectangle.
+	]
 ]
 
 { #category : #visiting }
@@ -43,6 +65,30 @@ FormSGOSWindowGenericRenderer >> visitBorderNode: node [
 	node borderRectanglesDo: [ :rect |
 		renderer fillRectangle: (rect translateBy: currentTranslation)
 	].
+
+]
+
+{ #category : #visiting }
+FormSGOSWindowGenericRenderer >> visitCachedSubScene: node [
+	| rectangle requiredExtent renderTarget convertedRectangle |
+	rectangle := node rectangle.
+	rectangle ifNil: [ ^ self ].
+	
+	requiredExtent := rectangle extent ceiling.
+	(requiredExtent x <= 0 or: [requiredExtent y <= 0]) ifTrue: [ ^ self ].
+	
+	renderTarget := renderer getOrCreateRenderTargetTextureFor: node withExtent: rectangle extent ceiling.
+	renderTarget ifNil: [ ^ self visitNode: node clipChildNode ].
+	
+	renderTarget userData ~= node modificationCount ifTrue: [
+		self validateCachedSubScene: node renderTarget: renderTarget.
+		renderTarget userData: node modificationCount
+	].
+
+	convertedRectangle := node rectangle translateBy: currentTranslation.
+	
+	renderer color: Color white;
+		drawTexture: renderTarget in: convertedRectangle
 
 ]
 
@@ -128,10 +174,10 @@ FormSGOSWindowGenericRenderer >> visitTranslationNode: node [
 	].
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGOSWindowGenericRenderer >> withTranslation: newTranslation do: aBlock [
 	| oldTranslation |
 	oldTranslation := currentTranslation.
-	currentTranslation := newTranslation.
+	currentTranslation := currentTranslation + newTranslation.
 	aBlock ensure: [ currentTranslation := oldTranslation ].
 ]

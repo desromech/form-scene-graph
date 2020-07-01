@@ -15,6 +15,11 @@ FormSGVisitor >> visitBorderNode: node [
 ]
 
 { #category : #visiting }
+FormSGVisitor >> visitCachedSubScene: node [
+	^ self visitNode: node clipChildNode
+]
+
+{ #category : #visiting }
 FormSGVisitor >> visitChildAttributeNode: node [
 	^ self subclassResponsibility
 ]

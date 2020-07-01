@@ -30,19 +30,48 @@ Morph >> buildClippedChildrenSceneGraphNodeWith: builder [
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
-Morph >> buildFullSceneGraphWith: builder [ 
-	| contentNode childrenNode |
-	self visible ifFalse: [^ builder null].
-	(self hasProperty: #errorOnDraw) ifTrue: [^ builder null ].
+Morph >> buildDrawErrorSceneGraphNodeWith: builder [
+	| nodes |
+	nodes := OrderedCollection new.
+	nodes
+		add: (builder solidRectangle: bounds color: Color red);
+		add: (builder borderRectangle: bounds color: Color yellow width: 1).
+		
+	self valueOfProperty: #drawError ifPresentDo: [ :error| | trace stringBounds |
+		trace := String streamContents: [ :s| error signalerContext shortDebugStackOn: s].
+		stringBounds := bounds insetBy: 5.
+		trace linesDo: [ :aString|
+			nodes add: (builder string: aString in: stringBounds font: TextStyle defaultFont color: Color black).
+			stringBounds := stringBounds top: stringBounds top + (TextStyle defaultFont pixelSize * 1.2) 	]].
+	^ builder containerWith: nodes asArray
+]
 
-	contentNode :=	self buildSceneGraphNodeWith: builder.
-	childrenNode := self buildChildrenSceneGraphNodeWith: builder.
-	contentNode isNullNode ifTrue: [ ^ childrenNode ].
-	childrenNode isNullNode ifTrue: [ ^ contentNode ].
-	^ builder containerWith: {contentNode . childrenNode}
+{ #category : #'*FormSceneGraph-Morphic' }
+Morph >> buildFullSceneGraphWith: builder [ 
+	self visible ifFalse: [^ builder null].
+	self fullBounds. "For layout computation"
+	(self hasProperty: #errorOnDraw) ifTrue: [^ self buildDrawErrorSceneGraphNodeWith: builder ].
+
+	^ [
+		self doBuildFullSceneGraphWith: builder
+	] on: Error do: [ :err |
+		self setProperty: #errorOnDraw toValue: true.
+		self setProperty: #drawError toValue: err freeze.
+		self buildDrawErrorSceneGraphNodeWith: builder
+	]
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
 Morph >> buildSceneGraphNodeWith: builder [
 	^ builder fillRectangle: self bounds fillStyle: self fillStyle borderStyle: self borderStyle
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+Morph >> doBuildFullSceneGraphWith: builder [
+	| contentNode childrenNode |
+	contentNode :=	self buildSceneGraphNodeWith: builder.
+	childrenNode := self buildChildrenSceneGraphNodeWith: builder.
+	contentNode isNullNode ifTrue: [ ^ childrenNode ].
+	childrenNode isNullNode ifTrue: [ ^ contentNode ].
+	^ builder containerWith: {contentNode . childrenNode}
 ]

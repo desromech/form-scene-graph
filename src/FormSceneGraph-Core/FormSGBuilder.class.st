@@ -37,6 +37,11 @@ FormSGBuilder >> borderRectangle: rectangle color: color width: width [
 		yourself
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGBuilder >> cachedSubScene [
+	^ FormSGCachedSubScene new
+]
+
 { #category : #'node building' }
 FormSGBuilder >> clip: node withRectangle: rectangle [
 	^ FormSGClipNode new
@@ -116,6 +121,11 @@ FormSGBuilder >> string: string from: firstIndex to: lastIndex in: rectangle fon
 { #category : #'node building' }
 FormSGBuilder >> string: string from: firstIndex to: lastIndex in: rectangle font: font color: color underline: underline underlineColor: underlineColor strikethrough: strikethrough strikethroughColor: strikethroughColor [
 	^ self string: string from: firstIndex to: lastIndex in: rectangle font: font color: color kern: 0 underline: underline underlineColor: underlineColor strikethrough: strikethrough strikethroughColor: strikethroughColor
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> string: string in: boundsRect font: fontOrNil color: c [
+	^ self string: string in: boundsRect font: fontOrNil color: c underline: false underlineColor: nil strikethrough: false strikethroughColor: nil
 ]
 
 { #category : #'node building' }

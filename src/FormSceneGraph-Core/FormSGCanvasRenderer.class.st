@@ -14,9 +14,19 @@ FormSGCanvasRenderer class >> render: node on: canvas [
 ]
 
 { #category : #rendering }
+FormSGCanvasRenderer class >> render: node withTransform: initialTransform on: canvas [
+	^ self new render: node withTransform: initialTransform on: canvas
+]
+
+{ #category : #rendering }
 FormSGCanvasRenderer >> render: node on: aCanvas [
+	self render: node withTransform: FormSGAffineTransform identity on: aCanvas
+]
+
+{ #category : #rendering }
+FormSGCanvasRenderer >> render: node withTransform: initialTransform on: aCanvas [
 	canvas := aCanvas.
-	currentTransform := FormSGAffineTransform identity.
+	currentTransform := initialTransform.
 	self visitNode: node.
 ]
 
@@ -27,6 +37,16 @@ FormSGCanvasRenderer >> visitBorderNode: node [
 	node borderRectanglesDo: [ :rect |
 		canvas fillRectangle: rect color: node color
 	].
+]
+
+{ #category : #visiting }
+FormSGCanvasRenderer >> visitCachedSubScene: node [
+	| form |
+	node rectangle ifNil: [ ^ self ].
+	form := node validCachedForm.
+	form ifNil: [ ^ self ].
+	
+	canvas translucentImage: form at: node rectangle origin
 ]
 
 { #category : #visiting }
