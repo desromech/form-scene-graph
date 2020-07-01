@@ -22,7 +22,11 @@ FormSGCanvasRenderer >> render: node on: aCanvas [
 
 { #category : #visiting }
 FormSGCanvasRenderer >> visitBorderNode: node [
-	canvas frameRectangle: node rectangle width: node width color: node color
+	node color isTransparent ifTrue: [ ^ self ].
+	
+	node borderRectanglesDo: [ :rect |
+		canvas fillRectangle: rect color: node color
+	].
 ]
 
 { #category : #visiting }

@@ -17,6 +17,18 @@ FormSGBuilder class >> extent: anExtent [
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> borderRectangle: rectangle color: color leftWidth: leftWidth rightWidth: rightWidth bottomWidth: bottomWidth topWidth: topWidth [
+	^ FormSGBorderNode new
+		rectangle: rectangle;
+		color: color;
+		leftWidth: leftWidth;
+		rightWidth: rightWidth;
+		bottomWidth: bottomWidth;
+		topWidth: topWidth;
+		yourself
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> borderRectangle: rectangle color: color width: width [
 	^ FormSGBorderNode new
 		rectangle: rectangle;

@@ -37,20 +37,12 @@ FormSGOSWindowGenericRenderer >> render: node with: theRenderer clippingBounds: 
 
 { #category : #visiting }
 FormSGOSWindowGenericRenderer >> visitBorderNode: node [
-	| roundedWidth translatedRectangle |
 	node color isTransparent ifTrue: [ ^ self ].
-	roundedWidth := (node width + 0.5) floor.
-	roundedWidth <= 0 ifTrue: [ ^ self ].
-	translatedRectangle := node rectangle translateBy: currentTranslation.
-
+	
 	renderer color: node color.
-	roundedWidth = 1 ifTrue: [
-		renderer drawRectangle: translatedRectangle
-	] ifFalse: [
-		(translatedRectangle areasOutside: (translatedRectangle insetBy: roundedWidth)) do: [:edgeStrip |
-			renderer fillRectangle: edgeStrip
-		].
-	]
+	node borderRectanglesDo: [ :rect |
+		renderer fillRectangle: (rect translateBy: currentTranslation)
+	].
 
 ]
 

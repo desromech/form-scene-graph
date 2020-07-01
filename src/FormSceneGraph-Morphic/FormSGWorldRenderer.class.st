@@ -27,7 +27,7 @@ FormSGWorldRenderer >> deferUpdatesDuring: aBlock [
 
 { #category : #operations }
 FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
-	| submorphs renderer builder |
+	| submorphs renderer builder rootNodes |
 	osWindow ifNil: [ ^ self ].
 	submorphs := aWorld submorphs.
 
@@ -40,7 +40,13 @@ FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
 		
 	renderer := self osWindowRenderer.
 	builder := FormSGBuilder extent: aWorld extent. 
-	renderer scene rootNode: (aWorld buildFullSceneGraphWith: builder).
+	rootNodes := OrderedCollection new.
+	rootNodes add: (aWorld buildFullSceneGraphWith: builder).
+	aWorldState hands reverseDo: [ :each |
+		rootNodes add: (each buildFullSceneGraphWith: builder)
+	].
+
+	renderer scene rootNode: (builder containerWith: rootNodes).
 	renderer updateAll.
 ]
 
