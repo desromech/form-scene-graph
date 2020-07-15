@@ -2,7 +2,7 @@ Extension { #name : #Morph }
 
 { #category : #'*FormSceneGraph-Morphic' }
 Morph >> buildChildrenSceneGraphNodeWith: builder [
-	submorphs isEmpty ifTrue: [ ^ builder null ].
+	submorphs ifEmpty: [ ^ builder null ].
 	^ builder withClippingBounds: self clippingBounds when: self clipSubmorphs build: [ 
 		self buildClippedChildrenSceneGraphNodeWith: builder
 	].
@@ -62,16 +62,35 @@ Morph >> buildFullSceneGraphWith: builder [
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
+Morph >> buildKeyboardFocusIndicatorSceneGraphNodeWith: builder [
+	^ self focusIndicatorMorph buildSceneGraphNodeWith: builder
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+Morph >> buildOverlaySceneGraphNodeWith: builder [
+	| result |
+	result := builder null.
+	self shouldDrawKeyboardFocusIndicator ifTrue: [ result := self buildKeyboardFocusIndicatorSceneGraphNodeWith: builder ].
+	^ result
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
 Morph >> buildSceneGraphNodeWith: builder [
 	^ builder fillRectangle: self bounds fillStyle: self fillStyle borderStyle: self borderStyle
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
 Morph >> doBuildFullSceneGraphWith: builder [
-	| contentNode childrenNode |
+	| contentNode childrenNode overlayNode |
 	contentNode :=	self buildSceneGraphNodeWith: builder.
 	childrenNode := self buildChildrenSceneGraphNodeWith: builder.
-	contentNode isNullNode ifTrue: [ ^ childrenNode ].
-	childrenNode isNullNode ifTrue: [ ^ contentNode ].
-	^ builder containerWith: {contentNode . childrenNode}
+	overlayNode := self buildOverlaySceneGraphNodeWith: builder.
+	(contentNode isNullNode and: [overlayNode isNullNode]) ifTrue: [ ^ childrenNode ].
+	(childrenNode isNullNode and: [overlayNode isNullNode]) ifTrue: [ ^ contentNode ].
+	^ (builder containerWith: {contentNode}) , childrenNode , overlayNode
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+Morph >> shouldDrawKeyboardFocusIndicator [
+	^ self hasKeyboardFocus
 ]

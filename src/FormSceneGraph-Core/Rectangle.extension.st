@@ -16,6 +16,11 @@ Rectangle >> isEmpty [
 ]
 
 { #category : #'*FormSceneGraph-Core' }
+Rectangle >> mergeAllowingEmpty: other [
+	^ self class basicNew setOrigin: (origin min: other origin) corner: (corner max: other corner)
+]
+
+{ #category : #'*FormSceneGraph-Core' }
 Rectangle >> setEmpty [
 	origin := Float infinity @ Float infinity.
 	corner := Float negativeInfinity @ Float negativeInfinity.
@@ -25,4 +30,10 @@ Rectangle >> setEmpty [
 Rectangle >> setFullSpace [
 	origin := Float negativeInfinity @ Float negativeInfinity.
 	corner := Float infinity @ Float infinity.
+]
+
+{ #category : #'*FormSceneGraph-Core' }
+Rectangle >> setOrigin: newOrigin corner: newCorner [
+	origin := newOrigin.
+	corner := newCorner.
 ]

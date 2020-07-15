@@ -24,7 +24,7 @@ FormSGContainerNode >> boundingBox [
 	| result |
 	result := Rectangle empty.
 	children do: [ :each |
-		result := result merge: each boundingBox
+		result := result mergeAllowingEmpty: each boundingBox
 	].
 	^ result
 ]

@@ -32,7 +32,7 @@ FormSGNode >> asForm [
 FormSGNode >> asFormWithBackgroundColor: backgroundColor [
 	| boundingBox form topLevelNode |
 	boundingBox := self boundingBox.
-	boundingBox isEmpty ifTrue: [ ^ Form extent: 0@0 depth: 32 ].
+	boundingBox isEmpty ifTrue: [ ^ Form extent: 1@1 depth: 32 ].
 	
 	form := Form extent: boundingBox extent ceiling depth: 32.
 	form fillColor: backgroundColor.
