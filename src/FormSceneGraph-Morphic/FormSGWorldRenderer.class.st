@@ -13,7 +13,10 @@ FormSGWorldRenderer class >> isApplicableFor: aWorld [
 FormSGWorldRenderer >> checkForNewScreenSize [
 
 	osWindow ifNil: [ ^ self ].
-
+	"This check is required to avoid a glitch with the keyboard focus handling."
+	(world worldState realWindowExtent = self actualScreenSize
+	and: [world worldState currentCursor isNotNil]) ifTrue: [ ^ self ].
+	
 	world worldState realWindowExtent: self actualScreenSize.
 
 	world restoreMorphicDisplay.
