@@ -134,6 +134,11 @@ FormSGBuilder >> string: string in: boundsRect font: fontOrNil color: c underlin
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> textureForm: form at: position [
+	^ self texturedRectangle: (position extent: form extent) form: form
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> texturedRectangle: rectangle form: form [
 	^ self texturedRectangle: rectangle form: form opaque: false
 ]

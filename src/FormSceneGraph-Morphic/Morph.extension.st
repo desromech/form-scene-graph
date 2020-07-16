@@ -92,5 +92,5 @@ Morph >> doBuildFullSceneGraphWith: builder [
 
 { #category : #'*FormSceneGraph-Morphic' }
 Morph >> shouldDrawKeyboardFocusIndicator [
-	^ self hasKeyboardFocus
+	^ false
 ]
