@@ -10,17 +10,38 @@ FormSGWorldRenderer class >> isApplicableFor: aWorld [
 ]
 
 { #category : #initialization }
+FormSGWorldRenderer >> actualScreenSize [
+	^ (super actualScreenSize / world sceneScaleFactor) ceiling
+]
+
+{ #category : #operations }
+FormSGWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld [
+	| builder rootNodes scaleFactor |
+	scaleFactor := aWorld sceneScaleFactor.
+	builder := FormSGBuilder extent: self actualScreenSize.
+	rootNodes := OrderedCollection new.
+	rootNodes add: (aWorld buildFullSceneGraphWith: builder).
+	aWorldState hands reverseDo: [ :each |
+		rootNodes add: (each buildFullSceneGraphWith: builder)
+	].
+	aWorldState damageRecorder reset.
+	^ builder scale: (builder containerWith: rootNodes) with: scaleFactor
+]
+
+{ #category : #initialization }
 FormSGWorldRenderer >> checkForNewScreenSize [
 
 	osWindow ifNil: [ ^ self ].
-	"This check is required to avoid a glitch with the keyboard focus handling."
-	(world worldState realWindowExtent = self actualScreenSize
-	and: [world worldState currentCursor isNotNil]) ifTrue: [ ^ self ].
-	
+	world worldState realWindowExtent = self actualScreenSize ifTrue: [ ^ self ].
 	world worldState realWindowExtent: self actualScreenSize.
 
 	world restoreMorphicDisplay.
 
+]
+
+{ #category : #initialization }
+FormSGWorldRenderer >> convertRawMouseEventPosition: aPosition [
+	^ aPosition / world sceneScaleFactor
 ]
 
 { #category : #operations }
@@ -30,27 +51,60 @@ FormSGWorldRenderer >> deferUpdatesDuring: aBlock [
 
 { #category : #operations }
 FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
-	| submorphs renderer builder rootNodes |
+	| renderer submorphs newSceneGraph |
 	osWindow ifNil: [ ^ self ].
-	submorphs := aWorld submorphs.
 
 	"force re-layout if needed"
+	submorphs := aWorld submorphs.
 	submorphs do: [ :m | m fullBounds ].
 
 	"display is already up-to-date"
 	aWorldState checkIfUpdateNeeded
-		ifFalse: [ ^ self ].
+		ifFalse: [ ^ nil ].
 		
-	renderer := self osWindowRenderer.
-	builder := FormSGBuilder extent: aWorld extent. 
-	rootNodes := OrderedCollection new.
-	rootNodes add: (aWorld buildFullSceneGraphWith: builder).
-	aWorldState hands reverseDo: [ :each |
-		rootNodes add: (each buildFullSceneGraphWith: builder)
+	self isProfilingRenderingTime ifTrue: [
+		| sceneGraphBuildingTime displayTextLines builder font displayRectangle | 
+		sceneGraphBuildingTime := [ newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld ] timeToRunWithoutGC.
+		newSceneGraph ifNil: [ ^ self ].
+
+		displayTextLines := {
+			'Graph Bld Time: {1} ms [{2}]' format: {sceneGraphBuildingTime printPaddedWith: Character space to: 4 . self class name}.
+		}.
+		previousFrameRenderingTime ifNotNil: [
+			displayTextLines := displayTextLines , { 
+				'P. Total time : {1} ms [{2}]' format: {previousFrameRenderingTime printPaddedWith: Character space to: 4 . self class name}.
+			}.
+		].
+
+		displayRectangle := (0@0 extent: 280@40).
+		builder := FormSGBuilder extent: aWorld extent.
+		font := TextStyle defaultFont.
+		newSceneGraph := builder containerWith: {
+				newSceneGraph.
+				builder solidRectangle: displayRectangle color: Color white
+			} ,
+			(displayTextLines collectWithIndex: [:line :index |
+				builder string: line in: (10@(10*index) extent: 200@10) font: font color: Color black.
+			]).
+				
+		previousFrameRenderingTime := [
+			renderer := self osWindowRenderer.
+			renderer scene rootNode: newSceneGraph.
+			renderer updateAll.
+		] timeToRunWithoutGC.
+
+		displayTextLines do: [ :line |
+			Stdio stdout nextPutAll: line; lf
+		]
+	] ifFalse: [ 
+		newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld.
+		newSceneGraph ifNil: [ ^ self ].
+
+		renderer := self osWindowRenderer.
+		renderer scene rootNode: newSceneGraph.
+		renderer updateAll.
 	].
 
-	renderer scene rootNode: (builder containerWith: rootNodes).
-	renderer updateAll.
 ]
 
 { #category : #operations }

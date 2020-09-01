@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'renderer',
 		'currentTranslation',
-		'currentClipRectangle'
+		'currentClipRectangle',
+		'currentScale'
 	],
 	#category : #'FormSceneGraph-Core'
 }
@@ -26,32 +27,49 @@ FormSGOSWindowGenericRenderer >> render: node with: theRenderer [
 
 { #category : #rendering }
 FormSGOSWindowGenericRenderer >> render: node with: theRenderer clippingBounds: clippingBounds [
-	self render: node with: theRenderer translation: 0@0 clippingBounds: clippingBounds
+	self render: node with: theRenderer scaleFactor: 1.0 translation: 0@0 clippingBounds: clippingBounds
 ]
 
 { #category : #rendering }
-FormSGOSWindowGenericRenderer >> render: node with: theRenderer translation: translation clippingBounds: clippingBounds [
+FormSGOSWindowGenericRenderer >> render: node with: theRenderer scaleFactor: scaleFactor translation: translation clippingBounds: clippingBounds [
 	renderer := theRenderer.
 	renderer useCompositeAlphaBlending.
 
+	currentScale := scaleFactor.
 	currentTranslation := translation.
 	currentClipRectangle := clippingBounds.
 	renderer clippingBounds: clippingBounds.
 	self visitNode: node.
 ]
 
+{ #category : #transformation }
+FormSGOSWindowGenericRenderer >> transformPosition: aPosition [
+	^ (currentScale * aPosition) + currentTranslation
+]
+
+{ #category : #transformation }
+FormSGOSWindowGenericRenderer >> transformRectangle: rectangle [
+	^ (self transformPosition: rectangle origin) corner: (self transformPosition: rectangle corner)
+]
+
+{ #category : #transformation }
+FormSGOSWindowGenericRenderer >> transformVector: aPosition [
+	^ currentScale * aPosition
+]
+
 { #category : #visiting }
 FormSGOSWindowGenericRenderer >> validateCachedSubScene: node renderTarget: renderTarget [
 	renderer withRenderTarget: renderTarget do: [
-		| translation |
+		| convertedRectangle translation |
 		renderer
 			color: Color transparent;
 			clear.
 		
-		translation := node rectangle origin negated.
+		convertedRectangle := self transformRectangle: node rectangle.
+		translation := convertedRectangle origin negated.
 		self class new
 			render: node child with: renderer
-			translation: translation clippingBounds: (0@0 extent: node rectangle extent ceiling).
+			scaleFactor: currentScale translation: translation clippingBounds: (0@0 extent: convertedRectangle extent ceiling).
 			
 		renderer clippingBounds: currentClipRectangle.
 	]
@@ -63,16 +81,17 @@ FormSGOSWindowGenericRenderer >> visitBorderNode: node [
 	
 	renderer color: node color.
 	node borderRectanglesDo: [ :rect |
-		renderer fillRectangle: (rect translateBy: currentTranslation)
+		renderer fillRectangle: (self transformRectangle: rect)
 	].
 
 ]
 
 { #category : #visiting }
 FormSGOSWindowGenericRenderer >> visitCachedSubScene: node [
-	| rectangle requiredExtent renderTarget convertedRectangle |
+	| rectangle requiredExtent renderTarget |
 	rectangle := node rectangle.
 	rectangle ifNil: [ ^ self ].
+	rectangle := self transformRectangle: rectangle.
 	
 	requiredExtent := rectangle extent ceiling.
 	(requiredExtent x <= 0 or: [requiredExtent y <= 0]) ifTrue: [ ^ self ].
@@ -85,17 +104,14 @@ FormSGOSWindowGenericRenderer >> visitCachedSubScene: node [
 		renderTarget userData: node modificationCount
 	].
 
-	convertedRectangle := node rectangle translateBy: currentTranslation.
-	
 	renderer color: Color white;
-		drawTexture: renderTarget in: convertedRectangle
-
+		drawTexture: renderTarget in: rectangle
 ]
 
 { #category : #visiting }
 FormSGOSWindowGenericRenderer >> visitClipNode: node [
 	| convertedClipRectangle oldClipRectangle |
-	convertedClipRectangle := node rectangle translateBy: currentTranslation.
+	convertedClipRectangle := self transformRectangle: node rectangle.
 	convertedClipRectangle := currentClipRectangle intersect: convertedClipRectangle ifNone: [ ^ self ].
 
 	oldClipRectangle := currentClipRectangle.
@@ -114,7 +130,7 @@ FormSGOSWindowGenericRenderer >> visitClipNode: node [
 FormSGOSWindowGenericRenderer >> visitColorNode: node [
 	node color isTransparent ifTrue: [ ^ self ].
 	renderer color: node color;
-		fillRectangle: (node rectangle translateBy: currentTranslation)
+		fillRectangle: (self transformRectangle: node rectangle)
 ]
 
 { #category : #visiting }
@@ -129,13 +145,18 @@ FormSGOSWindowGenericRenderer >> visitNullNode: node [
 
 { #category : #visiting }
 FormSGOSWindowGenericRenderer >> visitTextNode: node [
-	| convertedRectangle |
-	convertedRectangle := node rectangle translateBy: currentTranslation.
+	| convertedRectangle scaledFont |
+	node font ifNil: [ ^ nil ].
+	convertedRectangle := self transformRectangle: node rectangle.
 	(currentClipRectangle intersects: convertedRectangle) ifFalse: [ ^ self ].
-	
+	scaledFont := node font.
+	(currentScale closeTo: 1.0) ifFalse: [
+		scaledFont := scaledFont withSizeIncrementedBy: (scaledFont pointSize*currentScale) - scaledFont pointSize
+	].
+
 	renderer drawString: node string from: node firstIndex to: node lastIndex
 		in: convertedRectangle
-		font: node font color: node color
+		font: scaledFont color: node color
 		underline: node underline underlineColor: node underlineColor
 		strikethrough: node strikethrough strikethroughColor: node strikethroughColor
 		kern: node kern
@@ -145,7 +166,7 @@ FormSGOSWindowGenericRenderer >> visitTextNode: node [
 FormSGOSWindowGenericRenderer >> visitTextureNode: node [
 	| texture convertedRectangle |
 	node form ifNil: [ ^ self ].
-	convertedRectangle := node rectangle translateBy: currentTranslation.
+	convertedRectangle := self transformRectangle: node rectangle.
 	(currentClipRectangle intersects: convertedRectangle) ifFalse: [ ^ self ].
 
 	texture := renderer getOrCreateStaticTextureFromForm: node form.
@@ -157,8 +178,8 @@ FormSGOSWindowGenericRenderer >> visitTextureNode: node [
 
 { #category : #visiting }
 FormSGOSWindowGenericRenderer >> visitTransformNode: node [
-	node transform isTranslationOnly ifTrue: [ 
-		^ self withTranslation: node transform translation do: [ 
+	node transform isTranslationAndPositiveScaleOnly ifTrue: [ 
+		^ self withScale: node transform positiveScale andTranslation: node transform translation do: [ 
 			self visitNode: node child
 		]
 	].
@@ -175,9 +196,22 @@ FormSGOSWindowGenericRenderer >> visitTranslationNode: node [
 ]
 
 { #category : #private }
+FormSGOSWindowGenericRenderer >> withScale: newScale andTranslation: newTranslation do: aBlock [
+	| oldTranslation oldScale |
+	oldScale := currentScale.
+	oldTranslation := currentTranslation.
+	currentScale := currentScale*newScale.
+	currentTranslation := currentTranslation + (oldScale * newTranslation).
+	aBlock ensure: [
+		currentTranslation := oldTranslation.
+		currentScale := oldScale.
+	].
+]
+
+{ #category : #private }
 FormSGOSWindowGenericRenderer >> withTranslation: newTranslation do: aBlock [
 	| oldTranslation |
 	oldTranslation := currentTranslation.
-	currentTranslation := currentTranslation + newTranslation.
+	currentTranslation := currentTranslation + (self transformVector: newTranslation).
 	aBlock ensure: [ currentTranslation := oldTranslation ].
 ]

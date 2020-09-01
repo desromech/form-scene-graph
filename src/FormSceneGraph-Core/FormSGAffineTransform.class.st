@@ -25,6 +25,11 @@ FormSGAffineTransform class >> identity [
 ]
 
 { #category : #'instance creation' }
+FormSGAffineTransform class >> scale: scaleFactor [
+	^ self new setScale: scaleFactor; yourself
+]
+
+{ #category : #'instance creation' }
 FormSGAffineTransform class >> translation: translation [
 	^ self new setTranslation: translation; yourself
 ]
@@ -118,6 +123,14 @@ FormSGAffineTransform >> isIdentity [
 ]
 
 { #category : #testing }
+FormSGAffineTransform >> isTranslationAndPositiveScaleOnly [
+	^ (m11 closeTo: m22) and: [
+		m11 > 0.0 and: [
+		(m12 closeTo: 0.0) and: [
+		(m21 closeTo: 0.0)]]]
+]
+
+{ #category : #testing }
 FormSGAffineTransform >> isTranslationOnly [
 	^ (m11 closeTo: 1.0) and: [
 		(m12 closeTo: 0.0) and: [
@@ -185,6 +198,12 @@ FormSGAffineTransform >> m23: anObject [
 	m23 := anObject
 ]
 
+{ #category : #accessing }
+FormSGAffineTransform >> positiveScale [
+	self assert: ((m11 closeTo: m22) and: [m11 > 0]).
+	^ m11
+]
+
 { #category : #initialization }
 FormSGAffineTransform >> setIdentity [
 	m11 := 1.0. m12 := 0.0. m13 := 0.0.
@@ -217,6 +236,12 @@ FormSGAffineTransform >> setRotationInRadians: rotation translation: translation
 	s := rotation sin.
 	m11 := c. m12 := s negated. m13 := translation x.
 	m21 := s. m22 := c. m23 := translation y.
+]
+
+{ #category : #initialization }
+FormSGAffineTransform >> setScale: scaleFactor [.
+	m11 := scaleFactor. m12 := 0.0. m13 := 0.0.
+	m21 := 0.0. m22 := scaleFactor. m23 := 0.0.
 ]
 
 { #category : #initialization }

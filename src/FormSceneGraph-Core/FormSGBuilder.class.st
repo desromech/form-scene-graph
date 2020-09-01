@@ -89,6 +89,12 @@ FormSGBuilder >> null [
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> scale: child with: scaleFactor [
+	(scaleFactor closeTo: 1) ifTrue: [ ^ child ].
+	^ self transform: child with: (FormSGAffineTransform scale: scaleFactor)
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> solidRectangle: rectangle color: solidColor [
 	^ FormSGColorNode new
 		rectangle: rectangle;

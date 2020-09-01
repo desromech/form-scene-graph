@@ -1,6 +1,9 @@
 Class {
 	#name : #FormSGWorldMorph,
 	#superclass : #OSWindowWorldMorph,
+	#instVars : [
+		'sceneScaleFactor'
+	],
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
@@ -10,4 +13,14 @@ FormSGWorldMorph >> open [
 		windowCloseAction: [self osWindowCloseButtonPressed]).
 	self changed.
 	self class addExtraWorld: self.
+]
+
+{ #category : #accessing }
+FormSGWorldMorph >> sceneScaleFactor [
+	^ sceneScaleFactor ifNil: [ sceneScaleFactor := 1.0 ]
+]
+
+{ #category : #accessing }
+FormSGWorldMorph >> sceneScaleFactor: anObject [
+	sceneScaleFactor := anObject
 ]
