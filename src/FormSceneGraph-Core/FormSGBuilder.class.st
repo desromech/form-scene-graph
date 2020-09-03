@@ -37,7 +37,7 @@ FormSGBuilder >> borderRectangle: rectangle color: color width: width [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'node building' }
 FormSGBuilder >> cachedSubScene [
 	^ FormSGCachedSubScene new
 ]

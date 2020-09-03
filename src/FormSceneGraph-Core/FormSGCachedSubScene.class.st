@@ -5,7 +5,9 @@ Class {
 		'clipChildNode',
 		'cachedSubSceneForm',
 		'modificationCount',
-		'cachedSubSceneFormValidationCount'
+		'cachedSubSceneFormValidationCount',
+		'cachedSubSceneAthensCairoSurface',
+		'cachedSubSceneAthensCairoSurfaceValidationCount'
 	],
 	#category : #'FormSceneGraph-Core'
 }
@@ -67,6 +69,26 @@ FormSGCachedSubScene >> rectangle [
 FormSGCachedSubScene >> rectangle: aRectangle [
 	clipChildNode rectangle = aRectangle ifFalse: [ self changed ].
 	clipChildNode rectangle: aRectangle
+]
+
+{ #category : #'as yet unclassified' }
+FormSGCachedSubScene >> validCachedAthensCairoSurface [
+	| rectangle requiredExtent translation |
+	cachedSubSceneAthensCairoSurfaceValidationCount = modificationCount ifTrue: [ ^ cachedSubSceneAthensCairoSurface ].
+
+	rectangle := self rectangle.
+	requiredExtent := rectangle extent ceiling.
+	(cachedSubSceneAthensCairoSurface isNil or: [ cachedSubSceneAthensCairoSurface extent ~= requiredExtent ]) ifTrue: [
+		cachedSubSceneAthensCairoSurface := AthensCairoSurface extent: requiredExtent
+	].
+
+	translation := rectangle origin negated.
+	cachedSubSceneAthensCairoSurface drawDuring: [ :canvas |
+		FormSGAthensRenderer render: self child withTransform: (FormSGAffineTransform translation: translation) on: canvas
+	].
+
+	cachedSubSceneAthensCairoSurfaceValidationCount := modificationCount.
+	^ cachedSubSceneAthensCairoSurface
 ]
 
 { #category : #'as yet unclassified' }

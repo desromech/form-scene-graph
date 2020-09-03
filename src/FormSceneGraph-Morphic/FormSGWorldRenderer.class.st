@@ -41,7 +41,7 @@ FormSGWorldRenderer >> checkForNewScreenSize [
 
 { #category : #initialization }
 FormSGWorldRenderer >> convertRawMouseEventPosition: aPosition [
-	^ aPosition / world sceneScaleFactor
+	^ (aPosition / world sceneScaleFactor + 0.5) floor
 ]
 
 { #category : #operations }
@@ -50,8 +50,17 @@ FormSGWorldRenderer >> deferUpdatesDuring: aBlock [
 ]
 
 { #category : #operations }
+FormSGWorldRenderer >> displayNewSceneScene: newSceneGraph [
+	| renderer |
+	renderer := self osWindowRenderer.
+	renderer scene rootNode: newSceneGraph.
+	renderer updateAll.
+
+]
+
+{ #category : #operations }
 FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
-	| renderer submorphs newSceneGraph |
+	| submorphs newSceneGraph |
 	osWindow ifNil: [ ^ self ].
 
 	"force re-layout if needed"
@@ -88,9 +97,7 @@ FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
 			]).
 				
 		previousFrameRenderingTime := [
-			renderer := self osWindowRenderer.
-			renderer scene rootNode: newSceneGraph.
-			renderer updateAll.
+			self displayNewSceneScene: newSceneGraph
 		] timeToRunWithoutGC.
 
 		displayTextLines do: [ :line |
@@ -100,9 +107,7 @@ FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
 		newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld.
 		newSceneGraph ifNil: [ ^ self ].
 
-		renderer := self osWindowRenderer.
-		renderer scene rootNode: newSceneGraph.
-		renderer updateAll.
+		self displayNewSceneScene: newSceneGraph
 	].
 
 ]

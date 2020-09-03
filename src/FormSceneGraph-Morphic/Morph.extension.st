@@ -91,6 +91,17 @@ Morph >> doBuildFullSceneGraphWith: builder [
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
+Morph >> listBuildSceneGraphWith: builder atRow: aRow bounds: drawBounds color: drawColor backgroundColor: backgroundColor from: aMorph [
+	| result |
+	self bounds: drawBounds.
+	result := self buildFullSceneGraphWith: builder.
+	(aMorph submorphs includes: self)
+		ifFalse: [ aMorph addMorph: self ].
+		
+	^ result
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
 Morph >> shouldDrawKeyboardFocusIndicator [
 	^ false
 ]

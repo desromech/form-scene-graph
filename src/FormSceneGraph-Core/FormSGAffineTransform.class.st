@@ -47,6 +47,14 @@ FormSGAffineTransform >> = other [
 ]
 
 { #category : #converting }
+FormSGAffineTransform >> asAthensTransform [
+	^ AthensAffineTransform new
+		sx: m11; shx: m12; x: m13;
+		shx: m21; sy: m22; y: m23;
+		yourself
+]
+
+{ #category : #converting }
 FormSGAffineTransform >> asDisplayTransform [
 	^ MatrixTransform2x3 new
 		a11: m11; a12: m12; a13: m13;

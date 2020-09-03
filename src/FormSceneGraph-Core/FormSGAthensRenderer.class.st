@@ -13,9 +13,23 @@ FormSGAthensRenderer class >> render: node on: canvas [
 ]
 
 { #category : #rendering }
+FormSGAthensRenderer class >> render: node withTransform: initialTransform on: canvas [
+	^ self new render: node withTransform: initialTransform on: canvas
+]
+
+{ #category : #rendering }
 FormSGAthensRenderer >> render: node on: aCanvas [
 	canvas := aCanvas.
 	self visitNode: node
+]
+
+{ #category : #rendering }
+FormSGAthensRenderer >> render: node withTransform: transform on: aCanvas [
+	canvas := aCanvas.
+	canvas pathTransform restoreAfter: [
+		canvas pathTransform multiplyBy: transform asAthensTransform.
+		self visitNode: node
+	]
 ]
 
 { #category : #visiting }
@@ -41,18 +55,27 @@ FormSGAthensRenderer >> visitBorderNode: node [
 ]
 
 { #category : #visiting }
-FormSGAthensRenderer >> visitClipNode: node [
-	"self visitNode: node child."
-	| originalTransform transformedRectangle |
-	originalTransform := canvas pathTransform copy.
-	transformedRectangle := self transformRectangle: node rectangle.
-	canvas pathTransform restoreAfter: [ 
-		canvas pathTransform loadIdentity.
-		canvas clipBy: transformedRectangle during: [ 
-			canvas pathTransform loadAffineTransform: originalTransform.
-			self visitNode: node child
-		]
+FormSGAthensRenderer >> visitCachedSubScene: node [
+	| rectangle surface |
+	true ifTrue: [^ super visitCachedSubScene: node].
+	rectangle := node rectangle.
+	rectangle ifNil: [ ^ self ].
+	
+	surface := node validCachedAthensCairoSurface.
+	surface ifNil: [ ^ self ].
+
+	canvas pathTransform restoreAfter: [
+		canvas setPaint: surface.
+		canvas pathTransform translateBy: node rectangle origin.
+		canvas drawShape: (0@0 extent: node rectangle extent).
 	].
+]
+
+{ #category : #visiting }
+FormSGAthensRenderer >> visitClipNode: node [
+	canvas clipBy: node rectangle during: [ 
+		self visitNode: node child
+	]
 
 ]
 
@@ -101,10 +124,10 @@ FormSGAthensRenderer >> visitTextureNode: node [
 
 { #category : #visiting }
 FormSGAthensRenderer >> visitTransformNode: node [
-	"canvas pathTransform restoreAfter: [
-		canvas pathTransform translateBy: node transform translation.
+	canvas pathTransform restoreAfter: [
+		canvas pathTransform multiplyBy: node transform asAthensTransform.
 		self visitNode: node child
-	]"
+	]
 ]
 
 { #category : #visiting }
