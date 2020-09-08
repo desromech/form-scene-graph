@@ -2,7 +2,8 @@ Class {
 	#name : #FormSGWorldMorph,
 	#superclass : #OSWindowWorldMorph,
 	#instVars : [
-		'sceneScaleFactor'
+		'sceneScaleFactor',
+		'userScaleFactor'
 	],
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
@@ -16,11 +17,16 @@ FormSGWorldMorph >> open [
 ]
 
 { #category : #accessing }
-FormSGWorldMorph >> sceneScaleFactor [
-	^ sceneScaleFactor ifNil: [ sceneScaleFactor := 1.0 ]
+FormSGWorldMorph >> scaleFactor [
+	^ self userScaleFactor
 ]
 
 { #category : #accessing }
-FormSGWorldMorph >> sceneScaleFactor: anObject [
-	sceneScaleFactor := anObject
+FormSGWorldMorph >> userScaleFactor [
+	^ userScaleFactor ifNil: [ userScaleFactor := 1.0 ]
+]
+
+{ #category : #accessing }
+FormSGWorldMorph >> userScaleFactor: anObject [
+	userScaleFactor := anObject
 ]

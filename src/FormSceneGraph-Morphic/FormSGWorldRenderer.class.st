@@ -11,13 +11,13 @@ FormSGWorldRenderer class >> isApplicableFor: aWorld [
 
 { #category : #initialization }
 FormSGWorldRenderer >> actualScreenSize [
-	^ (super actualScreenSize / world sceneScaleFactor) ceiling
+	^ (super actualScreenSize / self scaleFactor) ceiling max: 1@1
 ]
 
 { #category : #operations }
 FormSGWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld [
 	| builder rootNodes scaleFactor |
-	scaleFactor := aWorld sceneScaleFactor.
+	scaleFactor := self scaleFactor.
 	builder := FormSGBuilder extent: self actualScreenSize.
 	rootNodes := OrderedCollection new.
 	rootNodes add: (aWorld buildFullSceneGraphWith: builder).
@@ -40,8 +40,8 @@ FormSGWorldRenderer >> checkForNewScreenSize [
 ]
 
 { #category : #initialization }
-FormSGWorldRenderer >> convertRawMouseEventPosition: aPosition [
-	^ (aPosition / world sceneScaleFactor + 0.5) floor
+FormSGWorldRenderer >> convertWindowMouseEventPosition: aPosition [
+	^ (aPosition / self scaleFactor + 0.5) floor
 ]
 
 { #category : #operations }
@@ -72,43 +72,52 @@ FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
 		ifFalse: [ ^ nil ].
 		
 	self isProfilingRenderingTime ifTrue: [
-		| sceneGraphBuildingTime displayTextLines builder font displayRectangle | 
-		sceneGraphBuildingTime := [ newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld ] timeToRunWithoutGC.
-		newSceneGraph ifNil: [ ^ self ].
-
-		displayTextLines := {
-			'Graph Bld Time: {1} ms [{2}]' format: {sceneGraphBuildingTime printPaddedWith: Character space to: 4 . self class name}.
-		}.
-		previousFrameRenderingTime ifNotNil: [
-			displayTextLines := displayTextLines , { 
-				'P. Total time : {1} ms [{2}]' format: {previousFrameRenderingTime printPaddedWith: Character space to: 4 . self class name}.
-			}.
-		].
-
-		displayRectangle := (0@0 extent: 280@40).
-		builder := FormSGBuilder extent: aWorld extent.
-		font := TextStyle defaultFont.
-		newSceneGraph := builder containerWith: {
-				newSceneGraph.
-				builder solidRectangle: displayRectangle color: Color white
-			} ,
-			(displayTextLines collectWithIndex: [:line :index |
-				builder string: line in: (10@(10*index) extent: 200@10) font: font color: Color black.
-			]).
-				
-		previousFrameRenderingTime := [
-			self displayNewSceneScene: newSceneGraph
-		] timeToRunWithoutGC.
-
-		displayTextLines do: [ :line |
-			Stdio stdout nextPutAll: line; lf
-		]
-	] ifFalse: [ 
-		newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld.
-		newSceneGraph ifNil: [ ^ self ].
-
-		self displayNewSceneScene: newSceneGraph
+		self doDisplayWorldStateWhileProfiling: aWorldState ofWorld: aWorld
+	] ifFalse: [
+		self doDisplayWorldState: aWorldState ofWorld: aWorld
 	].
+
+]
+
+{ #category : #operations }
+FormSGWorldRenderer >> doDisplayWorldState: aWorldState ofWorld: aWorld [
+	| newSceneGraph |
+	newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld.
+	newSceneGraph ifNil: [ ^ self ].
+
+	self displayNewSceneScene: newSceneGraph
+
+]
+
+{ #category : #operations }
+FormSGWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState ofWorld: aWorld [
+	| sceneGraphBuildingTime builder font displayRectangle newSceneGraph measurements | 
+	sceneGraphBuildingTime := [ newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld ] timeToRunWithoutGC.
+	newSceneGraph ifNil: [ ^ self ].
+
+	measurements := { 'Graph building' -> sceneGraphBuildingTime }.
+	previousFrameRenderingTime ifNotNil: [
+		measurements := measurements , { 'Previous frame' -> previousFrameRenderingTime}.
+	].
+
+	displayRectangle := (0@0 extent: 350@40).
+	builder := FormSGBuilder extent: aWorld extent.
+	font := TextStyle defaultFont.
+	newSceneGraph := builder containerWith: {
+			newSceneGraph.
+			builder solidRectangle: displayRectangle color: Color white
+		} ,
+		(measurements collectWithIndex: [:each :index |
+			| line |
+			line := self formatRenderingTimeMeasurement: each.
+			builder string: line in: (10@(10*index) extent: 200@10) font: font color: Color black.
+		]).
+				
+	previousFrameRenderingTime := [
+		self displayNewSceneScene: newSceneGraph
+	] timeToRunWithoutGC.
+
+	self logRenderingTimeMeasurements: measurements
 
 ]
 
@@ -128,7 +137,22 @@ FormSGWorldRenderer >> osWindowRenderer [
 	
 ]
 
+{ #category : #initialization }
+FormSGWorldRenderer >> scaleFactor [
+	^ world scaleFactor * self windowScaleFactor
+]
+
+{ #category : #initialization }
+FormSGWorldRenderer >> screenScaleFactor [
+	^ 1
+]
+
 { #category : #operations }
 FormSGWorldRenderer >> updateDamage: allDamage [
 	"Nothing required here."
+]
+
+{ #category : #'as yet unclassified' }
+FormSGWorldRenderer >> windowScaleFactor [
+	^ osWindow ifNil: [ 1 ] ifNotNil: [ osWindow screenScaleFactor ]
 ]
