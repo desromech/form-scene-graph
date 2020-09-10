@@ -1,3 +1,8 @@
+"
+I am a world renderer that renders morphic in two steps:
+- Build a scene graph of the morphic world.
+- Render the scene graph into the OSWindow.
+"
 Class {
 	#name : #FormSGWorldRenderer,
 	#superclass : #OSWorldRenderer,

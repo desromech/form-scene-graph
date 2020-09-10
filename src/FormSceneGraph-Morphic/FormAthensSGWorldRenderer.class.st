@@ -1,3 +1,6 @@
+"
+I am a scene graph based world renderer that uses the Athens renderer.
+"
 Class {
 	#name : #FormAthensSGWorldRenderer,
 	#superclass : #FormSGWorldRenderer,

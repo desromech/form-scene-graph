@@ -1,3 +1,6 @@
+"
+I am a display scanner that is used for building a scene graph for text.
+"
 Class {
 	#name : #FormSGDisplayScanner,
 	#superclass : #DisplayScanner,

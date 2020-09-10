@@ -1,3 +1,6 @@
+"
+I am OSWindowMorph that uses the form scene graph for all of its rendering tasks.
+"
 Class {
 	#name : #FormSGWorldMorph,
 	#superclass : #OSWindowWorldMorph,
