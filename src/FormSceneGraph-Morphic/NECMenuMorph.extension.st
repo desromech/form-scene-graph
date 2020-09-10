@@ -21,7 +21,7 @@ NECMenuMorph >> buildLine: index sceneGraphNodeWith: builder rectangle: rectangl
 	index = self selected ifTrue: [ 
 		| rect |
 		rect := rectangle withBottom: rectangle top + self class itemHeight.
-		result := builder solidRectangle: rect color: self class scrollColor.
+		result := builder rectangle: rect color: self class scrollColor.
 		self detailPosition: rect topRight
 	].
 	highlightRectangle := rectangle translateBy: (font widthOfString: preString) @ 0.
@@ -29,7 +29,7 @@ NECMenuMorph >> buildLine: index sceneGraphNodeWith: builder rectangle: rectangl
 	
 	clippedHighlightRectangle := highlightRectangle intersect: rectangle ifNone: [Rectangle empty].
 	clippedHighlightRectangle isEmpty ifFalse: [ 
-		result := result , (builder solidRectangle: clippedHighlightRectangle color: (Color gray alpha: 0.3))
+		result := result , (builder rectangle: clippedHighlightRectangle color: (Color gray alpha: 0.3))
 	].
 
 	^ result , (builder string: string in: (rectangle insetBy: 1) font: font color: (self selectColor: type))
@@ -41,7 +41,7 @@ NECMenuMorph >> buildMessageSceneGraphNodeWith: builder in: rectangle [
 	self hasMessage ifFalse: [ ^ builder null ].
 	result := builder null.
 	context hasEntries ifTrue: [
-		result := builder solidRectangle: (rectangle topLeft extent: rectangle width @ 1) color: Color gray.
+		result := builder rectangle: (rectangle topLeft extent: rectangle width @ 1) color: Color gray.
 	].
 
 	^ result

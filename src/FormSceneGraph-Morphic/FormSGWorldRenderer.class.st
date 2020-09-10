@@ -105,7 +105,7 @@ FormSGWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState ofWorld: a
 	font := TextStyle defaultFont.
 	newSceneGraph := builder containerWith: {
 			newSceneGraph.
-			builder solidRectangle: displayRectangle color: Color white
+			builder rectangle: displayRectangle color: Color white
 		} ,
 		(measurements collectWithIndex: [:each :index |
 			| line |

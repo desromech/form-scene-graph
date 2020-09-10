@@ -22,20 +22,23 @@ FormSGBuilderTest >> testBorderRectangle [
 	node := builder borderRectangle: rectangle color: Color blue width: 2.
 	self assert: node rectangle equals: rectangle.
 	self assert: node color equals: Color blue.
-	self assert: node width equals: 2.
+	self assert: node leftWidth equals: 2.
+	self assert: node rightWidth equals: 2.
+	self assert: node bottomWidth equals: 2.
+	self assert: node topWidth equals: 2.
 ]
 
 { #category : #tests }
 FormSGBuilderTest >> testBoundingBox [
 	self assert: builder null boundingBox isEmpty.
-	self assert: (builder solidRectangle: (-1 @ -2 extent: 32 @ 64) color: Color red) boundingBox equals: (-1 @ -2 extent: 32 @ 64).
+	self assert: (builder rectangle: (-1 @ -2 extent: 32 @ 64) color: Color red) boundingBox equals: (-1 @ -2 extent: 32 @ 64).
 	self assert: (builder containerWith: {
-		builder solidRectangle: (-1 @ -2 extent: 32 @ 64) color: Color red.
+		builder rectangle: (-1 @ -2 extent: 32 @ 64) color: Color red.
 		builder null
 	}) boundingBox equals: (-1 @ -2 extent: 32 @ 64).
 	self assert: (builder containerWith: {
-		builder solidRectangle: (-1 @ -2 extent: 32 @ 64) color: Color red.
-		builder solidRectangle: (-5 @ -2 extent: 64 @ 32) color: Color red.
+		builder rectangle: (-1 @ -2 extent: 32 @ 64) color: Color red.
+		builder rectangle: (-5 @ -2 extent: 64 @ 32) color: Color red.
 	}) boundingBox equals: (-5 @ -2 extent: 64 @ 64).
 ]
 
@@ -43,8 +46,8 @@ FormSGBuilderTest >> testBoundingBox [
 FormSGBuilderTest >> testContainer [
 	| node children |
 	children := {
-		builder solidRectangle: (0@0 extent: 32@32) color: Color blue.
-		builder solidRectangle: (10@10 extent: 20@20) color: Color red.
+		builder rectangle: (0@0 extent: 32@32) color: Color blue.
+		builder rectangle: (10@10 extent: 20@20) color: Color red.
 	}.
 	node := builder containerWith: children.
 	self assert: node children equals: children.
@@ -67,7 +70,7 @@ FormSGBuilderTest >> testNullNode [
 FormSGBuilderTest >> testSolidRectangle [
 	| rectangle node |
 	rectangle := 0@0 extent: 250@250.
-	node := builder solidRectangle: rectangle color: Color blue.
+	node := builder rectangle: rectangle color: Color blue.
 	self assert: node rectangle equals: rectangle.
 	self assert: node color equals: Color blue.
 ]
@@ -75,7 +78,7 @@ FormSGBuilderTest >> testSolidRectangle [
 { #category : #tests }
 FormSGBuilderTest >> testTransformNode [
 	| node child |
-	child := builder solidRectangle: (5@5 extent: 32@32) color: Color red.
+	child := builder rectangle: (5@5 extent: 32@32) color: Color red.
 	node := builder transform: child with: builder identityTransform.
 	self assert: node transform equals: builder identityTransform.
 	self assert: node child equals: child.
@@ -85,7 +88,7 @@ FormSGBuilderTest >> testTransformNode [
 { #category : #tests }
 FormSGBuilderTest >> testTranslationNode [
 	| node child |
-	child := builder solidRectangle: (5@5 extent: 32@32) color: Color red.
+	child := builder rectangle: (5@5 extent: 32@32) color: Color red.
 	node := builder translate: child with: 4@5.
 	self assert: node translation equals: 4@5.
 	self assert: node child equals: child.

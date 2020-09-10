@@ -1,10 +1,13 @@
+"
+I am a node that applies a general affine transform to its child.
+"
 Class {
 	#name : #FormSGTransformNode,
 	#superclass : #FormSGChildAttributeNode,
 	#instVars : [
 		'transform'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Nodes'
 }
 
 { #category : #visiting }
@@ -20,6 +23,12 @@ FormSGTransformNode >> boundingBox [
 { #category : #testing }
 FormSGTransformNode >> isTransformNode [
 	^ true
+]
+
+{ #category : #printing }
+FormSGTransformNode >> printOn: aStream [
+	super printOn: aStream.
+	aStream nextPutAll: ' transform: '; print: transform
 ]
 
 { #category : #accessing }

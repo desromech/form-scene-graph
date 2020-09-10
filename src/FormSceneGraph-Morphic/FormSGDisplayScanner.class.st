@@ -5,7 +5,7 @@ Class {
 		'builder',
 		'textNodes'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Morphic'
 }
 
 { #category : #'instance creation' }
@@ -24,7 +24,7 @@ FormSGDisplayScanner >> displayString: string from: startIndex to: stopIndex at:
 { #category : #displaying }
 FormSGDisplayScanner >> fillTextBackground [
 	backgroundColor ifNotNil: [
-		textNodes add: (builder solidRectangle: (line left @ lineY extent: line width @ line lineHeight) color: backgroundColor)
+		textNodes add: (builder rectangle: (line left @ lineY extent: line width @ line lineHeight) color: backgroundColor)
 	]
 ]
 

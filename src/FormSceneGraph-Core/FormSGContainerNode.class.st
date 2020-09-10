@@ -1,10 +1,13 @@
+"
+I am a container for multiple nodes.	I draw all of my children, and my bounding box is composed by the union of the bounding boxes of my children.
+"
 Class {
 	#name : #FormSGContainerNode,
 	#superclass : #FormSGNode,
 	#instVars : [
 		'children'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Nodes'
 }
 
 { #category : #copying }
@@ -19,7 +22,7 @@ FormSGContainerNode >> accept: visitor [
 	^ visitor visitContainerNode: self
 ]
 
-{ #category : #'display box access' }
+{ #category : #'accessing - bounds' }
 FormSGContainerNode >> boundingBox [
 	| result |
 	result := Rectangle empty.

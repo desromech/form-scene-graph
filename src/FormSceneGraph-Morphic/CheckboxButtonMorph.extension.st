@@ -10,10 +10,10 @@ CheckboxButtonMorph >> buildSceneGraphNodeWith: builder [
 	].
 
 	((self state == #pressed or: [self state == #repressed]) and: [image isNil]) ifTrue: [
-		result := result , (builder solidRectangle: self innerBounds color: (self paneColor alpha: 0.3))
+		result := result , (builder rectangle: self innerBounds color: (self paneColor alpha: 0.3))
 	].
 	(self enabled not and: [self theme fadeCheckboxWhenDisabled]) ifTrue: [
-		result := result , (builder solidRectangle: self innerBounds color: (self paneColor alpha: 0.4))
+		result := result , (builder rectangle: self innerBounds color: (self paneColor alpha: 0.4))
 	].
 
 	^ result

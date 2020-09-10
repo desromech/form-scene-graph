@@ -1,11 +1,14 @@
+"
+I am a scene graph renderer that uses the BitBlt canvas for rendering.
+"
 Class {
 	#name : #FormSGCanvasRenderer,
-	#superclass : #FormSGVisitor,
+	#superclass : #FormSGRenderer,
 	#instVars : [
 		'canvas',
 		'currentTransform'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Renderer'
 }
 
 { #category : #rendering }

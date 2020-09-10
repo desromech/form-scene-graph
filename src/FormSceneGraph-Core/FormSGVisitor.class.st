@@ -1,8 +1,16 @@
+"
+I am a visitor for a form scene graph.
+"
 Class {
 	#name : #FormSGVisitor,
 	#superclass : #Object,
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Nodes'
 }
+
+{ #category : #testing }
+FormSGVisitor class >> isAbstract [
+	^ self == FormSGVisitor
+]
 
 { #category : #visiting }
 FormSGVisitor >> visitAthensNode: node [
@@ -76,6 +84,11 @@ FormSGVisitor >> visitOpacityNode: node [
 
 { #category : #visiting }
 FormSGVisitor >> visitOutsetShadowNode: node [
+	^ self visitRectangleNode: node
+]
+
+{ #category : #visiting }
+FormSGVisitor >> visitRadialGradientNode: node [
 	^ self visitRectangleNode: node
 ]
 

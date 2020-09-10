@@ -1,3 +1,6 @@
+"
+I clip the content of my child into my bounding rectangle.
+"
 Class {
 	#name : #FormSGClipNode,
 	#superclass : #FormSGNode,
@@ -5,7 +8,7 @@ Class {
 		'child',
 		'rectangle'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Nodes'
 }
 
 { #category : #visiting }
@@ -13,7 +16,7 @@ FormSGClipNode >> accept: visitor [
 	^ visitor visitClipNode: self
 ]
 
-{ #category : #'display box access' }
+{ #category : #'accessing - bounds' }
 FormSGClipNode >> boundingBox [
 	rectangle isEmpty ifTrue: [ ^ rectangle ].
 	^ rectangle intersect: child boundingBox ifNone: [ Rectangle empty]

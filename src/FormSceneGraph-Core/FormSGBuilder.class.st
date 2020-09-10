@@ -8,7 +8,7 @@ Class {
 	#instVars : [
 		'clippingBounds'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Builder'
 }
 
 { #category : #geometry }
@@ -18,6 +18,10 @@ FormSGBuilder class >> extent: anExtent [
 
 { #category : #'node building' }
 FormSGBuilder >> borderRectangle: rectangle color: color leftWidth: leftWidth rightWidth: rightWidth bottomWidth: bottomWidth topWidth: topWidth [
+	color isTransparent ifTrue: [ ^ self null ].
+	(leftWidth = 0 and: [ rightWidth = 0 and:
+	[bottomWidth = 0 and: [topWidth = 0]]]) ifTrue: [ ^ self null ].
+
 	^ FormSGBorderNode new
 		rectangle: rectangle;
 		color: color;
@@ -30,6 +34,7 @@ FormSGBuilder >> borderRectangle: rectangle color: color leftWidth: leftWidth ri
 
 { #category : #'node building' }
 FormSGBuilder >> borderRectangle: rectangle color: color width: width [
+	(color isTransparent or: [ width = 0 ]) ifTrue: [ ^ self null ].
 	^ FormSGBorderNode new
 		rectangle: rectangle;
 		color: color;
@@ -38,8 +43,8 @@ FormSGBuilder >> borderRectangle: rectangle color: color width: width [
 ]
 
 { #category : #'node building' }
-FormSGBuilder >> cachedSubScene [
-	^ FormSGCachedSubScene new
+FormSGBuilder >> cachingSubScene [
+	^ FormSGCachingSubScene new
 ]
 
 { #category : #'node building' }
@@ -60,11 +65,6 @@ FormSGBuilder >> containerWith: nodes [
 	^ FormSGContainerNode new
 		children: nodes;
 		yourself
-]
-
-{ #category : #text }
-FormSGBuilder >> displayScannerFor: paragraph [
-	^ FormSGDisplayScanner for: paragraph with: self
 ]
 
 { #category : #'building context' }
@@ -89,17 +89,18 @@ FormSGBuilder >> null [
 ]
 
 { #category : #'node building' }
-FormSGBuilder >> scale: child with: scaleFactor [
-	(scaleFactor closeTo: 1) ifTrue: [ ^ child ].
-	^ self transform: child with: (FormSGAffineTransform scale: scaleFactor)
+FormSGBuilder >> rectangle: rectangle color: color [
+	color isTransparent ifTrue: [ ^ self null ].
+	^ FormSGColorRectangleNode new
+		rectangle: rectangle;
+		color: color;
+		yourself
 ]
 
 { #category : #'node building' }
-FormSGBuilder >> solidRectangle: rectangle color: solidColor [
-	^ FormSGColorNode new
-		rectangle: rectangle;
-		color: solidColor;
-		yourself
+FormSGBuilder >> scale: child with: scaleFactor [
+	(scaleFactor closeTo: 1) ifTrue: [ ^ child ].
+	^ self transform: child with: (FormSGAffineTransform scale: scaleFactor)
 ]
 
 { #category : #'node building' }

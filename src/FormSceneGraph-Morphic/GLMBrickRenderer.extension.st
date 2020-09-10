@@ -3,7 +3,7 @@ Extension { #name : #GLMBrickRenderer }
 { #category : #'*FormSceneGraph-Morphic' }
 GLMBrickRenderer >> buildBackgroundColorSceneGraphNodeFor: aBrick in: rectangle with: builder [
 	| result |
-	result := builder solidRectangle: rectangle color: aBrick color.
+	result := builder rectangle: rectangle color: aBrick color.
 	(aBrick fillStyle = Color transparent) ifFalse: [
 		result := result , (builder fillRectangle: rectangle fillStyle: aBrick fillStyle borderStyle: aBrick borderStyle)
 	].

@@ -4,7 +4,7 @@ Extension { #name : #SystemWindow }
 SystemWindow >> doBuildFullSceneGraphWith: builder [
 	| invalidSceneGraph renderTargetNode |
 	invalidSceneGraph := self valueOfProperty: #invalidSceneGraph ifAbsent: [ true ]. 
-	renderTargetNode := self valueOfProperty: #cachedSubSceneGraph ifAbsentPut: [ builder cachedSubScene ].
+	renderTargetNode := self valueOfProperty: #cachedSubSceneGraph ifAbsentPut: [ builder cachingSubScene ].
 	
 	invalidSceneGraph ifFalse: [
 		^ builder translate: renderTargetNode with: bounds origin - renderTargetNode rectangle origin

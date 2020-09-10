@@ -1,7 +1,10 @@
+"
+I am a node that draws a rectangle with a linear gradient.
+"
 Class {
 	#name : #FormSGLinearGradientNode,
-	#superclass : #FormSGRectangleNode,
-	#category : #'FormSceneGraph-Core'
+	#superclass : #FormSGGradientNode,
+	#category : #'FormSceneGraph-Core-Nodes'
 }
 
 { #category : #visiting }

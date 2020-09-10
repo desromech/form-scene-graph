@@ -1,3 +1,6 @@
+"
+I am a node that draws a textured rectangle.
+"
 Class {
 	#name : #FormSGTextureNode,
 	#superclass : #FormSGRectangleNode,
@@ -5,7 +8,7 @@ Class {
 		'isFullyOpaque',
 		'form'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Nodes'
 }
 
 { #category : #visiting }

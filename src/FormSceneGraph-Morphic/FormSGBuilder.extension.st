@@ -6,6 +6,11 @@ FormSGBuilder >> borderRectangle: aRectangle style: aBorderStyle [
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
+FormSGBuilder >> displayScannerFor: paragraph [
+	^ FormSGDisplayScanner for: paragraph with: self
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
 FormSGBuilder >> fillRectangle: aRectangle fillStyle: aFillStyle borderStyle: aBorderStyle [
 	(aBorderStyle isNil or: [aBorderStyle width < 0]) ifTrue: [
 		^ self fillRectangle: aRectangle style: aFillStyle

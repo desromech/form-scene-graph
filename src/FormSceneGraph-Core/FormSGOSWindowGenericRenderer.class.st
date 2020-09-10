@@ -1,13 +1,16 @@
+"
+I am a scene graph renderer that uses the OSWindow generic renderer API.
+"
 Class {
 	#name : #FormSGOSWindowGenericRenderer,
-	#superclass : #FormSGVisitor,
+	#superclass : #FormSGRenderer,
 	#instVars : [
 		'renderer',
 		'currentTranslation',
 		'currentClipRectangle',
 		'currentScale'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Renderer'
 }
 
 { #category : #rendering }

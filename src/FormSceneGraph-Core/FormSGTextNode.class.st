@@ -1,3 +1,6 @@
+"
+I am a node that draws a string of text with a specified color, font.
+"
 Class {
 	#name : #FormSGTextNode,
 	#superclass : #FormSGRectangleNode,
@@ -13,7 +16,7 @@ Class {
 		'strikethrough',
 		'strikethroughColor'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Nodes'
 }
 
 { #category : #visiting }
@@ -69,6 +72,23 @@ FormSGTextNode >> lastIndex [
 { #category : #accessing }
 FormSGTextNode >> lastIndex: anObject [
 	lastIndex := anObject
+]
+
+{ #category : #printing }
+FormSGTextNode >> printOn: aStream [
+	super printOn: aStream.
+	aStream
+		nextPutAll: '; string: '; nextPutAll: (string printStringLimitedTo: 50);
+		nextPutAll: '; color: '; print: color;
+		nextPutAll: '; font: '; print: font;
+		nextPutAll: '; firstIndex: '; print: firstIndex;
+		nextPutAll: '; lastIndex: '; print: lastIndex;
+		nextPutAll: '; kern: '; print: kern;
+		nextPutAll: '; underline: '; print: underline;
+		nextPutAll: '; underlineColor: '; print: underlineColor;
+		nextPutAll: '; strikethrough: '; print: strikethrough;
+		nextPutAll: '; strikethroughColor: '; print: strikethroughColor
+
 ]
 
 { #category : #accessing }

@@ -10,7 +10,7 @@ LazyListMorph >> buildBackgroundSceneGraphForRow: row with: builder color: col [
 	| frame  |
 	"shade the background darker, if this row is selected"
  	frame := self selectionFrameForRow: row.
-	^ builder solidRectangle: frame color: col
+	^ builder rectangle: frame color: col
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
@@ -81,7 +81,7 @@ LazyListMorph >> buildSeparatorSceneGraphAfter: aRow with: builder [
 	frame := self selectionFrameForRow: aRow.
 	rectangle := (frame left@(frame bottom - height)) corner: (frame right@frame bottom).
 
-	^ builder solidRectangle: rectangle color: separatorColor
+	^ builder rectangle: rectangle color: separatorColor
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }

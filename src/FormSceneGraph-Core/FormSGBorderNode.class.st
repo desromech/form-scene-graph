@@ -1,3 +1,6 @@
+"
+I am a node that draws the borders of a rectangle.
+"
 Class {
 	#name : #FormSGBorderNode,
 	#superclass : #FormSGRectangleNode,
@@ -8,7 +11,7 @@ Class {
 		'bottomWidth',
 		'topWidth'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Nodes'
 }
 
 { #category : #visiting }
@@ -51,6 +54,18 @@ FormSGBorderNode >> leftWidth [
 { #category : #accessing }
 FormSGBorderNode >> leftWidth: anObject [
 	leftWidth := anObject
+]
+
+{ #category : #printing }
+FormSGBorderNode >> printOn: aStream [
+	super printOn: aStream.
+	aStream
+		nextPutAll: '; color: '; print: color;
+		nextPutAll: '; leftWidth: '; print: leftWidth;
+		nextPutAll: '; rightWidth: '; print: rightWidth;
+		nextPutAll: '; topWidth: '; print: topWidth;
+		nextPutAll: '; bottomWidth: '; print: bottomWidth
+
 ]
 
 { #category : #accessing }

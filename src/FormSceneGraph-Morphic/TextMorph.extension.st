@@ -1,6 +1,6 @@
 Extension { #name : #TextMorph }
 
-{ #category : #'*FormSceneGraph-Core' }
+{ #category : #'*FormSceneGraph-Morphic' }
 TextMorph >> buildSceneGraphNodeWith: builder [
 	| result fauxBounds |
 	result := super buildSceneGraphNodeWith: builder.

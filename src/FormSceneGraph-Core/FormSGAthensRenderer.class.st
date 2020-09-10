@@ -1,10 +1,13 @@
+"
+I am a scene graph renderer that uses athens.
+"
 Class {
 	#name : #FormSGAthensRenderer,
-	#superclass : #FormSGVisitor,
+	#superclass : #FormSGRenderer,
 	#instVars : [
 		'canvas'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Renderer'
 }
 
 { #category : #rendering }

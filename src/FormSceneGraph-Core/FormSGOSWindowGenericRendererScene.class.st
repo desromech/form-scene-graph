@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'rootNode'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Renderer'
 }
 
 { #category : #rendering }

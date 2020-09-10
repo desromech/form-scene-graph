@@ -1,8 +1,29 @@
+"
+I am a node in the scene graph. My drawn content is always a rectangle that can be drawn into an ofscreen buffer and composed into a separate scene in a separate pass. My actual drawing is implemented via a visitor which is a subclass of *FormSGVisitor*.
+"
 Class {
 	#name : #FormSGNode,
 	#superclass : #Object,
-	#category : #'FormSceneGraph-Core'
+	#classVars : [
+		'EmptyRenderingFormResult'
+	],
+	#category : #'FormSceneGraph-Core-Nodes'
 }
+
+{ #category : #private }
+FormSGNode class >> emptyRenderingForm [
+	^ EmptyRenderingFormResult ifNil: [ EmptyRenderingFormResult := Form extent: 1@1 depth: 32 ]
+]
+
+{ #category : #testing }
+FormSGNode class >> isAbstract [
+	^ self == FormSGNode
+]
+
+{ #category : #printing }
+FormSGNode class >> nodeTypeName [
+	^ name withoutPrefix: 'FormSG'
+]
 
 { #category : #copying }
 FormSGNode >> , otherNode [
@@ -30,11 +51,13 @@ FormSGNode >> asForm [
 
 { #category : #converting }
 FormSGNode >> asFormWithBackgroundColor: backgroundColor [
-	| boundingBox form topLevelNode |
+	| boundingBox boundingBoxExtent form topLevelNode |
 	boundingBox := self boundingBox.
-	boundingBox isEmpty ifTrue: [ ^ Form extent: 1@1 depth: 32 ].
+	boundingBox isEmpty ifTrue: [ ^ self emptyRenderingForm ].
+	boundingBoxExtent := boundingBox extent ceiling.
+	(boundingBoxExtent x = 0 or: [boundingBoxExtent y = 0]) ifTrue: [ ^ self emptyRenderingForm ].
 	
-	form := Form extent: boundingBox extent ceiling depth: 32.
+	form := Form extent: boundingBoxExtent ceiling depth: 32.
 	form fillColor: backgroundColor.
 	topLevelNode := self.
 	boundingBox origin = (0@0) ifFalse: [
@@ -48,7 +71,7 @@ FormSGNode >> asFormWithBackgroundColor: backgroundColor [
 	^ form
 ]
 
-{ #category : #'display box access' }
+{ #category : #'accessing - bounds' }
 FormSGNode >> boundingBox [
 	self subclassResponsibility
 ]
@@ -61,6 +84,11 @@ FormSGNode >> children [
 { #category : #enumerating }
 FormSGNode >> childrenDo: aBlock [
 
+]
+
+{ #category : #private }
+FormSGNode >> emptyRenderingForm [
+	^ self class emptyRenderingForm
 ]
 
 { #category : #inspector }
@@ -99,6 +127,16 @@ FormSGNode >> isTransformNode [
 { #category : #testing }
 FormSGNode >> isTranslationNode [
 	^ false
+]
+
+{ #category : #printing }
+FormSGNode >> nodeTypeName [
+	^ self class nodeTypeName
+]
+
+{ #category : #printing }
+FormSGNode >> printOn: aStream [
+	aStream nextPutAll: self nodeTypeName
 ]
 
 { #category : #enumerating }

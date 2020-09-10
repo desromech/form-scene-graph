@@ -34,7 +34,7 @@ Morph >> buildDrawErrorSceneGraphNodeWith: builder [
 	| nodes |
 	nodes := OrderedCollection new.
 	nodes
-		add: (builder solidRectangle: bounds color: Color red);
+		add: (builder rectangle: bounds color: Color red);
 		add: (builder borderRectangle: bounds color: Color yellow width: 1).
 		
 	self valueOfProperty: #drawError ifPresentDo: [ :error| | trace stringBounds |

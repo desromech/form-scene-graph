@@ -16,7 +16,7 @@ Class {
 		'm22',
 		'm23'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Transform'
 }
 
 { #category : #'instance creation' }

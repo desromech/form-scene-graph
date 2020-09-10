@@ -1,13 +1,21 @@
+"
+I am a node modifies a specific attribute of a child. I can always be composed in order to further increase my effect.
+"
 Class {
 	#name : #FormSGChildAttributeNode,
 	#superclass : #FormSGNode,
 	#instVars : [
 		'child'
 	],
-	#category : #'FormSceneGraph-Core'
+	#category : #'FormSceneGraph-Core-Nodes'
 }
 
-{ #category : #'display box access' }
+{ #category : #testing }
+FormSGChildAttributeNode class >> isAbstract [
+	^ self == FormSGChildAttributeNode
+]
+
+{ #category : #'accessing - bounds' }
 FormSGChildAttributeNode >> boundingBox [
 	^ child boundingBox
 ]
