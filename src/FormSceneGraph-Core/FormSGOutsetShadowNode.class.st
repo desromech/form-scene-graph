@@ -11,3 +11,8 @@ Class {
 FormSGOutsetShadowNode >> accept: visitor [
 	^ visitor visitOutsetShadowNode: self
 ]
+
+{ #category : #testing }
+FormSGOutsetShadowNode >> isOutsetShadowNode [
+	^ true
+]

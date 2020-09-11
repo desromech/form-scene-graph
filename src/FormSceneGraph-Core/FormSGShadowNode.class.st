@@ -28,6 +28,11 @@ FormSGShadowNode >> bottomWidth: anObject [
 	bottomWidth := anObject
 ]
 
+{ #category : #testing }
+FormSGShadowNode >> isShadowNode [
+	^ true
+]
+
 { #category : #accessing }
 FormSGShadowNode >> leftWidth [
 	^ leftWidth
@@ -56,4 +61,9 @@ FormSGShadowNode >> topWidth [
 { #category : #accessing }
 FormSGShadowNode >> topWidth: anObject [
 	topWidth := anObject
+]
+
+{ #category : #accessing }
+FormSGShadowNode >> width: shadowSize [
+	leftWidth := rightWidth := bottomWidth := topWidth := shadowSize
 ]

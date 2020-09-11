@@ -11,3 +11,8 @@ Class {
 FormSGInsetShadowNode >> accept: visitor [
 	^ visitor visitInsetShadowNode: self
 ]
+
+{ #category : #testing }
+FormSGInsetShadowNode >> isInsetShadowNode [
+	^ true
+]

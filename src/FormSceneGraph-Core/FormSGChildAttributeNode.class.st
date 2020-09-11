@@ -39,3 +39,8 @@ FormSGChildAttributeNode >> children [
 FormSGChildAttributeNode >> childrenDo: aBlock [
 	aBlock value: child
 ]
+
+{ #category : #testing }
+FormSGChildAttributeNode >> isChildAttributeNode [
+	^ true
+]

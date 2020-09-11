@@ -10,7 +10,7 @@ Class {
 		'currentClipRectangle',
 		'currentScale'
 	],
-	#category : #'FormSceneGraph-Core-Renderer'
+	#category : #'FormSceneGraph-Renderer'
 }
 
 { #category : #rendering }

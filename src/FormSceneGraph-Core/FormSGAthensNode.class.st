@@ -11,3 +11,8 @@ Class {
 FormSGAthensNode >> accept: visitor [
 	^ visitor visitAthensNode: self
 ]
+
+{ #category : #testing }
+FormSGAthensNode >> isAthensNode [
+	^ true
+]

@@ -40,3 +40,8 @@ FormSGTextureNode >> isFullyOpaque [
 FormSGTextureNode >> isFullyOpaque: anObject [
 	isFullyOpaque := anObject
 ]
+
+{ #category : #testing }
+FormSGTextureNode >> isTextureNode [
+	^ true
+]

@@ -47,27 +47,6 @@ FormSGAffineTransform >> = other [
 ]
 
 { #category : #converting }
-FormSGAffineTransform >> asAthensTransform [
-	^ AthensAffineTransform new
-		sx: m11; shx: m12; x: m13;
-		shx: m21; sy: m22; y: m23;
-		yourself
-]
-
-{ #category : #converting }
-FormSGAffineTransform >> asDisplayTransform [
-	^ MatrixTransform2x3 new
-		a11: m11; a12: m12; a13: m13;
-		a21: m21; a22: m22; a23: m23;
-		yourself
-]
-
-{ #category : #converting }
-FormSGAffineTransform >> asFormSGTransform [
-	^ self
-]
-
-{ #category : #converting }
 FormSGAffineTransform >> asRowMajorArray [
 	^ {
 		m11 . m12 . m13 .
@@ -85,6 +64,18 @@ FormSGAffineTransform >> closeTo: other [
 		(m21 closeTo: other m21) and: [
 		(m22 closeTo: other m22) and: [
 		(m23 closeTo: other m23) ]]]]]]
+]
+
+{ #category : #initialization }
+FormSGAffineTransform >> closeTo: other precision: precision [
+	^ self class = other class and: [
+		(m11 closeTo: other m11 precision: precision) and: [
+		(m12 closeTo: other m12 precision: precision) and: [
+		(m13 closeTo: other m13 precision: precision) and: [
+			
+		(m21 closeTo: other m21 precision: precision) and: [
+		(m22 closeTo: other m22 precision: precision) and: [
+		(m23 closeTo: other m23 precision: precision) ]]]]]]
 ]
 
 { #category : #initialization }

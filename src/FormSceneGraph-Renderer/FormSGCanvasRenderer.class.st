@@ -8,7 +8,7 @@ Class {
 		'canvas',
 		'currentTransform'
 	],
-	#category : #'FormSceneGraph-Core-Renderer'
+	#category : #'FormSceneGraph-Renderer'
 }
 
 { #category : #rendering }

@@ -20,6 +20,11 @@ FormSGRectangleNode >> boundingBox [
 	^ rectangle
 ]
 
+{ #category : #testing }
+FormSGRectangleNode >> isRectangleNode [
+	^ true
+]
+
 { #category : #printing }
 FormSGRectangleNode >> printOn: aStream [
 	super printOn: aStream.

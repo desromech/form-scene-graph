@@ -20,10 +20,15 @@ FormSGBorderNode >> accept: visitor [
 ]
 
 { #category : #accessing }
-FormSGBorderNode >> borderRectanglesDo: aBlock [
+FormSGBorderNode >> borderRectangles [
 	| interiorRectangle |
 	interiorRectangle := rectangle origin + (leftWidth @ bottomWidth) corner: rectangle corner - (rightWidth @ topWidth).
-	(rectangle areasOutside: interiorRectangle) do: aBlock
+	^ (rectangle areasOutside: interiorRectangle)
+]
+
+{ #category : #accessing }
+FormSGBorderNode >> borderRectanglesDo: aBlock [
+	^ self borderRectangles do: aBlock
 ]
 
 { #category : #accessing }
@@ -44,6 +49,11 @@ FormSGBorderNode >> color [
 { #category : #accessing }
 FormSGBorderNode >> color: anObject [
 	color := anObject
+]
+
+{ #category : #testing }
+FormSGBorderNode >> isBorderNode [
+	^ true
 ]
 
 { #category : #accessing }

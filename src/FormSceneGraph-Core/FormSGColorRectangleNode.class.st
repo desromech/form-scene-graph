@@ -25,6 +25,11 @@ FormSGColorRectangleNode >> color: anObject [
 	color := anObject
 ]
 
+{ #category : #testing }
+FormSGColorRectangleNode >> isColorRectangleNode [
+	^ true
+]
+
 { #category : #printing }
 FormSGColorRectangleNode >> printOn: aStream [
 	super printOn: aStream.

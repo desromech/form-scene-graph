@@ -1,6 +1,6 @@
 Extension { #name : #FormCanvas }
 
-{ #category : #'*FormSceneGraph-Core' }
+{ #category : #'*FormSceneGraph-Renderer' }
 FormCanvas >> drawString: aString from: firstIndex to: lastIndex in: bounds font: fontOrNil color: c underline: underline underlineColor: uc strikethrough: strikethrough strikethroughColor: sc kern: kern [
 	| font portRect endPoint |
 	port colorMap: nil.

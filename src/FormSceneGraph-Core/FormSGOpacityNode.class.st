@@ -15,6 +15,11 @@ FormSGOpacityNode >> accept: visitor [
 	^ visitor visitOpacityNode: self
 ]
 
+{ #category : #testing }
+FormSGOpacityNode >> isOpacityNode [
+	^ true
+]
+
 { #category : #accessing }
 FormSGOpacityNode >> opacityFactor [
 	^ opacityFactor

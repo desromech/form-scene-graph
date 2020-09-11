@@ -11,8 +11,7 @@ SystemWindow >> doBuildFullSceneGraphWith: builder [
 	].
 
 	renderTargetNode
-		rectangle: bounds;
-		child: (super doBuildFullSceneGraphWith: builder).
+		child: (super doBuildFullSceneGraphWith: builder) rectangle: bounds.
 
 	self setProperty: #invalidSceneGraph toValue: false.
 	^ renderTargetNode

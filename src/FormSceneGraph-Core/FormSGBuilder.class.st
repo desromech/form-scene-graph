@@ -44,7 +44,7 @@ FormSGBuilder >> borderRectangle: rectangle color: color width: width [
 
 { #category : #'node building' }
 FormSGBuilder >> cachingSubScene [
-	^ FormSGCachingSubScene new
+	^ FormSGCachingSubSceneNode new
 ]
 
 { #category : #'node building' }
@@ -52,6 +52,16 @@ FormSGBuilder >> clip: node withRectangle: rectangle [
 	^ FormSGClipNode new
 		child: node;
 		rectangle: rectangle;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> clip: node withRectangle: rectangle roundBorderRadius: radius [
+	radius <= 0 ifTrue: [ ^ self clip: node withRectangle: rectangle ].
+	^ FormSGRoundedClipNode new
+		child: node;
+		rectangle: rectangle;
+		borderRadius: radius;
 		yourself
 ]
 
@@ -84,8 +94,61 @@ FormSGBuilder >> initialize [
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> insetShadow: rectangle leftWidth: leftWidth rightWidth: rightWidth bottomWidth: bottomWidth topWidth: topWidth [
+	(leftWidth = 0 and: [ rightWidth = 0 and:
+	[bottomWidth = 0 and: [topWidth = 0]]]) ifTrue: [ ^ self null ].
+	^ FormSGInsetShadowNode new
+		rectangle: rectangle;
+		leftWidth: leftWidth;
+		rightWidth: rightWidth;
+		bottomWidth: bottomWidth;
+		topWidth: topWidth;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> insetShadow: rectangle width: width [
+	width = 0 ifTrue: [ ^ self null ].
+	^ FormSGInsetShadowNode new
+		rectangle: rectangle;
+		width: width;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> node: child withOpacityFactor: opacityFactor [
+	opacityFactor <= 0 ifTrue: [ ^ self null ].
+	^ FormSGOpacityNode new
+		opacityFactor: opacityFactor;
+		child: child;
+		yourself
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> null [
-	^ FormSGNullNode new
+	^ FormSGNullNode uniqueInstance
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> outsetShadow: rectangle leftWidth: leftWidth rightWidth: rightWidth bottomWidth: bottomWidth topWidth: topWidth [
+	(leftWidth = 0 and: [ rightWidth = 0 and:
+	[bottomWidth = 0 and: [topWidth = 0]]]) ifTrue: [ ^ self null ].
+	^ FormSGOutsetShadowNode new
+		rectangle: rectangle;
+		leftWidth: leftWidth;
+		rightWidth: rightWidth;
+		bottomWidth: bottomWidth;
+		topWidth: topWidth;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> outsetShadow: rectangle width: width [
+	width = 0 ifTrue: [ ^ self null ].
+	^ FormSGOutsetShadowNode new
+		rectangle: rectangle;
+		width: width;
+		yourself
 ]
 
 { #category : #'node building' }
@@ -94,6 +157,47 @@ FormSGBuilder >> rectangle: rectangle color: color [
 	^ FormSGColorRectangleNode new
 		rectangle: rectangle;
 		color: color;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> rectangle: rectangle linearGradientStart: startPoint color: startColor end: endPoint color: endColor [
+	(startColor isTransparent and: [ endColor isTransparent ]) ifTrue: [ ^ self null ].
+	^ FormSGLinearGradientNode new
+		rectangle: rectangle;
+		startPoint: startPoint;
+		startColor: startColor;
+		endPoint: endPoint;
+		endColor: endColor;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> rectangle: rectangle radialGradientCenter: center
+	innerRadius: innerRadius color: startColor clipRadius: clipInnerRadius
+	outerRadius: outerRadius color: endColor clipRadius: clipOuterRadius [
+	(startColor isTransparent and: [ endColor isTransparent ]) ifTrue: [ ^ self null ].
+	^ FormSGRadialGradientNode new
+		rectangle: rectangle;
+		center: center;
+		innerRadius: innerRadius;
+		clipInnerRadius: clipInnerRadius;
+		startColor: startColor;
+		outerRadius: outerRadius;
+		endColor: endColor;
+		clipOuterRadius: clipOuterRadius;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> rectangle: rectangle repeatingLinearGradientStart: startPoint color: startColor end: endPoint color: endColor [
+	(startColor isTransparent and: [ endColor isTransparent ]) ifTrue: [ ^ self null ].
+	^ FormSGRepeatingLinearGradientNode new
+		rectangle: rectangle;
+		startPoint: startPoint;
+		startColor: startColor;
+		endPoint: endPoint;
+		endColor: endColor;
 		yourself
 ]
 

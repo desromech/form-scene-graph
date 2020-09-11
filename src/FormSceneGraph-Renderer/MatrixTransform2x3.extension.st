@@ -1,6 +1,6 @@
 Extension { #name : #MatrixTransform2x3 }
 
-{ #category : #'*FormSceneGraph-Core' }
+{ #category : #'*FormSceneGraph-Renderer' }
 MatrixTransform2x3 >> asFormSGTransform [
 	^ FormSGAffineTransform new
 		m11: self a11; m12: self a12; m13: self a13;

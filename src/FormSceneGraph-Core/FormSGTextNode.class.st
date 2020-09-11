@@ -54,6 +54,11 @@ FormSGTextNode >> font: anObject [
 	font := anObject
 ]
 
+{ #category : #testing }
+FormSGTextNode >> isTextNode [
+	^ true
+]
+
 { #category : #accessing }
 FormSGTextNode >> kern [
 	^ kern

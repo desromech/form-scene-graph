@@ -110,12 +110,97 @@ FormSGNode >> gtTreeViewIn: composite [
 ]
 
 { #category : #testing }
+FormSGNode >> isAthensNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isBorderNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isCachingSubSceneNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isClipNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isColorRectangleNode [
+	^ false
+]
+
+{ #category : #testing }
 FormSGNode >> isContainerNode [
 	^ false
 ]
 
 { #category : #testing }
+FormSGNode >> isGradientNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isInsetShadowNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isLinearGradientNode [
+	^ false
+]
+
+{ #category : #testing }
 FormSGNode >> isNullNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isOpacityNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isOutsetShadowNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isRadialGradientNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isRectangleNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isRepeatingLinearGradientNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isRoundedClipNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isShadowNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isTextNode [
+	^ false
+]
+
+{ #category : #testing }
+FormSGNode >> isTextureNode [
 	^ false
 ]
 

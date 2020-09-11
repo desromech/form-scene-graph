@@ -1,6 +1,6 @@
 Extension { #name : #DisplayTransform }
 
-{ #category : #'*FormSceneGraph-Core' }
+{ #category : #'*FormSceneGraph-Renderer' }
 DisplayTransform >> asFormSGTransform [
 	^ self subclassResponsibility
 ]

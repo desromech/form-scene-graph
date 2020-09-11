@@ -4,7 +4,7 @@ I am an abstract renderer for a scene graph.
 Class {
 	#name : #FormSGRenderer,
 	#superclass : #FormSGVisitor,
-	#category : #'FormSceneGraph-Core-Renderer'
+	#category : #'FormSceneGraph-Renderer'
 }
 
 { #category : #testing }

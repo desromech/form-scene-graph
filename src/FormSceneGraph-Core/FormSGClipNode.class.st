@@ -42,6 +42,11 @@ FormSGClipNode >> childrenDo: aBlock [
 	aBlock value: child
 ]
 
+{ #category : #testing }
+FormSGClipNode >> isClipNode [
+	^ true
+]
+
 { #category : #accessing }
 FormSGClipNode >> rectangle [
 	^ rectangle

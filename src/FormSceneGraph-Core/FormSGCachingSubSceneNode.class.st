@@ -4,7 +4,7 @@ I encapsulate a subscene that should always be drawn for performance reasons int
 I also hold a modification count, and handles into renderer specific texture/surfaces/render target for actually caching my drawn pixels. 
 "
 Class {
-	#name : #FormSGCachingSubScene,
+	#name : #FormSGCachingSubSceneNode,
 	#superclass : #FormSGNode,
 	#instVars : [
 		'clipChildNode',
@@ -18,66 +18,80 @@ Class {
 }
 
 { #category : #visiting }
-FormSGCachingSubScene >> accept: visitor [
+FormSGCachingSubSceneNode >> accept: visitor [
 	^ visitor visitCachedSubScene: self
 ]
 
 { #category : #'accessing - bounds' }
-FormSGCachingSubScene >> boundingBox [
+FormSGCachingSubSceneNode >> boundingBox [
 	^ clipChildNode rectangle
 ]
 
 { #category : #updating }
-FormSGCachingSubScene >> changed [
+FormSGCachingSubSceneNode >> changed [
 	modificationCount := modificationCount + 1.
 ]
 
 { #category : #accessing }
-FormSGCachingSubScene >> child [
+FormSGCachingSubSceneNode >> child [
 	^ clipChildNode child
 ]
 
 { #category : #accessing }
-FormSGCachingSubScene >> child: aChild [
-	clipChildNode child: aChild..
+FormSGCachingSubSceneNode >> child: aChild [
+	self child: aChild rectangle: aChild boundingBox
+]
+
+{ #category : #accessing }
+FormSGCachingSubSceneNode >> child: aChild rectangle: aClippingRectangle [
+	self rectangle: aClippingRectangle.
+	clipChildNode child: aChild.
 	self changed.
 ]
 
 { #category : #accessing }
-FormSGCachingSubScene >> children [
+FormSGCachingSubSceneNode >> children [
 	^ { clipChildNode }
 ]
 
 { #category : #accessing }
-FormSGCachingSubScene >> clipChildNode [
+FormSGCachingSubSceneNode >> clipChildNode [
 	^ clipChildNode
 ]
 
 { #category : #initialization }
-FormSGCachingSubScene >> initialize [
+FormSGCachingSubSceneNode >> initialize [
 	super initialize.
-	clipChildNode := FormSGClipNode new.
+	clipChildNode := FormSGClipNode new
+		rectangle: Rectangle empty;
+		child: FormSGNullNode uniqueInstance;
+		yourself.
 	modificationCount := 0.
 ]
 
+{ #category : #testing }
+FormSGCachingSubSceneNode >> isCachingSubSceneNode [
+	^ true
+]
+
 { #category : #accessing }
-FormSGCachingSubScene >> modificationCount [
+FormSGCachingSubSceneNode >> modificationCount [
 	^ modificationCount
 ]
 
 { #category : #accessing }
-FormSGCachingSubScene >> rectangle [
+FormSGCachingSubSceneNode >> rectangle [
 	^ clipChildNode rectangle
 ]
 
 { #category : #accessing }
-FormSGCachingSubScene >> rectangle: aRectangle [
+FormSGCachingSubSceneNode >> rectangle: aRectangle [
 	clipChildNode rectangle = aRectangle ifFalse: [ self changed ].
 	clipChildNode rectangle: aRectangle
 ]
 
 { #category : #'rendering helpers' }
-FormSGCachingSubScene >> validCachedAthensCairoSurface [
+FormSGCachingSubSceneNode >> validCachedAthensCairoSurface [
 	| rectangle requiredExtent translation |
 	cachedSubSceneAthensCairoSurfaceValidationCount = modificationCount ifTrue: [ ^ cachedSubSceneAthensCairoSurface ].
 
@@ -97,7 +111,7 @@ FormSGCachingSubScene >> validCachedAthensCairoSurface [
 ]
 
 { #category : #'rendering helpers' }
-FormSGCachingSubScene >> validCachedForm [
+FormSGCachingSubSceneNode >> validCachedForm [
 	| rectangle requiredExtent translation |
 	cachedSubSceneFormValidationCount = modificationCount ifTrue: [ ^ cachedSubSceneForm ].
 
