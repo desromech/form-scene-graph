@@ -12,6 +12,6 @@ BaselineOfFormSceneGraph >> baseline: spec [
 			package: 'FormSceneGraph-Core';
 			package: 'FormSceneGraph-Core-Tests' with: [ spec requires: 'FormSceneGraph-Core' ];
 			package: 'FormSceneGraph-Renderer' with: [ spec requires: 'FormSceneGraph-Core' ];
-			package: 'FormSceneGraph-Morphic' with: [ spec requires: #('FormSceneGraph-Core' FormSceneGraph-Renderer) ]
+			package: 'FormSceneGraph-Morphic' with: [ spec requires: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer') ]
 	]
 ]
