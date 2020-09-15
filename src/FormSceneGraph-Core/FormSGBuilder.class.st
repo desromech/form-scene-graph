@@ -161,6 +161,11 @@ FormSGBuilder >> rectangle: rectangle color: color [
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> rectangle: rectangle drawWithAthens: drawBlock [
+	^ self rectangle: rectangle surface: nil drawWithAthens: drawBlock
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> rectangle: rectangle linearGradientStart: startPoint color: startColor end: endPoint color: endColor [
 	(startColor isTransparent and: [ endColor isTransparent ]) ifTrue: [ ^ self null ].
 	^ FormSGLinearGradientNode new
@@ -198,6 +203,15 @@ FormSGBuilder >> rectangle: rectangle repeatingLinearGradientStart: startPoint c
 		startColor: startColor;
 		endPoint: endPoint;
 		endColor: endColor;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> rectangle: rectangle surface: surface drawWithAthens: drawBlock [
+	^ FormSGAthensNode new
+		rectangle: rectangle;
+		surface: surface;
+		drawBlock: drawBlock;
 		yourself
 ]
 

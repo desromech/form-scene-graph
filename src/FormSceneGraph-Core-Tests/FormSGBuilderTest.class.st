@@ -324,6 +324,33 @@ FormSGBuilderTest >> testRadiantGradientRectangle2 [
 ]
 
 { #category : #tests }
+FormSGBuilderTest >> testRectangleDrawWithAthens [
+	| rectangle node drawBlock |
+	rectangle := 0@0 extent: 250@250.
+	drawBlock := [ :surface | ].
+	node := builder rectangle: rectangle drawWithAthens: drawBlock.
+	self assert: node isRectangleNode.
+	self assert: node isAthensNode.
+	self assert: node rectangle equals: rectangle.
+	self assert: node surface isNil.
+	self assert: node drawBlock equals: drawBlock.
+]
+
+{ #category : #tests }
+FormSGBuilderTest >> testRectangleSurfaceDrawWithAthens [
+	| rectangle node drawBlock surface |
+	rectangle := 0@0 extent: 250@250.
+	surface := AthensCairoSurface extent: 32@32.
+	drawBlock := [ :drawSurface | ].
+	node := builder rectangle: rectangle surface: surface drawWithAthens: drawBlock.
+	self assert: node isRectangleNode.
+	self assert: node isAthensNode.
+	self assert: node rectangle equals: rectangle.
+	self assert: node surface equals: surface.
+	self assert: node drawBlock equals: drawBlock.
+]
+
+{ #category : #tests }
 FormSGBuilderTest >> testRepeatingLinearGradientRectangle [
 	| rectangle node |
 	rectangle := 0@0 extent: 250@250.

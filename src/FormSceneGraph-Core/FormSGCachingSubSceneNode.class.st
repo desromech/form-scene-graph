@@ -92,18 +92,30 @@ FormSGCachingSubSceneNode >> rectangle: aRectangle [
 
 { #category : #'rendering helpers' }
 FormSGCachingSubSceneNode >> validCachedAthensCairoSurface [
-	| rectangle requiredExtent translation |
-	cachedSubSceneAthensCairoSurfaceValidationCount = modificationCount ifTrue: [ ^ cachedSubSceneAthensCairoSurface ].
+	^ self validCachedAthensCairoSurfaceWithExtent: self rectangle extent ceiling
+]
+
+{ #category : #'rendering helpers' }
+FormSGCachingSubSceneNode >> validCachedAthensCairoSurfaceWithExtent: requiredExtent [
+	| rectangle logicalExtent translation |
+	(cachedSubSceneAthensCairoSurfaceValidationCount = modificationCount
+	and: [ cachedSubSceneAthensCairoSurface extent = requiredExtent ]) ifTrue: [
+		^ cachedSubSceneAthensCairoSurface
+	].
 
 	rectangle := self rectangle.
-	requiredExtent := rectangle extent ceiling.
+	logicalExtent := rectangle extent ceiling.
 	(cachedSubSceneAthensCairoSurface isNil or: [ cachedSubSceneAthensCairoSurface extent ~= requiredExtent ]) ifTrue: [
 		cachedSubSceneAthensCairoSurface := AthensCairoSurface extent: requiredExtent
 	].
 
 	translation := rectangle origin negated.
 	cachedSubSceneAthensCairoSurface drawDuring: [ :canvas |
-		FormSGAthensRenderer render: self child withTransform: (FormSGAffineTransform translation: translation) on: canvas
+		FormSGAthensRenderer render: self child
+			withTransform: (FormSGAffineTransform
+				scaleX: requiredExtent x / logicalExtent x
+				Y: requiredExtent y / logicalExtent y)
+				* (FormSGAffineTransform translation: translation) on: canvas
 	].
 
 	cachedSubSceneAthensCairoSurfaceValidationCount := modificationCount.

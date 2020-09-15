@@ -47,6 +47,32 @@ FormSGAthensRenderer >> transformRectangle: rectangle [
 ]
 
 { #category : #visiting }
+FormSGAthensRenderer >> visitAthensNode: node [
+	| rectangle transformedRectangle surface logicalExtent surfaceExtent |
+	rectangle := node rectangle.
+	(rectangle isNil or: [rectangle isEmpty]) ifTrue: [ ^ self ].
+
+	transformedRectangle := self transformRectangle: rectangle.
+	logicalExtent := rectangle extent.
+	surfaceExtent := transformedRectangle extent ceiling.
+	(surfaceExtent x <= 1 or: [ surfaceExtent y <= 1 ]) ifTrue: [ ^ self ].
+	
+	surface := node validAthensCairoSurfaceWithExtent: surfaceExtent.
+	surface ifNil: [ ^ self ].
+
+	canvas pathTransform restoreAfter: [
+		canvas paintTransform loadIdentity
+			setScaleX: (logicalExtent x / surfaceExtent x) asFloat
+				Y: (logicalExtent y / surfaceExtent y) asFloat.
+		canvas setPaint: surface.
+		canvas pathTransform translateBy: node rectangle origin.
+		canvas drawShape: (0@0 extent: node rectangle extent).
+	].
+
+
+]
+
+{ #category : #visiting }
 FormSGAthensRenderer >> visitBorderNode: node [
 	node color isTransparent ifTrue: [ ^ self ].
 	
@@ -59,19 +85,26 @@ FormSGAthensRenderer >> visitBorderNode: node [
 
 { #category : #visiting }
 FormSGAthensRenderer >> visitCachedSubScene: node [
-	| rectangle surface |
-	true ifTrue: [^ super visitCachedSubScene: node].
+	| rectangle surface transformedRectangle logicalExtent surfaceExtent |
 	rectangle := node rectangle.
-	rectangle ifNil: [ ^ self ].
-	
-	surface := node validCachedAthensCairoSurface.
+	(rectangle isNil or: [rectangle isEmpty]) ifTrue: [ ^ self ].
+		
+	transformedRectangle := self transformRectangle: rectangle.
+	surfaceExtent := transformedRectangle extent ceiling.
+	(surfaceExtent x <= 1 or: [ surfaceExtent y <= 1 ]) ifTrue: [ ^ self ].
+	logicalExtent := rectangle extent.
+	surface := node validCachedAthensCairoSurfaceWithExtent: surfaceExtent.
 	surface ifNil: [ ^ self ].
 
 	canvas pathTransform restoreAfter: [
+		canvas paintTransform loadIdentity
+			setScaleX: (logicalExtent x / surfaceExtent x) asFloat
+				Y: (logicalExtent y / surfaceExtent y) asFloat.
 		canvas setPaint: surface.
 		canvas pathTransform translateBy: node rectangle origin.
 		canvas drawShape: (0@0 extent: node rectangle extent).
 	].
+
 ]
 
 { #category : #visiting }
@@ -117,6 +150,7 @@ FormSGAthensRenderer >> visitTextNode: node [
 { #category : #visiting }
 FormSGAthensRenderer >> visitTextureNode: node [
 	canvas pathTransform restoreAfter: [
+		canvas paintTransform loadIdentity.
 		canvas setPaint: node form.
 		canvas pathTransform translateBy: node rectangle origin.
 		canvas drawShape: (0@0 extent: node rectangle extent).

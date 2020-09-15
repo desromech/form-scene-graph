@@ -30,8 +30,31 @@ FormSGAffineTransform class >> scale: scaleFactor [
 ]
 
 { #category : #'instance creation' }
+FormSGAffineTransform class >> scale: scale translation: translation [
+	^ self new
+		setScale: scale;
+		setTranslation: translation;
+		yourself
+]
+
+{ #category : #'instance creation' }
+FormSGAffineTransform class >> scaleX: scaleFactorX Y: scaleFactorY [
+	^ self new setScaleX: scaleFactorX Y: scaleFactorY; yourself
+]
+
+{ #category : #'instance creation' }
+FormSGAffineTransform class >> scaleX: scaleX Y: scaleY translation: translation [
+	^ (self translation: translation) * (self scaleX: scaleX Y: scaleY)
+]
+
+{ #category : #'instance creation' }
 FormSGAffineTransform class >> translation: translation [
 	^ self new setTranslation: translation; yourself
+]
+
+{ #category : #arithmetic }
+FormSGAffineTransform >> * anAffineTransform [
+	^ self transformTransform: anAffineTransform
 ]
 
 { #category : #initialization }
@@ -239,8 +262,13 @@ FormSGAffineTransform >> setRotationInRadians: rotation translation: translation
 
 { #category : #initialization }
 FormSGAffineTransform >> setScale: scaleFactor [.
-	m11 := scaleFactor. m12 := 0.0. m13 := 0.0.
-	m21 := 0.0. m22 := scaleFactor. m23 := 0.0.
+	self setScaleX: scaleFactor Y: scaleFactor
+]
+
+{ #category : #initialization }
+FormSGAffineTransform >> setScaleX: scaleFactorX Y: scaleFactorY [.
+	m11 := scaleFactorX asFloat. m12 := 0.0. m13 := 0.0.
+	m21 := 0.0. m22 := scaleFactorY asFloat. m23 := 0.0.
 ]
 
 { #category : #initialization }
@@ -266,6 +294,19 @@ FormSGAffineTransform >> transformRectangle: rectangle [
 		self transformPoint: rectangle topLeft.
 		self transformPoint: rectangle topRight.
 	}
+]
+
+{ #category : #arithmetic }
+FormSGAffineTransform >> transformTransform: other [
+	^ self class basicNew
+		m11: (m11 * other m11) + (m12 * other m21);
+		m12: (m11 * other m12) + (m12 * other m22);
+		m13: (m11 * other m13) + (m12 * other m23) + m13;
+
+		m21: (m21 * other m11) + (m22 * other m21);
+		m22: (m21 * other m12) + (m22 * other m22);
+		m23: (m21 * other m13) + (m22 * other m23) + m23;
+		yourself
 ]
 
 { #category : #accessing }
