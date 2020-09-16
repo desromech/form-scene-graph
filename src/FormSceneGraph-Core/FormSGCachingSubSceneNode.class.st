@@ -109,7 +109,7 @@ FormSGCachingSubSceneNode >> validCachedAthensCairoSurfaceWithExtent: requiredEx
 		cachedSubSceneAthensCairoSurface := AthensCairoSurface extent: requiredExtent
 	].
 
-	translation := rectangle origin negated.
+	translation := rectangle origin rounded negated.
 	cachedSubSceneAthensCairoSurface drawDuring: [ :canvas |
 		FormSGAthensRenderer render: self child
 			withTransform: (FormSGAffineTransform

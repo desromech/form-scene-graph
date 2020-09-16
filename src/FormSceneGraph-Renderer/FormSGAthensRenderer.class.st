@@ -53,7 +53,7 @@ FormSGAthensRenderer >> visitAthensNode: node [
 	(rectangle isNil or: [rectangle isEmpty]) ifTrue: [ ^ self ].
 
 	transformedRectangle := self transformRectangle: rectangle.
-	logicalExtent := rectangle extent.
+	logicalExtent := rectangle extent ceiling.
 	surfaceExtent := transformedRectangle extent ceiling.
 	(surfaceExtent x <= 1 or: [ surfaceExtent y <= 1 ]) ifTrue: [ ^ self ].
 	
@@ -65,8 +65,8 @@ FormSGAthensRenderer >> visitAthensNode: node [
 			setScaleX: (logicalExtent x / surfaceExtent x) asFloat
 				Y: (logicalExtent y / surfaceExtent y) asFloat.
 		canvas setPaint: surface.
-		canvas pathTransform translateBy: node rectangle origin.
-		canvas drawShape: (0@0 extent: node rectangle extent).
+		canvas pathTransform translateBy: node rectangle origin rounded.
+		canvas drawShape: (0@0 extent: logicalExtent).
 	].
 
 
@@ -92,7 +92,7 @@ FormSGAthensRenderer >> visitCachedSubScene: node [
 	transformedRectangle := self transformRectangle: rectangle.
 	surfaceExtent := transformedRectangle extent ceiling.
 	(surfaceExtent x <= 1 or: [ surfaceExtent y <= 1 ]) ifTrue: [ ^ self ].
-	logicalExtent := rectangle extent.
+	logicalExtent := rectangle extent ceiling.
 	surface := node validCachedAthensCairoSurfaceWithExtent: surfaceExtent.
 	surface ifNil: [ ^ self ].
 
@@ -101,8 +101,8 @@ FormSGAthensRenderer >> visitCachedSubScene: node [
 			setScaleX: (logicalExtent x / surfaceExtent x) asFloat
 				Y: (logicalExtent y / surfaceExtent y) asFloat.
 		canvas setPaint: surface.
-		canvas pathTransform translateBy: node rectangle origin.
-		canvas drawShape: (0@0 extent: node rectangle extent).
+		canvas pathTransform translateBy: node rectangle origin rounded.
+		canvas drawShape: (0@0 extent: logicalExtent).
 	].
 
 ]
