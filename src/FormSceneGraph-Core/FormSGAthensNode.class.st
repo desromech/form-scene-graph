@@ -53,6 +53,7 @@ FormSGAthensNode >> surface: anObject [
 
 { #category : #'rendering helpers' }
 FormSGAthensNode >> validAthensCairoSurfaceWithExtent: requiredExtent [
+	| logicalExtent |
 	(surfaceSession == Smalltalk session and: [
 	surface isNotNil and: [
 	surface extent = requiredExtent]]) ifFalse: [
@@ -60,9 +61,10 @@ FormSGAthensNode >> validAthensCairoSurfaceWithExtent: requiredExtent [
 		isSurfaceValidated := false.
  	].
 
+	logicalExtent := rectangle extent ceiling.
 	isSurfaceValidated ifFalse: [
 		[
-			drawBlock value: surface
+			drawBlock cull: surface cull: (requiredExtent x / logicalExtent x) asFloat cull: (requiredExtent y / logicalExtent y) asFloat
 		] on: Error do: [ :e |
 		].
 	
