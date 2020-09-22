@@ -29,6 +29,30 @@ FormSGAthensNode >> drawBlock: anObject [
 ]
 
 { #category : #'rendering helpers' }
+FormSGAthensNode >> drawRedScreenOfDeathOn: targetSurface for: error [
+	targetSurface drawDuring: [ :canvas |
+		| trace font height |
+		canvas pathTransform loadIdentity.
+		canvas
+			setPaint: (Color red alpha: 0.7);
+			setShape: (0@0 extent: surface extent);
+			draw.
+					
+		trace := String streamContents: [ :s| error signalerContext shortDebugStackOn: s].
+		font := LogicalFont familyName: 'Arial' pointSize: 20.
+		canvas setFont: font.
+		canvas setPaint: Color black.
+
+		canvas pathTransform translateX: 0 Y: (font getPreciseAscent).
+		height := font getPreciseHeight.
+		trace linesDo: [ :line |
+			canvas drawString: (line copyReplaceAll: String tab with: '    ').
+			canvas pathTransform translateX: 0 Y: height.
+		]
+	]
+]
+
+{ #category : #'rendering helpers' }
 FormSGAthensNode >> initialize [
 	super initialize.
 	isSurfaceValidated := false.
@@ -65,7 +89,8 @@ FormSGAthensNode >> validAthensCairoSurfaceWithExtent: requiredExtent [
 	isSurfaceValidated ifFalse: [
 		[
 			drawBlock cull: surface cull: (requiredExtent x / logicalExtent x) asFloat cull: (requiredExtent y / logicalExtent y) asFloat
-		] on: Error do: [ :e |
+		] on: Error do: [ :error |
+			self drawRedScreenOfDeathOn: surface for: error
 		].
 	
 		isSurfaceValidated := true.
