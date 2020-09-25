@@ -7,12 +7,6 @@ Class {
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
-{ #category : #initialization }
-FormAthensSGWorldRenderer >> actualScreenSize [
-
-	^ osWindow ifNil: [ 240@120 ] ifNotNil: [ self osWindowRenderer pixelExtent ]
-]
-
 { #category : #operations }
 FormAthensSGWorldRenderer >> displayNewSceneScene: newSceneGraph [
 	| renderer |

@@ -21,8 +21,9 @@ FormSGWorldRenderer >> actualScreenSize [
 
 { #category : #operations }
 FormSGWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld [
-	| builder rootNodes scaleFactor |
+	| builder rootNodes scaleFactor surfaceScaleFactor |
 	scaleFactor := self scaleFactor.
+	surfaceScaleFactor := self drawingSurfaceExtent / self windowExtent.
 	builder := FormSGBuilder extent: self actualScreenSize.
 	rootNodes := OrderedCollection new.
 	rootNodes add: (aWorld buildFullSceneGraphWith: builder).
@@ -30,7 +31,9 @@ FormSGWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld
 		rootNodes add: (each buildFullSceneGraphWith: builder)
 	].
 	aWorldState damageRecorder reset.
-	^ builder scale: (builder containerWith: rootNodes) with: scaleFactor
+	^ builder scale: (builder containerWith: rootNodes)
+		withFactorX: (scaleFactor * surfaceScaleFactor x) asFloat
+		Y: (scaleFactor * surfaceScaleFactor y) asFloat
 ]
 
 { #category : #initialization }
@@ -129,6 +132,13 @@ FormSGWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState ofWorld: a
 { #category : #operations }
 FormSGWorldRenderer >> drawDuring: aBlock [
 	"Nothing required here."
+]
+
+{ #category : #'as yet unclassified' }
+FormSGWorldRenderer >> drawingSurfaceExtent [
+	^ (osWindow isNotNil and: [ osWindow renderer isNotNil ])
+		ifTrue: [ osWindow renderer pixelExtent ]
+		ifFalse: [ self windowExtent ]
 ]
 
 { #category : #initialization }

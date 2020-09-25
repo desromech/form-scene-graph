@@ -222,6 +222,12 @@ FormSGBuilder >> scale: child with: scaleFactor [
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> scale: child withFactorX: scaleFactorX Y: scaleFactorY [
+	((scaleFactorX closeTo: 1) and: [ scaleFactorY closeTo: 1 ]) ifTrue: [ ^ child ].
+	^ self transform: child with: (FormSGAffineTransform scaleX: scaleFactorX Y: scaleFactorY)
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> string: string from: firstIndex to: lastIndex in: rectangle font: font color: color kern: kern [ 
 	^ self string: string from: firstIndex to: lastIndex in: rectangle font: font color: color kern: kern underline: false underlineColor: nil strikethrough: false strikethroughColor: nil
 ]
