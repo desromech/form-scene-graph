@@ -82,6 +82,11 @@ FormSGBuilder >> extent: anExtent [
 	clippingBounds := 0@0 extent: anExtent.
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGBuilder >> horizontalLineFrom: startPoint to: endPoint width: lineWidth color: color [
+	^ self rectangle: (startPoint corner: endPoint + (0@lineWidth)) color: color
+]
+
 { #category : #'node building' }
 FormSGBuilder >> identityTransform [
 	^ FormSGAffineTransform identity

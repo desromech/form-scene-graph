@@ -32,6 +32,11 @@ FormSGBuilder >> frameRectangle: aRectangle width: width colors: colors dashes: 
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
+FormSGBuilder >> rectangle: aRectangle fillStyle: aFillStyle [
+	^ self fillRectangle: aRectangle style: aFillStyle
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
 FormSGBuilder >> rectangle: aRectangle fillStyle: aFillStyle borderStyle: aBorderStyle [
 	(aBorderStyle isNil or: [aBorderStyle width < 0]) ifTrue: [
 		^ self rectangle: aRectangle fillStyle: aFillStyle

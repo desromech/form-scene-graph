@@ -31,25 +31,31 @@ FormSGAthensNode >> drawBlock: anObject [
 { #category : #'rendering helpers' }
 FormSGAthensNode >> drawRedScreenOfDeathOn: targetSurface for: error [
 	targetSurface drawDuring: [ :canvas |
-		| trace font height |
-		canvas pathTransform loadIdentity.
-		canvas
-			setPaint: (Color red alpha: 0.7);
-			setShape: (0@0 extent: surface extent);
-			draw.
-					
-		trace := String streamContents: [ :s| error signalerContext shortDebugStackOn: s].
-		font := LogicalFont familyName: 'Arial' pointSize: 20.
-		canvas setFont: font.
-		canvas setPaint: Color black.
-
-		canvas pathTransform translateX: 0 Y: (font getPreciseAscent).
-		height := font getPreciseHeight.
-		trace linesDo: [ :line |
-			canvas drawString: (line copyReplaceAll: String tab with: '    ').
-			canvas pathTransform translateX: 0 Y: height.
-		]
+		self drawRedScreenOfDeathOnCanvas: canvas for: error
 	]
+]
+
+{ #category : #'rendering helpers' }
+FormSGAthensNode >> drawRedScreenOfDeathOnCanvas: canvas for: error [
+	| trace font height |
+	canvas pathTransform loadIdentity.
+	canvas
+		setPaint: (Color red alpha: 0.7);
+		setShape: (0@0 extent: surface extent);
+		draw.
+					
+	trace := String streamContents: [ :s| error signalerContext shortDebugStackOn: s].
+	font := LogicalFont familyName: 'Arial' pointSize: 20.
+	canvas setFont: font.
+	canvas setPaint: Color black.
+
+	canvas pathTransform translateX: 0 Y: (font getPreciseAscent).
+	height := font getPreciseHeight.
+	trace linesDo: [ :line |
+		canvas drawString: (line copyReplaceAll: String tab with: '    ').
+		canvas pathTransform translateX: 0 Y: height.
+	]
+
 ]
 
 { #category : #'rendering helpers' }
