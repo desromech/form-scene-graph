@@ -4,7 +4,7 @@ Extension { #name : #FormSGAffineTransform }
 FormSGAffineTransform >> asAthensTransform [
 	^ AthensAffineTransform new
 		sx: m11; shx: m12; x: m13;
-		shx: m21; sy: m22; y: m23;
+		shy: m21; sy: m22; y: m23;
 		yourself
 ]
 

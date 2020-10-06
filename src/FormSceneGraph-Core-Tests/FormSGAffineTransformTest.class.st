@@ -24,6 +24,13 @@ FormSGAffineTransformTest >> testIdentity [
 ]
 
 { #category : #tests }
+FormSGAffineTransformTest >> testRows [
+	| transform |
+	transform := FormSGAffineTransform rows: #(1 2 3 4 5 6).
+	self assert: transform asRowMajorArray equals: #(1 2 3 4 5 6).
+]
+
+{ #category : #tests }
 FormSGAffineTransformTest >> testTranslation [
 	| transform |
 	transform := FormSGAffineTransform translation: 4@3.

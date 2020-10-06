@@ -25,6 +25,15 @@ FormSGAffineTransform class >> identity [
 ]
 
 { #category : #'instance creation' }
+FormSGAffineTransform class >> rows: elements [
+	self assert: elements size = 6.
+	^ self new
+		m11: (elements at: 1); m12: (elements at: 2); m13: (elements at: 3);
+		m21: (elements at: 4); m22: (elements at: 5); m23: (elements at: 6);
+		yourself
+]
+
+{ #category : #'instance creation' }
 FormSGAffineTransform class >> scale: scaleFactor [
 	^ self new setScale: scaleFactor; yourself
 ]
@@ -224,6 +233,15 @@ FormSGAffineTransform >> m23: anObject [
 FormSGAffineTransform >> positiveScale [
 	self assert: ((m11 closeTo: m22) and: [m11 > 0]).
 	^ m11
+]
+
+{ #category : #printing }
+FormSGAffineTransform >> printOn: aStream [
+	aStream
+		nextPut: $(; nextPutAll: self class name; nextPutAll: ' rows: #('; cr;
+		tab; print: m11; space; print: m12; space; print: m13; cr;
+		tab; print: m21; space; print: m22; space; print: m23; cr;
+	nextPut: $)
 ]
 
 { #category : #initialization }
