@@ -25,6 +25,26 @@ FormSGAffineTransform class >> identity [
 ]
 
 { #category : #'instance creation' }
+FormSGAffineTransform class >> rotationInDegrees: angle [
+	^ self new setRotationInDegrees: angle; yourself
+]
+
+{ #category : #'instance creation' }
+FormSGAffineTransform class >> rotationInDegrees: angle translation: translation [
+	^ self new setRotationInDegrees: angle translation: translation; yourself
+]
+
+{ #category : #'instance creation' }
+FormSGAffineTransform class >> rotationInRadians: angle [
+	^ self new setRotationInRadians: angle; yourself
+]
+
+{ #category : #'instance creation' }
+FormSGAffineTransform class >> rotationInRadians: angle translation: translation [
+	^ self new setRotationInRadians: angle translation: translation; yourself
+]
+
+{ #category : #'instance creation' }
 FormSGAffineTransform class >> rows: elements [
 	self assert: elements size = 6.
 	^ self new
@@ -40,10 +60,7 @@ FormSGAffineTransform class >> scale: scaleFactor [
 
 { #category : #'instance creation' }
 FormSGAffineTransform class >> scale: scale translation: translation [
-	^ self new
-		setScale: scale;
-		setTranslation: translation;
-		yourself
+	^ (self translation: translation) * (self scale: scale)
 ]
 
 { #category : #'instance creation' }

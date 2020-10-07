@@ -221,6 +221,18 @@ FormSGBuilder >> rectangle: rectangle surface: surface drawWithAthens: drawBlock
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> rotate: child withDegrees: angle [
+	(angle closeTo: 0) ifTrue: [ ^ child ].
+	^ self transform: child with: (FormSGAffineTransform rotationInDegrees: angle)
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> rotate: child withRadians: angle [
+	(angle closeTo: 0) ifTrue: [ ^ child ].
+	^ self transform: child with: (FormSGAffineTransform rotationInRadians: angle)
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> scale: child with: scaleFactor [
 	(scaleFactor closeTo: 1) ifTrue: [ ^ child ].
 	^ self transform: child with: (FormSGAffineTransform scale: scaleFactor)
@@ -307,6 +319,11 @@ FormSGBuilder >> translate: child with: translation [
 		translation: translation;
 		child: child;
 		yourself
+]
+
+{ #category : #'as yet unclassified' }
+FormSGBuilder >> verticalLineFrom: startPoint to: endPoint width: lineWidth color: color [
+	^ self rectangle: (startPoint corner: endPoint + (lineWidth@0)) color: color
 ]
 
 { #category : #'building context' }

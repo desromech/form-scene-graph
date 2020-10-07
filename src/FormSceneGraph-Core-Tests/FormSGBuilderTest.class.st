@@ -126,6 +126,17 @@ FormSGBuilderTest >> testContainer [
 ]
 
 { #category : #tests }
+FormSGBuilderTest >> testHorizontalLine [
+	| node |
+	node := builder horizontalLineFrom: 5@0 to: 20@0 width: 2 color: Color blue.
+	self assert: node isRectangleNode.
+	self assert: node isColorRectangleNode.
+	self assert: node rectangle origin x equals: 5.
+	self assert: node rectangle corner x equals: 20.
+	self assert: node color equals: Color blue.
+]
+
+{ #category : #tests }
 FormSGBuilderTest >> testIdentityTransform [
 	self assert: builder identityTransform isIdentity.
 	self assert: builder identityTransform isTranslationOnly.
@@ -375,6 +386,34 @@ FormSGBuilderTest >> testRepeatingLinearGradientRectangle2 [
 ]
 
 { #category : #tests }
+FormSGBuilderTest >> testRotateDegreesNode [
+	| node child |
+	child := builder rectangle: (5@5 extent: 32@32) color: Color red.
+	node := builder rotate: child withDegrees: 90.
+	self assert: node isChildAttributeNode.
+	self assert: node isTransformNode.
+	self assert: node transform equals: (FormSGAffineTransform rotationInDegrees: 90).
+	self assert: node boundingBox closeTo: (-37@5 corner: -5@37).
+	self assert: node child equals: child.
+	self assert: node children equals: {child}.
+
+]
+
+{ #category : #tests }
+FormSGBuilderTest >> testRotateRadiansNode [
+	| node child |
+	child := builder rectangle: (5@5 extent: 32@32) color: Color red.
+	node := builder rotate: child withRadians: Float halfPi.
+	self assert: node isChildAttributeNode.
+	self assert: node isTransformNode.
+	self assert: node transform equals: (FormSGAffineTransform rotationInRadians: Float halfPi).
+	self assert: node boundingBox closeTo: (-37@5 corner: -5@37).
+	self assert: node child equals: child.
+	self assert: node children equals: {child}.
+
+]
+
+{ #category : #tests }
 FormSGBuilderTest >> testRoundedClipNode [
 	| node child |
 	child := builder rectangle: (-50 @ -50 extent: 200@300) color: Color red.
@@ -397,6 +436,34 @@ FormSGBuilderTest >> testRoundedClipNode2 [
 	self assert: node boundingBox equals: (0@5 extent: 60@50).
 	self assert: node child equals: child.
 	self assert: node children equals: {child}.
+]
+
+{ #category : #tests }
+FormSGBuilderTest >> testScaleNode [
+	| node child |
+	child := builder rectangle: (5@5 extent: 32@32) color: Color red.
+	node := builder scale: child with: 2.
+	self assert: node isChildAttributeNode.
+	self assert: node isTransformNode.
+	self assert: node transform equals: (FormSGAffineTransform scale: 2).
+	self assert: node boundingBox equals: (10@10 extent: 64@64).
+	self assert: node child equals: child.
+	self assert: node children equals: {child}.
+
+]
+
+{ #category : #tests }
+FormSGBuilderTest >> testScaleXYNode [
+	| node child |
+	child := builder rectangle: (5@5 extent: 32@32) color: Color red.
+	node := builder scale: child withFactorX: 2 Y: 3.
+	self assert: node isChildAttributeNode.
+	self assert: node isTransformNode.
+	self assert: node transform equals: (FormSGAffineTransform scaleX: 2 Y: 3).
+	self assert: node boundingBox equals: (10@15 extent: 64@96).
+	self assert: node child equals: child.
+	self assert: node children equals: {child}.
+
 ]
 
 { #category : #tests }
@@ -481,6 +548,17 @@ FormSGBuilderTest >> testTranslationTransform [
 	self deny: transform isIdentity.
 	self assert: transform isTranslationOnly.
 
+]
+
+{ #category : #tests }
+FormSGBuilderTest >> testVerticalLine [
+	| node |
+	node := builder verticalLineFrom: 0@5 to: 0@20 width: 2 color: Color blue.
+	self assert: node isRectangleNode.
+	self assert: node isColorRectangleNode.
+	self assert: node rectangle origin y equals: 5.
+	self assert: node rectangle corner y equals: 20.
+	self assert: node color equals: Color blue.
 ]
 
 { #category : #tests }
