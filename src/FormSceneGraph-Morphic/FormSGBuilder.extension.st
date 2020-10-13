@@ -22,6 +22,7 @@ FormSGBuilder >> fillRectangle: aRectangle fillStyle: aFillStyle borderStyle: aB
 
 { #category : #'*FormSceneGraph-Morphic' }
 FormSGBuilder >> fillRectangle: aRectangle style: aFillStyle [
+	aFillStyle ifNil: [ ^ self null ].
 	^ aFillStyle buildSceneGraphNodeForFilling: aRectangle with: self
 ]
 

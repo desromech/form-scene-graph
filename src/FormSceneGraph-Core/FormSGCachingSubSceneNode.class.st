@@ -12,7 +12,8 @@ Class {
 		'modificationCount',
 		'cachedSubSceneFormValidationCount',
 		'cachedSubSceneAthensCairoSurface',
-		'cachedSubSceneAthensCairoSurfaceValidationCount'
+		'cachedSubSceneAthensCairoSurfaceValidationCount',
+		'cachedSubSceneAthensCairoSurfaceSession'
 	],
 	#category : #'FormSceneGraph-Core-Nodes'
 }
@@ -98,6 +99,11 @@ FormSGCachingSubSceneNode >> validCachedAthensCairoSurface [
 { #category : #'rendering helpers' }
 FormSGCachingSubSceneNode >> validCachedAthensCairoSurfaceWithExtent: requiredExtent [
 	| rectangle logicalExtent translation |
+	cachedSubSceneAthensCairoSurfaceSession == Smalltalk session ifFalse: [
+		cachedSubSceneAthensCairoSurface := nil.
+		cachedSubSceneAthensCairoSurfaceValidationCount := nil.
+	].
+
 	(cachedSubSceneAthensCairoSurfaceValidationCount = modificationCount
 	and: [ cachedSubSceneAthensCairoSurface extent = requiredExtent ]) ifTrue: [
 		^ cachedSubSceneAthensCairoSurface
@@ -106,7 +112,8 @@ FormSGCachingSubSceneNode >> validCachedAthensCairoSurfaceWithExtent: requiredEx
 	rectangle := self rectangle.
 	logicalExtent := rectangle extent ceiling.
 	(cachedSubSceneAthensCairoSurface isNil or: [ cachedSubSceneAthensCairoSurface extent ~= requiredExtent ]) ifTrue: [
-		cachedSubSceneAthensCairoSurface := AthensCairoSurface extent: requiredExtent
+		cachedSubSceneAthensCairoSurface := AthensCairoSurface extent: requiredExtent.
+		cachedSubSceneAthensCairoSurfaceSession := Smalltalk session
 	].
 
 	translation := rectangle origin rounded negated.

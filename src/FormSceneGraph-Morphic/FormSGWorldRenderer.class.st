@@ -14,6 +14,11 @@ FormSGWorldRenderer class >> isApplicableFor: aWorld [
 	^ false
 ]
 
+{ #category : #accessing }
+FormSGWorldRenderer class >> priority [
+	^ OSWorldRenderer priority + 1
+]
+
 { #category : #initialization }
 FormSGWorldRenderer >> actualScreenSize [
 	^ (super actualScreenSize / self scaleFactor) ceiling max: 1@1
