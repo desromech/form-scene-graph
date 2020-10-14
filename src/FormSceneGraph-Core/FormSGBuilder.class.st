@@ -120,6 +120,19 @@ FormSGBuilder >> insetShadow: rectangle width: width [
 		yourself
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGBuilder >> lineFrom: startPoint to: endPoint width: lineWidth color: color [
+	(lineWidth closeTo: 0) ifTrue: [ ^ self null ].
+	color isTransparent ifTrue: [ ^ self null ].
+	(startPoint y closeTo: endPoint y) ifTrue: [
+		^ self horizontalLineFrom: startPoint to: endPoint width: lineWidth color: color.
+	].
+	(startPoint x closeTo: endPoint x) ifTrue: [
+		^ self verticalLineFrom: startPoint to: endPoint width: lineWidth color: color.
+	].
+
+]
+
 { #category : #'node building' }
 FormSGBuilder >> node: child withOpacityFactor: opacityFactor [
 	opacityFactor <= 0 ifTrue: [ ^ self null ].
