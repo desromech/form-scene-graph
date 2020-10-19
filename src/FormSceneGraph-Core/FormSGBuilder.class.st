@@ -82,7 +82,7 @@ FormSGBuilder >> extent: anExtent [
 	clippingBounds := 0@0 extent: anExtent.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'node building' }
 FormSGBuilder >> horizontalLineFrom: startPoint to: endPoint width: lineWidth color: color [
 	^ self rectangle: (startPoint corner: endPoint + (0@lineWidth)) color: color
 ]
@@ -120,7 +120,7 @@ FormSGBuilder >> insetShadow: rectangle width: width [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'node building' }
 FormSGBuilder >> lineFrom: startPoint to: endPoint width: lineWidth color: color [
 	(lineWidth closeTo: 0) ifTrue: [ ^ self null ].
 	color isTransparent ifTrue: [ ^ self null ].
@@ -334,7 +334,7 @@ FormSGBuilder >> translate: child with: translation [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'node building' }
 FormSGBuilder >> verticalLineFrom: startPoint to: endPoint width: lineWidth color: color [
 	^ self rectangle: (startPoint corner: endPoint + (lineWidth@0)) color: color
 ]
