@@ -28,7 +28,8 @@ FormSGWorldRenderer >> actualScreenSize [
 FormSGWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld [
 	| builder rootNodes scaleFactor surfaceScaleFactor |
 	scaleFactor := self scaleFactor.
-	surfaceScaleFactor := self drawingSurfaceExtent / self windowExtent.
+	surfaceScaleFactor := (self drawingSurfaceExtent / self windowExtent) asFloatPoint.
+	
 	builder := FormSGBuilder extent: self actualScreenSize.
 	rootNodes := OrderedCollection new.
 	rootNodes add: (aWorld buildFullSceneGraphWith: builder).
@@ -139,7 +140,7 @@ FormSGWorldRenderer >> drawDuring: aBlock [
 	"Nothing required here."
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'scale factor' }
 FormSGWorldRenderer >> drawingSurfaceExtent [
 	^ (osWindow isNotNil and: [ osWindow renderer isNotNil ])
 		ifTrue: [ osWindow renderer pixelExtent ]
@@ -172,7 +173,7 @@ FormSGWorldRenderer >> updateDamage: allDamage [
 	"Nothing required here."
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'scale factor' }
 FormSGWorldRenderer >> windowScaleFactor [
 	^ osWindow ifNil: [ 1 ] ifNotNil: [ osWindow screenScaleFactor ]
 ]
