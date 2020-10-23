@@ -105,3 +105,11 @@ Morph >> listBuildSceneGraphWith: builder atRow: aRow bounds: drawBounds color: 
 Morph >> shouldDrawKeyboardFocusIndicator [
 	^ false
 ]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+Morph >> treeRenderSceneNodeWith: builder bounds: drawBounds color: drawColor font: aFont from: aMorph [
+
+	self bounds: drawBounds.
+	aMorph addMorphBack: self.
+ 	^ builder null      
+]
