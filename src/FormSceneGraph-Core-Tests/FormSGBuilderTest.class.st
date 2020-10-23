@@ -499,6 +499,7 @@ FormSGBuilderTest >> testTextureRectangle [
 	self assert: node rectangle equals: rectangle.
 	self assert: node form equals: form.
 	self deny: node isFullyOpaque.
+	self deny: node isRepeated.
 ]
 
 { #category : #tests }
@@ -512,6 +513,7 @@ FormSGBuilderTest >> testTextureRectangleOpaque [
 	self assert: node rectangle equals: rectangle.
 	self assert: node form equals: form.
 	self assert: node isFullyOpaque.
+	self deny: node isRepeated.
 ]
 
 { #category : #tests }

@@ -131,6 +131,26 @@ FormSGAthensRenderer >> visitContainerNode: node [
 ]
 
 { #category : #visiting }
+FormSGAthensRenderer >> visitLinearGradientNode: node [
+	| paint |
+	(node startColor isTransparent and: [ node endColor isTransparent ]) ifTrue: [ ^ self ].
+	
+	paint := (LinearGradientPaint fromArray: {
+		0 -> node startColor.
+		1 -> node endColor.
+		})
+		start: node startPoint;
+		stop: node endPoint;
+		yourself.
+
+	canvas paintTransform loadIdentity.
+	canvas
+		setPaint: paint;
+		drawShape: node rectangle
+	
+]
+
+{ #category : #visiting }
 FormSGAthensRenderer >> visitNullNode: node [
 	"Nothing is required here."
 ]
@@ -142,6 +162,7 @@ FormSGAthensRenderer >> visitTextNode: node [
 	canvas setFont: node font.
 	canvas setPaint: node color.
 	canvas pathTransform restoreAfter: [
+		canvas paintTransform loadIdentity.
 		canvas pathTransform translateBy: node rectangle origin + (0@ node font ascent).
 		canvas drawString: node string from: node firstIndex to: node lastIndex
 	].
@@ -149,13 +170,38 @@ FormSGAthensRenderer >> visitTextNode: node [
 
 { #category : #visiting }
 FormSGAthensRenderer >> visitTextureNode: node [
+	| paint sourceRectangle rectangle extent sourceExtent |
+	rectangle := node rectangle.
+	extent := rectangle extent.
+	(extent x <= 0.0 or: [ extent y <= 0.0 ]) ifTrue: [ ^ self ].
+		
+	paint := node form asAthensPaintOn: canvas.
+	sourceRectangle := node validSourceRectangle.
+	sourceExtent := sourceRectangle extent.
+	(sourceExtent x <= 0.0 or: [ sourceExtent y <= 0.0 ]) ifTrue: [ ^ self ].
+	
+	node isRepeated ifTrue: [
+		paint repeat
+	] ifFalse: [
+		paint noRepeat
+	].
+
 	canvas pathTransform restoreAfter: [
-		canvas paintTransform loadIdentity.
-		canvas setPaint: node form.
+		canvas paintTransform
+			loadIdentity.
+		node isRepeated ifTrue: [
+			paint repeat
+		] ifFalse: [
+			paint noRepeat.
+			canvas paintTransform
+				scaleBy: extent / sourceExtent;
+				translateBy: sourceRectangle origin.
+		].
+		
+		canvas setPaint: paint.
 		canvas pathTransform translateBy: node rectangle origin.
 		canvas drawShape: (0@0 extent: node rectangle extent).
 	].
-
 
 ]
 

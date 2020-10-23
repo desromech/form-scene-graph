@@ -6,7 +6,9 @@ Class {
 	#superclass : #FormSGRectangleNode,
 	#instVars : [
 		'isFullyOpaque',
-		'form'
+		'isRepeated',
+		'form',
+		'sourceRectangle'
 	],
 	#category : #'FormSceneGraph-Core-Nodes'
 }
@@ -29,6 +31,7 @@ FormSGTextureNode >> form: anObject [
 { #category : #initialization }
 FormSGTextureNode >> initialize [
 	isFullyOpaque := false.
+	isRepeated := false.
 ]
 
 { #category : #accessing }
@@ -41,7 +44,32 @@ FormSGTextureNode >> isFullyOpaque: anObject [
 	isFullyOpaque := anObject
 ]
 
+{ #category : #accessing }
+FormSGTextureNode >> isRepeated [
+	^ isRepeated
+]
+
+{ #category : #accessing }
+FormSGTextureNode >> isRepeated: anObject [
+	isRepeated := anObject
+]
+
 { #category : #testing }
 FormSGTextureNode >> isTextureNode [
 	^ true
+]
+
+{ #category : #accessing }
+FormSGTextureNode >> sourceRectangle [
+	^ sourceRectangle
+]
+
+{ #category : #accessing }
+FormSGTextureNode >> sourceRectangle: anObject [
+	sourceRectangle := anObject
+]
+
+{ #category : #accessing }
+FormSGTextureNode >> validSourceRectangle [
+	^ sourceRectangle ifNil: [ form boundingBox ]
 ]

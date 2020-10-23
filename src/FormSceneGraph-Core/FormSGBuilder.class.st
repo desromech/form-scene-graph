@@ -196,6 +196,42 @@ FormSGBuilder >> rectangle: rectangle linearGradientStart: startPoint color: sta
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> rectangle: rectangle linearGradientStart: startPoint end: endPoint colorRamp: colorRamp [
+	| colorRampSize |
+	colorRampSize := colorRamp size.
+	colorRampSize = 0 ifTrue: [ ^ self null  ].
+	colorRampSize = 1 ifTrue: [ ^ self rectangle: rectangle color: colorRamp first value ].
+	colorRampSize = 2 ifTrue: [
+		^ self rectangle: rectangle
+			linearGradientStart: (startPoint interpolateTo: endPoint at: colorRamp first key) color: colorRamp first value
+			end: (startPoint interpolateTo: endPoint at: colorRamp second key) color: colorRamp second value
+	].
+
+	self flag: 'TODO: support arbitrary color ramps'.
+	^ self null
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> rectangle: rectangle radialGradientCenter: center
+	innerRadius: innerRadius clipRadius: clipInnerRadius
+	outerRadius: outerRadius clipRadius: clipOuterRadius colorRamp: colorRamp [
+	| colorRampSize |
+	colorRampSize := colorRamp size.
+	colorRampSize = 0 ifTrue: [ ^ self null  ].
+	colorRampSize = 1 ifTrue: [ ^ self rectangle: rectangle color: colorRamp first value ].
+	colorRampSize = 2 ifTrue: [
+		((colorRamp first key closeTo: 0) and: [colorRamp second key closeTo: 1]) ifTrue: [
+			^ self rectangle: rectangle radialGradientCenter: center
+				innerRadius: innerRadius color: colorRamp first value clipRadius: clipInnerRadius
+				outerRadius: outerRadius color: colorRamp second value clipRadius: clipOuterRadius
+		]
+	].
+
+	self flag: 'TODO: support arbitrary color ramps'.
+	^ self null
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> rectangle: rectangle radialGradientCenter: center
 	innerRadius: innerRadius color: startColor clipRadius: clipInnerRadius
 	outerRadius: outerRadius color: endColor clipRadius: clipOuterRadius [
@@ -300,6 +336,11 @@ FormSGBuilder >> textureForm: form at: position [
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> textureForm: form at: position opaque: opaque [
+	^ self texturedRectangle: (position extent: form extent) form: form opaque: opaque
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> texturedRectangle: rectangle form: form [
 	^ self texturedRectangle: rectangle form: form opaque: false
 ]
@@ -310,6 +351,16 @@ FormSGBuilder >> texturedRectangle: rectangle form: form opaque: fullyOpaque [
 		rectangle: rectangle;
 		form: form;
 		isFullyOpaque: fullyOpaque;
+		yourself
+]
+
+{ #category : #'node building' }
+FormSGBuilder >> texturedRectangle: rectangle form: form opaque: fullyOpaque repeated: repeated [
+	^ FormSGTextureNode new
+		rectangle: rectangle;
+		form: form;
+		isFullyOpaque: fullyOpaque;
+		isRepeated: repeated;
 		yourself
 ]
 
