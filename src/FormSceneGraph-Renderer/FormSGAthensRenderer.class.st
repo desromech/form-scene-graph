@@ -157,14 +157,39 @@ FormSGAthensRenderer >> visitNullNode: node [
 
 { #category : #visiting }
 FormSGAthensRenderer >> visitTextNode: node [
-	node font ifNil: [ ^ self ].
+	| font rectangle topLeftTextPoint stringWidthOffset |
+	font := node font.
+	font ifNil: [ ^ self ].
+	rectangle := node rectangle.
 	
-	canvas setFont: node font.
+	canvas setFont: font.
 	canvas setPaint: node color.
+	topLeftTextPoint := rectangle topLeft + (node kern @ font ascent).
 	canvas pathTransform restoreAfter: [
 		canvas paintTransform loadIdentity.
-		canvas pathTransform translateBy: node rectangle origin + (0@ node font ascent).
+		canvas pathTransform translateBy: topLeftTextPoint.
 		canvas drawString: node string from: node firstIndex to: node lastIndex
+	].
+	
+	(node underline or: [node strikethrough]) ifFalse: [ ^ self ].
+	stringWidthOffset := font widthOfString: node string from: node firstIndex to: node lastIndex.
+	(node underline and: [ node underlineColor isTransparent not ]) ifTrue: [
+		| underlineThickness underlineTop |
+	 	underlineThickness := font underlineThickness.
+		underlineTop := font underlineTop.
+		canvas
+			setPaint: node underlineColor;
+			drawShape: (topLeftTextPoint + (0@underlineTop) extent: stringWidthOffset@underlineThickness)
+	].
+
+	(node strikethrough and: [ node strikethroughColor isTransparent not ]) ifTrue: [
+		| strikeoutThickness strikeoutTop |
+	 	strikeoutThickness := font strikeoutThickness.
+		strikeoutTop := font strikeoutTop.
+		canvas
+			setPaint: node strikethroughColor;
+			drawShape: (topLeftTextPoint + (0@strikeoutTop) extent: stringWidthOffset@strikeoutThickness)
+		
 	].
 ]
 
