@@ -164,7 +164,7 @@ FormSGAthensRenderer >> visitTextNode: node [
 	
 	canvas setFont: font.
 	canvas setPaint: node color.
-	topLeftTextPoint := rectangle topLeft + (node kern @ font ascent).
+	topLeftTextPoint := rectangle topLeft + (0 @ font ascent).
 	canvas pathTransform restoreAfter: [
 		canvas paintTransform loadIdentity.
 		canvas pathTransform translateBy: topLeftTextPoint.
@@ -175,8 +175,8 @@ FormSGAthensRenderer >> visitTextNode: node [
 	stringWidthOffset := font widthOfString: node string from: node firstIndex to: node lastIndex.
 	(node underline and: [ node underlineColor isTransparent not ]) ifTrue: [
 		| underlineThickness underlineTop |
-	 	underlineThickness := font underlineThickness.
-		underlineTop := font underlineTop.
+	 	underlineThickness := font underlineThickness asFloat.
+		underlineTop := font underlineTop asFloat.
 		canvas
 			setPaint: node underlineColor;
 			drawShape: (topLeftTextPoint + (0@underlineTop) extent: stringWidthOffset@underlineThickness)
@@ -184,12 +184,11 @@ FormSGAthensRenderer >> visitTextNode: node [
 
 	(node strikethrough and: [ node strikethroughColor isTransparent not ]) ifTrue: [
 		| strikeoutThickness strikeoutTop |
-	 	strikeoutThickness := font strikeoutThickness.
-		strikeoutTop := font strikeoutTop.
+	 	strikeoutThickness := font strikeoutThickness asFloat.
+		strikeoutTop := font strikeoutTop asFloat.
 		canvas
 			setPaint: node strikethroughColor;
 			drawShape: (topLeftTextPoint + (0@strikeoutTop) extent: stringWidthOffset@strikeoutThickness)
-		
 	].
 ]
 

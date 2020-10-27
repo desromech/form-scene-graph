@@ -18,10 +18,13 @@ FormSGDisplayScanner class >> for: paragraph with: builder [
 
 { #category : #displaying }
 FormSGDisplayScanner >> displayString: string from: startIndex to: stopIndex at: aPoint [
-	| rectangle |
+	| rectangle underline strikethrough |
 	rectangle := aPoint extent: ((font widthOfString: string from: startIndex to: stopIndex) @ font height).
 	
-	textNodes add: (builder string: string from: startIndex to: stopIndex in: rectangle font: font color: foregroundColor kern: kern)
+	underline := emphasisCode allMask: 4.
+	strikethrough := emphasisCode allMask: 16.
+		
+	textNodes add: (builder string: string from: startIndex to: stopIndex in: rectangle font: font color: foregroundColor kern: kern underline: underline underlineColor: foregroundColor strikethrough: strikethrough strikethroughColor: foregroundColor)
 ]
 
 { #category : #displaying }
