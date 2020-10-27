@@ -231,6 +231,7 @@ FormSGAthensRenderer >> visitTextureNode: node [
 
 { #category : #visiting }
 FormSGAthensRenderer >> visitTransformNode: node [
+	(node transform determinant closeTo: 0) ifTrue: [ ^ self ].
 	canvas pathTransform restoreAfter: [
 		canvas pathTransform multiplyBy: node transform asAthensTransform.
 		self visitNode: node child

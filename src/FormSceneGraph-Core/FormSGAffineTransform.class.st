@@ -127,6 +127,11 @@ FormSGAffineTransform >> closeTo: other precision: precision [
 		(m23 closeTo: other m23 precision: precision) ]]]]]]
 ]
 
+{ #category : #testing }
+FormSGAffineTransform >> determinant [
+	^ (m11 * m22) - (m21*m12)
+]
+
 { #category : #initialization }
 FormSGAffineTransform >> hash [
 	^ self class identityHash bitXor: (

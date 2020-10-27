@@ -1,6 +1,12 @@
 Extension { #name : #RubTextSegmentMorph }
 
 { #category : #'*FormSceneGraph-Morphic' }
+RubTextSegmentMorph >> buildIconSceneGraphNodeAt: aPosition with: builder [
+	self icon ifNil: [ ^ builder null ].
+	^ builder textureForm: self icon at: aPosition
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
 RubTextSegmentMorph >> computeInteriorRectangles [
 	| firstCB lastCB firstLineIndex lastLineIndex firstLine lastLine |
 	firstCB := self characterBlockForIndex: firstIndex.
