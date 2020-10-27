@@ -6,6 +6,7 @@ Class {
 	#superclass : #FormSGGradientNode,
 	#instVars : [
 		'center',
+		'focalPoint',
 		'innerRadius',
 		'outerRadius',
 		'clipInnerRadius',
@@ -50,6 +51,16 @@ FormSGRadialGradientNode >> clipOuterRadius: anObject [
 ]
 
 { #category : #accessing }
+FormSGRadialGradientNode >> focalPoint [
+	^ focalPoint
+]
+
+{ #category : #accessing }
+FormSGRadialGradientNode >> focalPoint: anObject [
+	focalPoint := anObject
+]
+
+{ #category : #accessing }
 FormSGRadialGradientNode >> innerRadius [
 	^ innerRadius
 ]
@@ -62,6 +73,11 @@ FormSGRadialGradientNode >> innerRadius: anObject [
 { #category : #testing }
 FormSGRadialGradientNode >> isRadialGradientNode [
 	^ true
+]
+
+{ #category : #accessing }
+FormSGRadialGradientNode >> maxRadius [
+	^ ((innerRadius max: clipInnerRadius) max: outerRadius) max: clipOuterRadius
 ]
 
 { #category : #accessing }

@@ -156,6 +156,30 @@ FormSGAthensRenderer >> visitNullNode: node [
 ]
 
 { #category : #visiting }
+FormSGAthensRenderer >> visitRadialGradientNode: node [
+	| paint maxRadius |
+	(node startColor isTransparent and: [ node endColor isTransparent ]) ifTrue: [ ^ self ].
+	
+	maxRadius := node maxRadius asFloat.
+	paint := (RadialGradientPaint fromArray: {
+		node clipInnerRadius / maxRadius -> Color transparent.
+		node innerRadius / maxRadius -> node startColor.
+		node outerRadius / maxRadius -> node endColor.
+		node clipOuterRadius / maxRadius -> Color transparent.
+		})
+		center: node center asFloatPoint;
+		focalPoint: node focalPoint asFloatPoint;
+		radius: maxRadius;
+		yourself.
+
+	canvas paintTransform loadIdentity.
+	canvas
+		setPaint: paint;
+		drawShape: node rectangle
+	
+]
+
+{ #category : #visiting }
 FormSGAthensRenderer >> visitTextNode: node [
 	| font rectangle topLeftTextPoint stringWidthOffset |
 	font := node font.

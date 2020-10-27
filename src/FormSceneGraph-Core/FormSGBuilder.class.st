@@ -169,6 +169,16 @@ FormSGBuilder >> outsetShadow: rectangle width: width [
 		yourself
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGBuilder >> ovalInRectangle: rectangle color: color [
+	| radius |
+	self flag: 'TODO: Compute properly the focal point.'.
+	radius := (rectangle width min: rectangle height) / 2.0.
+	^ self rectangle: rectangle radialGradientCenter: rectangle center
+		innerRadius: 0 color: color clipRadius: 0
+		outerRadius: radius color: color clipRadius: radius
+]
+
 { #category : #'node building' }
 FormSGBuilder >> rectangle: rectangle color: color [
 	color isTransparent ifTrue: [ ^ self null ].
@@ -212,6 +222,24 @@ FormSGBuilder >> rectangle: rectangle linearGradientStart: startPoint end: endPo
 ]
 
 { #category : #'node building' }
+FormSGBuilder >> rectangle: rectangle radialGradientCenter: center focalPoint: focalPoint
+	innerRadius: innerRadius color: startColor clipRadius: clipInnerRadius
+	outerRadius: outerRadius color: endColor clipRadius: clipOuterRadius [
+	(startColor isTransparent and: [ endColor isTransparent ]) ifTrue: [ ^ self null ].
+	^ FormSGRadialGradientNode new
+		rectangle: rectangle;
+		center: center;
+		focalPoint: focalPoint;
+		innerRadius: innerRadius;
+		clipInnerRadius: clipInnerRadius;
+		startColor: startColor;
+		outerRadius: outerRadius;
+		endColor: endColor;
+		clipOuterRadius: clipOuterRadius;
+		yourself
+]
+
+{ #category : #'node building' }
 FormSGBuilder >> rectangle: rectangle radialGradientCenter: center
 	innerRadius: innerRadius clipRadius: clipInnerRadius
 	outerRadius: outerRadius clipRadius: clipOuterRadius colorRamp: colorRamp [
@@ -235,17 +263,9 @@ FormSGBuilder >> rectangle: rectangle radialGradientCenter: center
 FormSGBuilder >> rectangle: rectangle radialGradientCenter: center
 	innerRadius: innerRadius color: startColor clipRadius: clipInnerRadius
 	outerRadius: outerRadius color: endColor clipRadius: clipOuterRadius [
-	(startColor isTransparent and: [ endColor isTransparent ]) ifTrue: [ ^ self null ].
-	^ FormSGRadialGradientNode new
-		rectangle: rectangle;
-		center: center;
-		innerRadius: innerRadius;
-		clipInnerRadius: clipInnerRadius;
-		startColor: startColor;
-		outerRadius: outerRadius;
-		endColor: endColor;
-		clipOuterRadius: clipOuterRadius;
-		yourself
+	^ self rectangle: rectangle radialGradientCenter: center focalPoint: center
+	innerRadius: innerRadius color: startColor clipRadius: clipInnerRadius
+	outerRadius: outerRadius color: endColor clipRadius: clipOuterRadius
 ]
 
 { #category : #'node building' }
