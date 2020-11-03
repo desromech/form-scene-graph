@@ -175,5 +175,5 @@ FormSGWorldRenderer >> updateDamage: allDamage [
 
 { #category : #'scale factor' }
 FormSGWorldRenderer >> windowScaleFactor [
-	^ osWindow ifNil: [ 1 ] ifNotNil: [ osWindow screenScaleFactor ]
+	^ osWindow ifNil: [ 1 ] ifNotNil: [ osWindow screenScaleFactor max: 1 ]
 ]
