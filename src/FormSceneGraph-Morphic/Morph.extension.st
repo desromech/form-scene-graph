@@ -82,12 +82,10 @@ Morph >> buildSceneGraphNodeWith: builder [
 { #category : #'*FormSceneGraph-Morphic' }
 Morph >> doBuildFullSceneGraphWith: builder [
 	| contentNode childrenNode overlayNode |
-	contentNode :=	self buildSceneGraphNodeWith: builder.
+	contentNode := self buildSceneGraphNodeWith: builder.
 	childrenNode := self buildChildrenSceneGraphNodeWith: builder.
 	overlayNode := self buildOverlaySceneGraphNodeWith: builder.
-	(contentNode isNullNode and: [overlayNode isNullNode]) ifTrue: [ ^ childrenNode ].
-	(childrenNode isNullNode and: [overlayNode isNullNode]) ifTrue: [ ^ contentNode ].
-	^ (builder containerWith: {contentNode}) , childrenNode , overlayNode
+	^ contentNode , childrenNode , overlayNode
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
