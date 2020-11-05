@@ -97,12 +97,12 @@ FormSGAthensRenderer >> visitCachedSubScene: node [
 	surface ifNil: [ ^ self ].
 
 	canvas pathTransform restoreAfter: [
-		canvas paintTransform loadIdentity
-			setScaleX: (logicalExtent x / surfaceExtent x) asFloat
-				Y: (logicalExtent y / surfaceExtent y) asFloat.
+		canvas paintTransform loadIdentity.
+
 		canvas setPaint: surface.
-		canvas pathTransform translateBy: node rectangle origin rounded.
-		canvas drawShape: (0@0 extent: logicalExtent).
+		canvas pathTransform loadIdentity
+			translateBy: transformedRectangle origin rounded.
+		canvas drawShape: (0@0 extent: surfaceExtent).
 	].
 
 ]
