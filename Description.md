@@ -1,16 +1,16 @@
 # A new scene graph based UI rendering framework
 ## Motivation
-The design and implementation begin Morphic, the UI framework used by Pharo, is dated and has several problems. Some of these problems related to the way that Morphic draws its UI are the followings:
+The design and implementation underlying Morphic, the UI framework used by Pharo, is dated and has several problems. Some of these problems related to the way that Morphic draws its UI are the followings:
 - Direct usage of software based BitBlt primitives.
 - Global coordinates are used everywhere.
 - The UI rendering is not easy to scale to support Hi-Dpi rendering where a fractional scale factor may be needed (e.g: 96 dpi vs 120 dpi on Windows).
 - BitBlt canvas rendering commands are hard-coded in the implementations of all morphs. This makes difficult adding different rendering backends.
-- BitBlt Canvas API is excessively large.
+- BitBlt canvas API is excessively large.
 - Integrating Morphic in other GUI frameworks such as GTK may be expensive due to excessive copy of pixels.
 
 For these reasons, we are proposing the implementation of a scene graph based rendering framework, based on the Gtk Scene Graph design, to solve the following problems:
 - Remove the strict dependency on software BitBlt canvas based rendering in Morphic.
-- Facilitate the integration of Morphic in GTK 4.
+- Facilitate the integration of Morphic in GTK 3 and 4.
 - Support multiple rendering backends by reducing the required API surface.
 
 ## Our current implementation
@@ -20,7 +20,7 @@ The UI in Morphic is defined in a hierarchical way. At the top level we have the
 ![World Inspector](images/world-inspector.png)
 
 ### How morphs are currently drawn
-The current version of Morphic (at least until Pharo 9) is rendered with the canvas metaphor by using software base BitBlt methods. The *Morph>>fullDrawOn:9* method is the single entry point for completely drawing a morph and recursively drawing its content. As an example, the following script can be inspected in a Playground to draw the content of the whole world in a Form:
+The current version of Morphic (at least until Pharo 9) is rendered by using the canvas metaphor implemented through software base BitBlt methods. The *Morph>>fullDrawOn:9* method is the single entry point for completely drawing a morph and recursively drawing its content. As an example, the following script can be inspected in a Playground to draw the content of the whole world in a Form:
 
 ```smalltalk
 form := Form extent: 1024@1024 depth: 32.
@@ -183,10 +183,10 @@ Once a rendering tree is generated or obtained, the actual process of performing
 - **FormSGCanvasRenderer**: this one uses the old BitBlt canvas for the actual rendering.
 - **FormSGOSWindowGenericRenderer**: this is a renderer backend that uses the OSWindow generic renderer interface. The default implementation of this interface uses the SDL2 render API which may be implemented with a hardware accelerated API such as OpenGL.
 
-Most of the process required for constructing a new rendering backend for the scene graph is on creating a new visitor for the rendering tree. The hardest node to implement is the text node (FormSGTextNode) due to the peculiarities of text rendering such as providing support for subpixel anti-aliasing, and implementing a proper mechanism for caching text glyphs in a texture atlas in the case of using a GPU based accelerated rendering API. These problems with text rendering are not present in the **FormSGAthensRenderer** and in the **FormSGCanvasRenderer**, but there are present in the **FormSGOSWindowGenericRenderer**.
+Most of the process required for constructing a new rendering backend for the scene graph is on creating a new visitor for the rendering tree. The hardest node to implement is the text node (FormSGTextNode) due to the peculiarities of text rendering such as providing support for subpixel anti-aliasing, and implementing a proper mechanism for caching text glyphs in a texture atlas in the case of using a GPU based accelerated rendering API. These problems with text rendering are not present in the **FormSGAthensRenderer** and in the **FormSGCanvasRenderer**, but there are present in the **FormSGOSWindowGenericRenderer** backend.
 
 ### Adapting Morphic to build the scene graph
-Integrating the Form Scene Graph in Morphic is a two step process. In the first step, Morphic has to be extended with methods for building its corresponding scene graph. In the second step, a Morphic world renderer that builds the scene graph and draws it into the actual window surface has to be implemented. In terms of the extension for building the scene graph, in an analogous way to the #fullDrawOn: and #drawOn: methods we introduce the #buildFullSceneGraphWith: and #buildSceneGraphNodeWith: methods to Morphic. These methods receive a scene graph builder as the argument. The source code for these methods is listed here:
+Integrating the Form Scene Graph in Morphic is a two step process. In the first step, Morphic has to be extended with methods for building its corresponding scene graph. In the second step, a Morphic world renderer that builds the scene graph and draws it into the actual window surface has to be implemented. In terms of the extension for building the scene graph, in an analogous way to the *#fullDrawOn:* and *#drawOn:* methods we introduce the *#buildFullSceneGraphWith:* and *#buildSceneGraphNodeWith:* methods to Morphic. These methods receive a scene graph builder as the argument. The source code for these methods is listed here:
 
 ```smalltalk
 Morph >> buildFullSceneGraphWith: builder
@@ -228,4 +228,4 @@ World buildFullSceneGraphWith: FormSGBuilder new
 One important property of this rendering tree is that it is much easier to scale than Morphic because all of the nodes can be scaled. For applying an additional factor scale it is enough to wrap this generated tree in an additional *FormSGTransformNode*. This property facilitates supporting hi-dpi rendering without having to recompute all of the Morphic UI layouts which may be hard coded (e.g. border rectangle widths, toolbar height, etc.).
 
 ### Rendering the scene graph into the window surface
-For replacing the rendering mechanism of the main morphic world it is required to implement a subclass of **AbstractWorldRenderer** and override the class side *#isApplicableFor:* and *priority* methods to enable it. We provide the *FormSGWorldRenderer* generic base implementation that uses the *FormSGOSWindowGenericRenderer* backend, and the *FormAthensSGWorldRenderer* class that uses the *FormSGAthensRenderer* backend. These world renderers takes care of computing the scale factor required for hi-dpi support, building the actual rendering tree by delegating to their corresponding *WorldMorph*, and drawing the rendering tree directly into the window surface by delegating to a rendering backend.
+For replacing the rendering mechanism of the main morphic world it is required to implement a subclass of **AbstractWorldRenderer** and override the class side *#isApplicableFor:* and *priority* methods to enable it. We provide the *FormSGWorldRenderer* generic base implementation that uses the *FormSGOSWindowGenericRenderer* backend, and the *FormAthensSGWorldRenderer* class that uses the *FormSGAthensRenderer* backend. These world renderers take care of computing the scale factor required for hi-dpi support, building the actual rendering tree by delegating to their corresponding *WorldMorph*, and drawing the rendering tree directly into the window surface by delegating to a rendering backend.
