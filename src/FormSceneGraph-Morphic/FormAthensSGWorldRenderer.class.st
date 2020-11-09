@@ -3,10 +3,7 @@ I am a scene graph based world renderer that uses the Athens renderer.
 "
 Class {
 	#name : #FormAthensSGWorldRenderer,
-	#superclass : #FormSGWorldRenderer,
-	#classVars : [
-		'IsEnabled'
-	],
+	#superclass : #FormSGAbstractWorldRenderer,
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
@@ -17,28 +14,8 @@ FormAthensSGWorldRenderer class >> isApplicableFor: aWorld [
 ]
 
 { #category : #accessing }
-FormAthensSGWorldRenderer class >> isEnabled [
-	^ IsEnabled ifNil: [ IsEnabled := false ]
-]
-
-{ #category : #accessing }
-FormAthensSGWorldRenderer class >> isEnabled: aBoolean [
-	IsEnabled := aBoolean
-]
-
-{ #category : #accessing }
-FormAthensSGWorldRenderer class >> isEnabledSettingsOn: aBuilder [
-	<systemsettings>
-	(aBuilder setting: #isEnabled)
-		parent: #appearance;
-			label: 'Enable scene graph renderer (Required for Hi-DPI)';
-		description: 'This enables the new scalable scene graph rendering framework. Effects are only visible after restarting the image.';
-		target: self
-]
-
-{ #category : #accessing }
 FormAthensSGWorldRenderer class >> priority [
-	^ FormSGWorldRenderer priority + 1
+	^ FormSGAbstractWorldRenderer priority + 1
 ]
 
 { #category : #operations }

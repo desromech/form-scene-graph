@@ -4,28 +4,84 @@ I am a world renderer that renders morphic in two steps:
 - Render the scene graph into the OSWindow.
 "
 Class {
-	#name : #FormSGWorldRenderer,
+	#name : #FormSGAbstractWorldRenderer,
 	#superclass : #OSWorldRenderer,
+	#classVars : [
+		'IsEnabled',
+		'SelectedWorldRendererClass'
+	],
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
-{ #category : #accessing }
-FormSGWorldRenderer class >> isApplicableFor: aWorld [
-	^ false
+{ #category : #testing }
+FormSGAbstractWorldRenderer class >> isAbstract [
+	^ self == FormSGAbstractWorldRenderer
 ]
 
 { #category : #accessing }
-FormSGWorldRenderer class >> priority [
+FormSGAbstractWorldRenderer class >> isApplicableFor: aWorld [
+	self isAbstract ifTrue: [ ^ false ].
+	^ self isEnabledClass and: [Smalltalk isHeadless and: [ CommandLineArguments new hasOption: 'interactive'  ]]
+]
+
+{ #category : #accessing }
+FormSGAbstractWorldRenderer class >> isEnabled [
+	^ IsEnabled ifNil: [ IsEnabled := false ]
+]
+
+{ #category : #accessing }
+FormSGAbstractWorldRenderer class >> isEnabled: aBoolean [
+	IsEnabled := aBoolean
+]
+
+{ #category : #testing }
+FormSGAbstractWorldRenderer class >> isEnabledClass [
+	^ self isEnabled and: [ self selectedWorldRendererClass == self ]
+]
+
+{ #category : #accessing }
+FormSGAbstractWorldRenderer class >> isEnabledSettingsOn: aBuilder [
+	<systemsettings>
+	(aBuilder setting: #isEnabled)
+		parent: #appearance;
+		label: 'Enable scene graph renderer (Required for Hi-DPI)';
+		description: 'This enables the new scalable scene graph rendering framework. Effects are only visible after restarting the image.';
+		target: self
+]
+
+{ #category : #accessing }
+FormSGAbstractWorldRenderer class >> priority [
 	^ OSWorldRenderer priority + 1
 ]
 
+{ #category : #testing }
+FormSGAbstractWorldRenderer class >> selectedWorldRendererClass [
+	^ SelectedWorldRendererClass ifNil: [ SelectedWorldRendererClass := FormAthensSGWorldRenderer ]
+]
+
+{ #category : #testing }
+FormSGAbstractWorldRenderer class >> selectedWorldRendererClass: aClass [
+	SelectedWorldRendererClass := aClass
+]
+
+{ #category : #accessing }
+FormSGAbstractWorldRenderer class >> selectedWorldRendererClassSettingsOn: aBuilder [
+	<systemsettings>
+	(aBuilder pickOne: #selectedWorldRendererClass)
+		parent: #appearance;
+		label: 'Form Scene Graph World Renderer Class';
+		description: 'This allows selecting the backend for the scene graph based UI renderer.';
+		domainValues: (self allSubclasses reject: [:each | each isAbstract]);
+		target: self
+]
+
 { #category : #initialization }
-FormSGWorldRenderer >> actualScreenSize [
+FormSGAbstractWorldRenderer >> actualScreenSize [
 	^ (super actualScreenSize / self scaleFactor) ceiling max: 1@1
 ]
 
 { #category : #operations }
-FormSGWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld [
+FormSGAbstractWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld [
 	| builder rootNodes scaleFactor surfaceScaleFactor |
 	scaleFactor := self scaleFactor.
 	surfaceScaleFactor := (self drawingSurfaceExtent / self windowExtent) asFloatPoint.
@@ -43,7 +99,7 @@ FormSGWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld
 ]
 
 { #category : #initialization }
-FormSGWorldRenderer >> checkForNewScreenSize [
+FormSGAbstractWorldRenderer >> checkForNewScreenSize [
 
 	osWindow ifNil: [ ^ self ].
 	world worldState realWindowExtent = self actualScreenSize ifTrue: [ ^ self ].
@@ -54,26 +110,22 @@ FormSGWorldRenderer >> checkForNewScreenSize [
 ]
 
 { #category : #initialization }
-FormSGWorldRenderer >> convertWindowMouseEventPosition: aPosition [
+FormSGAbstractWorldRenderer >> convertWindowMouseEventPosition: aPosition [
 	^ (aPosition / self scaleFactor + 0.5) floor
 ]
 
 { #category : #operations }
-FormSGWorldRenderer >> deferUpdatesDuring: aBlock [
+FormSGAbstractWorldRenderer >> deferUpdatesDuring: aBlock [
 	"Nothing required here."
 ]
 
 { #category : #operations }
-FormSGWorldRenderer >> displayNewSceneScene: newSceneGraph [
-	| renderer |
-	renderer := self osWindowRenderer.
-	renderer scene rootNode: newSceneGraph.
-	renderer updateAll.
-
+FormSGAbstractWorldRenderer >> displayNewSceneScene: newSceneGraph [
+	self subclassResponsibility
 ]
 
 { #category : #operations }
-FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
+FormSGAbstractWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
 	| submorphs newSceneGraph |
 	osWindow ifNil: [ ^ self ].
 
@@ -94,7 +146,7 @@ FormSGWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
 ]
 
 { #category : #operations }
-FormSGWorldRenderer >> doDisplayWorldState: aWorldState ofWorld: aWorld [
+FormSGAbstractWorldRenderer >> doDisplayWorldState: aWorldState ofWorld: aWorld [
 	| newSceneGraph |
 	newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld.
 	newSceneGraph ifNil: [ ^ self ].
@@ -104,7 +156,7 @@ FormSGWorldRenderer >> doDisplayWorldState: aWorldState ofWorld: aWorld [
 ]
 
 { #category : #operations }
-FormSGWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState ofWorld: aWorld [
+FormSGAbstractWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState ofWorld: aWorld [
 	| sceneGraphBuildingTime builder font displayRectangle newSceneGraph measurements | 
 	sceneGraphBuildingTime := [ newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld ] timeToRunWithoutGC.
 	newSceneGraph ifNil: [ ^ self ].
@@ -136,44 +188,38 @@ FormSGWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState ofWorld: a
 ]
 
 { #category : #operations }
-FormSGWorldRenderer >> drawDuring: aBlock [
+FormSGAbstractWorldRenderer >> drawDuring: aBlock [
 	"Nothing required here."
 ]
 
 { #category : #'scale factor' }
-FormSGWorldRenderer >> drawingSurfaceExtent [
+FormSGAbstractWorldRenderer >> drawingSurfaceExtent [
 	^ (osWindow isNotNil and: [ osWindow renderer isNotNil ])
 		ifTrue: [ osWindow renderer pixelExtent ]
 		ifFalse: [ self windowExtent ]
 ]
 
 { #category : #initialization }
-FormSGWorldRenderer >> osWindowRenderer [
-		
-	^ osWindow renderer ifNil: [
-		osWindow newGenericRenderer.
-		osWindow renderer scene: FormSGOSWindowGenericRendererScene new.
-		osWindow renderer
-	].
-	
+FormSGAbstractWorldRenderer >> osWindowRenderer [
+	self subclassResponsibility
 ]
 
 { #category : #initialization }
-FormSGWorldRenderer >> scaleFactor [
+FormSGAbstractWorldRenderer >> scaleFactor [
 	^ world scaleFactor * self windowScaleFactor
 ]
 
 { #category : #initialization }
-FormSGWorldRenderer >> screenScaleFactor [
+FormSGAbstractWorldRenderer >> screenScaleFactor [
 	^ 1
 ]
 
 { #category : #operations }
-FormSGWorldRenderer >> updateDamage: allDamage [
+FormSGAbstractWorldRenderer >> updateDamage: allDamage [
 	"Nothing required here."
 ]
 
 { #category : #'scale factor' }
-FormSGWorldRenderer >> windowScaleFactor [
+FormSGAbstractWorldRenderer >> windowScaleFactor [
 	^ osWindow ifNil: [ 1 ] ifNotNil: [ osWindow screenScaleFactor max: 1 ]
 ]

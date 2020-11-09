@@ -13,7 +13,7 @@ Class {
 
 { #category : #'instance creation' }
 FormSGWorldMorph >> open [
-	self worldState worldRenderer: ((FormSGWorldRenderer forWorld: self)
+	self worldState worldRenderer: ((FormSGAbstractWorldRenderer forWorld: self)
 		windowCloseAction: [self osWindowCloseButtonPressed]).
 	self changed.
 	self class addExtraWorld: self.
