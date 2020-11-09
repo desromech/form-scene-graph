@@ -5,11 +5,11 @@ Class {
 }
 
 { #category : #operations }
-FormOSWindowGenericRendererSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRecorder [
+FormOSWindowGenericRendererSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle [
 	| renderer |
 	renderer := self osWindowRenderer.
 	renderer scene rootNode: newSceneGraph.
-	renderer updateAll.
+	renderer updateRectangle: damageRectangle.
 
 ]
 

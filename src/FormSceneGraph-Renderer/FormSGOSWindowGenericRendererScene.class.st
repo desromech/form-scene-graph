@@ -23,6 +23,20 @@ FormSGOSWindowGenericRendererScene >> renderAllWith: renderer [
 	renderer present.
 ]
 
+{ #category : #rendering }
+FormSGOSWindowGenericRendererScene >> renderRectangle: rectangle with: renderer [
+	self flag: 'TODO: Select a more appropiate clear color'.
+	renderer
+		clippingBounds: rectangle;
+		color: Color transparent;
+		clear.
+		
+	rootNode ifNotNil: [ 
+		FormSGOSWindowGenericRenderer render: rootNode with: renderer clippingBounds: rectangle.
+	].
+	renderer present.
+]
+
 { #category : #accessing }
 FormSGOSWindowGenericRendererScene >> rootNode [
 	^ rootNode
