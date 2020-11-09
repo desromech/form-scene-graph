@@ -77,25 +77,25 @@ FormSGAbstractWorldRenderer class >> selectedWorldRendererClassSettingsOn: aBuil
 
 { #category : #initialization }
 FormSGAbstractWorldRenderer >> actualScreenSize [
-	^ (super actualScreenSize / self scaleFactor) ceiling max: 1@1
+	^ (super actualScreenSize / self screenScaleFactor) ceiling max: 1@1
 ]
 
 { #category : #operations }
 FormSGAbstractWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld: aWorld [
-	| builder rootNodes scaleFactor surfaceScaleFactor |
+	| builder rootNodes scaleFactor actualScreenSize |
 	scaleFactor := self scaleFactor.
-	surfaceScaleFactor := (self drawingSurfaceExtent / self windowExtent) asFloatPoint.
 	
-	builder := FormSGBuilder extent: self actualScreenSize.
+	actualScreenSize := self actualScreenSize.
+	builder := FormSGBuilder extent: actualScreenSize.
 	rootNodes := OrderedCollection new.
 	rootNodes add: (aWorld buildFullSceneGraphWith: builder).
 	aWorldState hands reverseDo: [ :each |
 		rootNodes add: (each buildFullSceneGraphWith: builder)
 	].
-	aWorldState damageRecorder reset.
+
 	^ builder scale: (builder containerWith: rootNodes)
-		withFactorX: (scaleFactor * surfaceScaleFactor x) asFloat
-		Y: (scaleFactor * surfaceScaleFactor y) asFloat
+		withFactorX: scaleFactor x asFloat
+		Y: scaleFactor y asFloat
 ]
 
 { #category : #initialization }
@@ -120,13 +120,13 @@ FormSGAbstractWorldRenderer >> deferUpdatesDuring: aBlock [
 ]
 
 { #category : #operations }
-FormSGAbstractWorldRenderer >> displayNewSceneScene: newSceneGraph [
+FormSGAbstractWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRecorder [
 	self subclassResponsibility
 ]
 
 { #category : #operations }
 FormSGAbstractWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
-	| submorphs newSceneGraph |
+	| submorphs |
 	osWindow ifNil: [ ^ self ].
 
 	"force re-layout if needed"
@@ -147,19 +147,30 @@ FormSGAbstractWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
 
 { #category : #operations }
 FormSGAbstractWorldRenderer >> doDisplayWorldState: aWorldState ofWorld: aWorld [
-	| newSceneGraph |
+	| newSceneGraph damageRectangle |
 	newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld.
-	newSceneGraph ifNil: [ ^ self ].
+	newSceneGraph ifNil: [
+		aWorldState damageRecorder reset.
+		^ self
+	].
 
-	self displayNewSceneScene: newSceneGraph
+	damageRectangle := self extractMergedDamageRectangleFromWorldState: aWorldState ofWorld: aWorld.
+	damageRectangle isEmpty ifTrue: [ ^ self ].
+	self displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle.
 
 ]
 
 { #category : #operations }
 FormSGAbstractWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState ofWorld: aWorld [
-	| sceneGraphBuildingTime builder font displayRectangle newSceneGraph measurements | 
+	| sceneGraphBuildingTime builder font displayRectangle newSceneGraph measurements damageRectangle | 
 	sceneGraphBuildingTime := [ newSceneGraph := self buildSceneGraphForWorldState: aWorldState ofWorld: aWorld ] timeToRunWithoutGC.
-	newSceneGraph ifNil: [ ^ self ].
+	newSceneGraph ifNil: [
+		aWorldState damageRecorder reset.
+		^ self
+	].
+
+	damageRectangle := self extractMergedDamageRectangleFromWorldState: aWorldState ofWorld: aWorld.
+	damageRectangle isEmpty ifTrue: [ ^ self ].
 
 	measurements := { 'Graph building' -> sceneGraphBuildingTime }.
 	previousFrameRenderingTime ifNotNil: [
@@ -180,7 +191,7 @@ FormSGAbstractWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState of
 		]).
 				
 	previousFrameRenderingTime := [
-		self displayNewSceneScene: newSceneGraph
+		self displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle.
 	] timeToRunWithoutGC.
 
 	self logRenderingTimeMeasurements: measurements
@@ -193,10 +204,31 @@ FormSGAbstractWorldRenderer >> drawDuring: aBlock [
 ]
 
 { #category : #'scale factor' }
+FormSGAbstractWorldRenderer >> drawingSurfaceBounds [
+	^ 0@0 extent: self drawingSurfaceExtent
+]
+
+{ #category : #'scale factor' }
 FormSGAbstractWorldRenderer >> drawingSurfaceExtent [
 	^ (osWindow isNotNil and: [ osWindow renderer isNotNil ])
 		ifTrue: [ osWindow renderer pixelExtent ]
 		ifFalse: [ self windowExtent ]
+]
+
+{ #category : #private }
+FormSGAbstractWorldRenderer >> extractMergedDamageRectangleFromWorldState: aWorldState ofWorld: aWorld [
+	| handsToDraw worldDamageRectangles damageRectangles result scaleFactor |
+	worldDamageRectangles := aWorldState damageRecorder invalidRectsFullBounds: self drawingSurfaceBounds.
+	handsToDraw := aWorldState selectHandsToDrawForDamage: worldDamageRectangles.
+	damageRectangles := worldDamageRectangles , (handsToDraw collect: [:each | each computeDamageRectForNextFrame ]).
+	
+	result := damageRectangles
+		ifEmpty: [ ^ Rectangle empty ]
+		ifNotEmpty: [ Rectangle merging: damageRectangles].
+	aWorldState damageRecorder reset.
+
+	scaleFactor := self scaleFactor.
+	^ (result origin * scaleFactor) floor corner: (result corner * scaleFactor) ceiling.
 ]
 
 { #category : #initialization }
@@ -204,14 +236,19 @@ FormSGAbstractWorldRenderer >> osWindowRenderer [
 	self subclassResponsibility
 ]
 
-{ #category : #initialization }
+{ #category : #operations }
 FormSGAbstractWorldRenderer >> scaleFactor [
-	^ world scaleFactor * self windowScaleFactor
+	^ self surfaceScaleFactor * self screenScaleFactor
 ]
 
 { #category : #initialization }
 FormSGAbstractWorldRenderer >> screenScaleFactor [
-	^ 1
+	^ world scaleFactor * self windowScaleFactor
+]
+
+{ #category : #operations }
+FormSGAbstractWorldRenderer >> surfaceScaleFactor [
+	^ (self drawingSurfaceExtent / self windowExtent) asFloatPoint
 ]
 
 { #category : #operations }

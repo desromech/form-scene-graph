@@ -115,7 +115,7 @@ FormSGCanvasRenderer >> visitTextureNode: node [
 
 { #category : #visiting }
 FormSGCanvasRenderer >> visitTransformNode: node [
-	canvas transformBy: node child transform asDisplayTransform clippingTo: node boundingBox during: [:transformedCanvas |
+	canvas transformBy: node transform asDisplayTransform clippingTo: node boundingBox during: [:transformedCanvas |
 		| oldCanvas |
 		oldCanvas := canvas.
 		[ 

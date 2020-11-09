@@ -1,5 +1,5 @@
 "
-I am an OSWindowWorldMorph that uses Athens as the rendering backend.
+I am an OSWindowWorldMorph that uses Athens as the rendering backend for the scene graph.
 "
 Class {
 	#name : #FormSGAthensWorldMorph,
@@ -7,10 +7,7 @@ Class {
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
-{ #category : #'instance creation' }
-FormSGAthensWorldMorph >> open [
-	self worldState worldRenderer: ((FormAthensSGWorldRenderer forWorld: self)
-		windowCloseAction: [self osWindowCloseButtonPressed]).
-	self changed.
-	self class addExtraWorld: self.
+{ #category : #'as yet unclassified' }
+FormSGAthensWorldMorph >> worldRendererClass [
+	^ FormAthensSGWorldRenderer
 ]

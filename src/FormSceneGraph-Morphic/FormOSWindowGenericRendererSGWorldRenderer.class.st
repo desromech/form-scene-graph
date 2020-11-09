@@ -5,7 +5,7 @@ Class {
 }
 
 { #category : #operations }
-FormOSWindowGenericRendererSGWorldRenderer >> displayNewSceneScene: newSceneGraph [
+FormOSWindowGenericRendererSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRecorder [
 	| renderer |
 	renderer := self osWindowRenderer.
 	renderer scene rootNode: newSceneGraph.
@@ -15,7 +15,7 @@ FormOSWindowGenericRendererSGWorldRenderer >> displayNewSceneScene: newSceneGrap
 
 { #category : #initialization }
 FormOSWindowGenericRendererSGWorldRenderer >> osWindowRenderer [
-		
+	osWindow ifNil: [ ^ nil ].
 	^ osWindow renderer ifNil: [
 		osWindow newGenericRenderer.
 		osWindow renderer scene: FormSGOSWindowGenericRendererScene new.

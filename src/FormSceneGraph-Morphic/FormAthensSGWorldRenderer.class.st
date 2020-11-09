@@ -19,18 +19,27 @@ FormAthensSGWorldRenderer class >> priority [
 ]
 
 { #category : #operations }
-FormAthensSGWorldRenderer >> displayNewSceneScene: newSceneGraph [
+FormAthensSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle [
 	| renderer |
 	renderer := self osWindowRenderer.
 	renderer drawDuring: [ :canvas |
-		FormSGAthensRenderer render: newSceneGraph on: canvas
+		canvas clipBy: damageRectangle during: [
+			canvas paintMode clear.
+			canvas
+				setPaint: Color transparent;
+				drawShape: damageRectangle.
+
+			canvas paintMode default.
+			FormSGAthensRenderer render: newSceneGraph on: canvas.
+		].
 	].
-	renderer updateAll; present
+	renderer updateAll.
+	renderer present
 ]
 
 { #category : #initialization }
 FormAthensSGWorldRenderer >> osWindowRenderer [
-		
+	osWindow ifNil: [ ^ nil ].
 	^ osWindow renderer ifNil: [
 		osWindow newAthensRenderer.
 		osWindow renderer

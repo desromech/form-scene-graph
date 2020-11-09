@@ -13,7 +13,7 @@ Class {
 
 { #category : #'instance creation' }
 FormSGWorldMorph >> open [
-	self worldState worldRenderer: ((FormSGAbstractWorldRenderer forWorld: self)
+	self worldState worldRenderer: ((self worldRendererClass forWorld: self)
 		windowCloseAction: [self osWindowCloseButtonPressed]).
 	self changed.
 	self class addExtraWorld: self.
@@ -32,4 +32,9 @@ FormSGWorldMorph >> userScaleFactor [
 { #category : #accessing }
 FormSGWorldMorph >> userScaleFactor: anObject [
 	userScaleFactor := anObject
+]
+
+{ #category : #'as yet unclassified' }
+FormSGWorldMorph >> worldRendererClass [
+	^ self subclassResponsibility
 ]
