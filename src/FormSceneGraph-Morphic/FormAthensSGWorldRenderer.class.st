@@ -7,17 +7,6 @@ Class {
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
-{ #category : #accessing }
-FormAthensSGWorldRenderer class >> isApplicableFor: aWorld [
-
-	^ self isEnabled and: [Smalltalk isHeadless and: [ CommandLineArguments new hasOption: 'interactive'  ]]
-]
-
-{ #category : #accessing }
-FormAthensSGWorldRenderer class >> priority [
-	^ FormSGAbstractWorldRenderer priority + 1
-]
-
 { #category : #operations }
 FormAthensSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle [
 	| renderer |
