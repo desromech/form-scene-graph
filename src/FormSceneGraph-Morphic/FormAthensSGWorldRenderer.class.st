@@ -7,6 +7,11 @@ Class {
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
+{ #category : #hooks }
+FormAthensSGWorldRenderer >> adjustSurfaceDamageRectangle: rectangle [
+	^ rectangle origin corner: rectangle corner + (1@1)
+]
+
 { #category : #operations }
 FormAthensSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle [
 	| renderer |

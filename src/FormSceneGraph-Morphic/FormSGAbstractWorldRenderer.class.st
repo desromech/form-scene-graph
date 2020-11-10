@@ -77,7 +77,13 @@ FormSGAbstractWorldRenderer class >> selectedWorldRendererClassSettingsOn: aBuil
 
 { #category : #initialization }
 FormSGAbstractWorldRenderer >> actualScreenSize [
-	^ (super actualScreenSize / self screenScaleFactor) ceiling max: 1@1
+	^ (self windowExtent / self screenScaleFactor) ceiling max: 1@1
+]
+
+{ #category : #hooks }
+FormSGAbstractWorldRenderer >> adjustSurfaceDamageRectangle: damageRectangle [
+	"In some cases we may need to extend the by damage rectangle an additional pixel to overcome differences between inclusive versus exclusive definitions."
+	^ damageRectangle
 ]
 
 { #category : #operations }
@@ -217,7 +223,7 @@ FormSGAbstractWorldRenderer >> drawingSurfaceExtent [
 
 { #category : #private }
 FormSGAbstractWorldRenderer >> extractMergedDamageRectangleFromWorldState: aWorldState ofWorld: aWorld [
-	| handsToDraw worldDamageRectangles damageRectangles result scaleFactor |
+	| handsToDraw worldDamageRectangles damageRectangles result scaleFactor surfaceDamageRectangle |
 	worldDamageRectangles := aWorldState damageRecorder invalidRectsFullBounds: self drawingSurfaceBounds.
 	handsToDraw := aWorldState selectHandsToDrawForDamage: worldDamageRectangles.
 	damageRectangles := worldDamageRectangles , (handsToDraw collect: [:each | each computeDamageRectForNextFrame ]).
@@ -228,7 +234,8 @@ FormSGAbstractWorldRenderer >> extractMergedDamageRectangleFromWorldState: aWorl
 	aWorldState damageRecorder reset.
 
 	scaleFactor := self scaleFactor.
-	^ (result origin * scaleFactor) floor corner: (result corner * scaleFactor) ceiling.
+	surfaceDamageRectangle := (result origin * scaleFactor) floor corner: (result corner * scaleFactor) ceiling.
+	^ self adjustSurfaceDamageRectangle: surfaceDamageRectangle.
 ]
 
 { #category : #initialization }
