@@ -131,11 +131,16 @@ FormSGCachingSubSceneNode >> validCachedAthensCairoSurfaceWithExtent: requiredEx
 
 { #category : #'rendering helpers' }
 FormSGCachingSubSceneNode >> validCachedForm [
-	| rectangle requiredExtent translation |
+	^ self validCachedFormWithExtent: self rectangle extent ceiling
+]
+
+{ #category : #'rendering helpers' }
+FormSGCachingSubSceneNode >> validCachedFormWithExtent: requiredExtent [
+	| rectangle logicalExtent translation |
 	cachedSubSceneFormValidationCount = modificationCount ifTrue: [ ^ cachedSubSceneForm ].
 
 	rectangle := self rectangle.
-	requiredExtent := rectangle extent ceiling.
+	logicalExtent := rectangle extent ceiling.
 	(cachedSubSceneForm isNil or: [ cachedSubSceneForm extent ~= requiredExtent ]) ifTrue: [
 		cachedSubSceneForm := Form extent: rectangle extent depth: 32
 	].
@@ -143,7 +148,10 @@ FormSGCachingSubSceneNode >> validCachedForm [
 	translation := rectangle origin negated.
 	cachedSubSceneForm fillColor: Color transparent.
 	cachedSubSceneForm getCanvas translateBy: translation during: [:translatedCanvas |
-		FormSGCanvasRenderer render: self child withTransform: (FormSGAffineTransform translation: translation) on: translatedCanvas
+		FormSGCanvasRenderer render: self child withTransform: (FormSGAffineTransform
+				scaleX: requiredExtent x / logicalExtent x
+				Y: requiredExtent y / logicalExtent y)
+				* (FormSGAffineTransform translation: translation) on: translatedCanvas
 	].
 
 	cachedSubSceneFormValidationCount := modificationCount.

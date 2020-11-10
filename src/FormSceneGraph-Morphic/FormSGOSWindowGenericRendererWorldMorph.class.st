@@ -7,7 +7,7 @@ Class {
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #hooks }
 FormSGOSWindowGenericRendererWorldMorph >> worldRendererClass [
 	^ FormOSWindowGenericRendererSGWorldRenderer
 ]

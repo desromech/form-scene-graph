@@ -169,7 +169,7 @@ FormSGBuilder >> outsetShadow: rectangle width: width [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'node building' }
 FormSGBuilder >> ovalInRectangle: rectangle color: color [
 	| radius |
 	self flag: 'TODO: Compute properly the focal point.'.

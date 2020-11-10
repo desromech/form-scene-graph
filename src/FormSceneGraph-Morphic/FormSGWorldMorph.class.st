@@ -34,7 +34,7 @@ FormSGWorldMorph >> userScaleFactor: anObject [
 	userScaleFactor := anObject
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #hooks }
 FormSGWorldMorph >> worldRendererClass [
 	^ self subclassResponsibility
 ]

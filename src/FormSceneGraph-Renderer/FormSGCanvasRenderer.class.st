@@ -33,6 +33,11 @@ FormSGCanvasRenderer >> render: node withTransform: initialTransform on: aCanvas
 	self visitNode: node.
 ]
 
+{ #category : #transformation }
+FormSGCanvasRenderer >> transformRectangle: aRectangle [
+	^ aRectangle
+]
+
 { #category : #visiting }
 FormSGCanvasRenderer >> visitBorderNode: node [
 	node color isTransparent ifTrue: [ ^ self ].
@@ -44,9 +49,14 @@ FormSGCanvasRenderer >> visitBorderNode: node [
 
 { #category : #visiting }
 FormSGCanvasRenderer >> visitCachedSubScene: node [
-	| form |
+	| form rectangle transformedRectangle  surfaceExtent |
+	rectangle := node rectangle.
 	node rectangle ifNil: [ ^ self ].
-	form := node validCachedForm.
+
+	transformedRectangle := self transformRectangle: rectangle.
+	surfaceExtent := transformedRectangle extent ceiling.
+
+	form := node validCachedFormWithExtent: surfaceExtent.
 	form ifNil: [ ^ self ].
 	
 	canvas translucentImage: form at: node rectangle origin
@@ -116,23 +126,28 @@ FormSGCanvasRenderer >> visitTextureNode: node [
 { #category : #visiting }
 FormSGCanvasRenderer >> visitTransformNode: node [
 	canvas transformBy: node transform asDisplayTransform clippingTo: node boundingBox during: [:transformedCanvas |
-		| oldCanvas |
-		oldCanvas := canvas.
-		[ 
-			canvas := transformedCanvas.
+		self withCanvas: transformedCanvas do: [
 			self visitNode: node child
-		] ensure: [ canvas := oldCanvas ]
+		].
 	]
 ]
 
 { #category : #visiting }
 FormSGCanvasRenderer >> visitTranslationNode: node [
 	canvas translateBy: node translation during: [:translatedCanvas |
-		| oldCanvas |
-		oldCanvas := canvas.
-		[ 
-			canvas := translatedCanvas.
+		self withCanvas: translatedCanvas do: [
 			self visitNode: node child
-		] ensure: [ canvas := oldCanvas ]
+		].
 	]
+]
+
+{ #category : #visiting }
+FormSGCanvasRenderer >> withCanvas: newCanvas do: aBlock [
+	| oldCanvas |
+	oldCanvas := canvas.
+	[ 
+		canvas := newCanvas.
+		aBlock value
+	] ensure: [ canvas := oldCanvas ]
+
 ]

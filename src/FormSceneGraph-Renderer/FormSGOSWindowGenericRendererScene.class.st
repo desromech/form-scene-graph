@@ -5,36 +5,55 @@ Class {
 	#name : #FormSGOSWindowGenericRendererScene,
 	#superclass : #OSWindowGenericRendererScene,
 	#instVars : [
-		'rootNode'
+		'rootNode',
+		'renderTarget',
+		'renderTargetExtent'
 	],
 	#category : #'FormSceneGraph-Renderer'
 }
 
 { #category : #rendering }
-FormSGOSWindowGenericRendererScene >> renderAllWith: renderer [
-	self flag: 'TODO: Select a more appropiate clear color'.
+FormSGOSWindowGenericRendererScene >> composeRenderTargetInto: renderer [
+	| fullBounds |
+	fullBounds := 0@0 extent: renderTargetExtent.
 	renderer
-		color: Color transparent;
-		clear.
+		clippingBounds: fullBounds;
+		useNoBlending;
+		color: Color white;
+		drawTexture: renderTarget in: fullBounds;
+		present
+]
+
+{ #category : #rendering }
+FormSGOSWindowGenericRendererScene >> renderAllWith: renderer [
+	self withRenderer: renderer drawInMainRenderTargetWith: [
+		renderer
+			color: Color transparent;
+			clear.
 		
-	rootNode ifNotNil: [ 
-		FormSGOSWindowGenericRenderer render: rootNode with: renderer.
+		rootNode ifNotNil: [ 
+			FormSGOSWindowGenericRenderer render: rootNode with: renderer.
+		].
 	].
-	renderer present.
 ]
 
 { #category : #rendering }
 FormSGOSWindowGenericRendererScene >> renderRectangle: rectangle with: renderer [
-	self flag: 'TODO: Select a more appropiate clear color'.
-	renderer
-		clippingBounds: rectangle;
-		color: Color transparent;
-		clear.
+	(self validateRenderTargetFor: renderer) ifFalse: [ ^ self renderAllWith: renderer ].
+
+	renderer withRenderTarget: renderTarget do: [
+		renderer clippingBounds: rectangle origin.
+		renderer
+			color: Color transparent;
+			useNoBlending;
+			fillRectangle: rectangle.
 		
-	rootNode ifNotNil: [ 
-		FormSGOSWindowGenericRenderer render: rootNode with: renderer clippingBounds: rectangle.
+		rootNode ifNotNil: [
+			FormSGOSWindowGenericRenderer render: rootNode with: renderer clippingBounds: rectangle.
+		].
 	].
-	renderer present.
+
+	self composeRenderTargetInto: renderer
 ]
 
 { #category : #accessing }
@@ -45,4 +64,27 @@ FormSGOSWindowGenericRendererScene >> rootNode [
 { #category : #accessing }
 FormSGOSWindowGenericRendererScene >> rootNode: anObject [
 	rootNode := anObject
+]
+
+{ #category : #rendering }
+FormSGOSWindowGenericRendererScene >> validateRenderTargetFor: renderer [
+	"This optimization is not working yet."
+	| requiredExtent |
+	requiredExtent := renderer pixelExtent.
+	(renderTarget isNotNil and: [ renderTargetExtent = requiredExtent ]) ifTrue: [ ^ true ].
+	
+	renderTarget := renderer createRenderTargetTextureWithExtent: requiredExtent.
+	renderTargetExtent := requiredExtent.
+	^ renderTarget isNotNil
+]
+
+{ #category : #rendering }
+FormSGOSWindowGenericRendererScene >> withRenderer: renderer drawInMainRenderTargetWith: aBlock [
+	(self validateRenderTargetFor: renderer) ifTrue: [
+		renderer withRenderTarget: renderTarget do: aBlock.
+		self composeRenderTargetInto: renderer
+	] ifFalse: [
+		aBlock value.
+		renderer present
+	]
 ]

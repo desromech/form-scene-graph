@@ -52,7 +52,12 @@ FormSGOSWindowGenericRenderer >> transformPosition: aPosition [
 
 { #category : #transformation }
 FormSGOSWindowGenericRenderer >> transformRectangle: rectangle [
-	^ (self transformPosition: rectangle origin) corner: (self transformPosition: rectangle corner)
+	| bottomLeft bottomRight topLeft topRight |
+	bottomLeft := self transformPosition: rectangle bottomLeft.
+	bottomRight := self transformPosition: rectangle bottomRight.
+	topLeft := self transformPosition: rectangle topLeft.
+	topRight := self transformPosition: rectangle topRight.
+	^ Rectangle encompassing: { bottomLeft . bottomRight . topLeft . topRight }
 ]
 
 { #category : #transformation }
@@ -65,7 +70,7 @@ FormSGOSWindowGenericRenderer >> validateCachedSubScene: node renderTarget: rend
 	renderer withRenderTarget: renderTarget do: [
 		| convertedRectangle translation |
 		renderer
-			color: Color transparent;
+			color: (Color r: ((Time microsecondClockValue*1e-6) sin * 0.5 + 0.5) g: 0.0 b: 0.0 alpha: 1.0);
 			clear.
 		
 		convertedRectangle := self transformRectangle: node rectangle.
@@ -73,9 +78,10 @@ FormSGOSWindowGenericRenderer >> validateCachedSubScene: node renderTarget: rend
 		self class new
 			render: node child with: renderer
 			scaleFactor: currentScale translation: translation clippingBounds: (0@0 extent: convertedRectangle extent ceiling).
-			
-		renderer clippingBounds: currentClipRectangle.
-	]
+	].
+	renderer
+		clippingBounds: currentClipRectangle;
+		useCompositeAlphaBlending
 ]
 
 { #category : #visiting }
@@ -98,6 +104,9 @@ FormSGOSWindowGenericRenderer >> visitCachedSubScene: node [
 	
 	requiredExtent := rectangle extent ceiling.
 	(requiredExtent x <= 0 or: [requiredExtent y <= 0]) ifTrue: [ ^ self ].
+
+	self flag: 'TODO: Fix this caching support.'.
+	true ifTrue: [ ^ self visitNode: node clipChildNode ].
 	
 	renderTarget := renderer getOrCreateRenderTargetTextureFor: node withExtent: rectangle extent ceiling.
 	renderTarget ifNil: [ ^ self visitNode: node clipChildNode ].
