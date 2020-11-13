@@ -75,11 +75,6 @@ FormSGAbstractWorldRenderer class >> selectedWorldRendererClassSettingsOn: aBuil
 		target: self
 ]
 
-{ #category : #initialization }
-FormSGAbstractWorldRenderer >> actualScreenSize [
-	^ (self windowExtent / self screenScaleFactor) ceiling max: 1@1
-]
-
 { #category : #hooks }
 FormSGAbstractWorldRenderer >> adjustSurfaceDamageRectangle: damageRectangle [
 	"In some cases we may need to extend the by damage rectangle an additional pixel to overcome differences between inclusive versus exclusive definitions."
@@ -113,11 +108,6 @@ FormSGAbstractWorldRenderer >> checkForNewScreenSize [
 
 	world restoreMorphicDisplay.
 
-]
-
-{ #category : #initialization }
-FormSGAbstractWorldRenderer >> convertWindowMouseEventPosition: aPosition [
-	^ (aPosition / self scaleFactor + 0.5) floor
 ]
 
 { #category : #operations }
@@ -248,11 +238,6 @@ FormSGAbstractWorldRenderer >> scaleFactor [
 	^ self surfaceScaleFactor * self screenScaleFactor
 ]
 
-{ #category : #initialization }
-FormSGAbstractWorldRenderer >> screenScaleFactor [
-	^ world scaleFactor * self windowScaleFactor
-]
-
 { #category : #operations }
 FormSGAbstractWorldRenderer >> surfaceScaleFactor [
 	^ (self drawingSurfaceExtent / self windowExtent) asFloatPoint
@@ -261,9 +246,4 @@ FormSGAbstractWorldRenderer >> surfaceScaleFactor [
 { #category : #operations }
 FormSGAbstractWorldRenderer >> updateDamage: allDamage [
 	"Nothing required here."
-]
-
-{ #category : #'scale factor' }
-FormSGAbstractWorldRenderer >> windowScaleFactor [
-	^ osWindow ifNil: [ 1 ] ifNotNil: [ osWindow screenScaleFactor max: 1 ]
 ]

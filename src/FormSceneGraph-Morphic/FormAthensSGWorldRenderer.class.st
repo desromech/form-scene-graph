@@ -27,7 +27,7 @@ FormAthensSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRecta
 			FormSGAthensRenderer render: newSceneGraph on: canvas.
 		].
 	].
-	renderer updateAll.
+	renderer updateRectangle: damageRectangle.
 	renderer present
 ]
 

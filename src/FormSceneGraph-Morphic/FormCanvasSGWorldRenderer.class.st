@@ -5,7 +5,7 @@ Class {
 }
 
 { #category : #operations }
-FormCanvasSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRecorder [
+FormCanvasSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle [
 	| renderer requiredFormExtent |
 	renderer := self osWindowRenderer.
 	requiredFormExtent := self drawingSurfaceExtent.
@@ -16,7 +16,7 @@ FormCanvasSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRecta
 	renderer drawDuring: [ :canvas |
 		FormSGCanvasRenderer render: newSceneGraph on: canvas
 	].
-	renderer updateAll
+	renderer updateRectangle: damageRectangle.
 ]
 
 { #category : #initialization }
