@@ -120,6 +120,11 @@ FormSGBuilder >> insetShadow: rectangle width: width [
 		yourself
 ]
 
+{ #category : #'building context' }
+FormSGBuilder >> isRectangleVisible: aRectangle [
+	^ clippingBounds intersects: aRectangle
+]
+
 { #category : #'node building' }
 FormSGBuilder >> lineFrom: startPoint to: endPoint width: lineWidth color: color [
 	(lineWidth closeTo: 0) ifTrue: [ ^ self null ].

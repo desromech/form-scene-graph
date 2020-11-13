@@ -49,7 +49,8 @@ Morph >> buildDrawErrorSceneGraphNodeWith: builder [
 { #category : #'*FormSceneGraph-Morphic' }
 Morph >> buildFullSceneGraphWith: builder [ 
 	self visible ifFalse: [^ builder null].
-	self fullBounds. "For layout computation"
+	(builder isRectangleVisible: self fullBounds) ifFalse: [ ^ builder null ].
+
 	(self hasProperty: #errorOnDraw) ifTrue: [^ self buildDrawErrorSceneGraphNodeWith: builder ].
 
 	^ [

@@ -1,25 +1,69 @@
 Extension { #name : #HandMorph }
 
 { #category : #'*FormSceneGraph-Morphic' }
+HandMorph >> activateSceneHardwareCursor [
+	| cursor |
+	self world ifNil: [ ^ self ].
+	self world activeHand == self ifFalse: [ ^ self ].
+	cursor := hardwareCursor ifNil: [Cursor normal].
+	self currentCursor == cursor ifFalse: [ cursor show ]
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
 HandMorph >> buildSceneGraphNodeWith: builder [
 	| cursor |
-	self needsToBeDrawn ifFalse: [ ^ builder null ].
+	self activateSceneHardwareCursor.
+	self shouldUseHardwareCursorForScene ifTrue: [ ^ builder null ].
+
 	cursor := temporaryCursor ifNil: [ NormalCursor ].
 	^ builder texturedRectangle: (bounds topLeft extent: cursor extent) form: cursor
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
 HandMorph >> computeDamageRectForNextFrame [
-	| damageRect myBnds |
-	damageRect := myBnds := self fullBounds.
-	savedPatch ifNotNil: 
-			[damageRect := myBnds merge: (savedPatch offset extent: savedPatch extent)].
-	(savedPatch isNil or: [savedPatch extent ~= myBnds extent]) 
-		ifTrue: 
-			["allocate new patch form if needed"
-			self flag: 'TODO: Remove this ugly hack'.
-			savedPatch := Form extent: myBnds extent ].
-	savedPatch offset: myBnds topLeft.
+	| savedDamageRectangle damageRect myBounds |
+	savedDamageRectangle := self sceneSavedDamageRectangle ifNil: [Rectangle empty].
+	(submorphs isEmpty and: [savedDamageRectangle isEmpty and: [self shouldUseHardwareCursorForScene ]]) ifTrue: [ ^ savedDamageRectangle ].
+	
+	damageRect := myBounds := self fullBounds.
+	damageRect := damageRect merge: savedDamageRectangle.
+	self sceneSavedDamageRectangle: damageRect.
 	hasChanged := false.
-	^damageRect
+
+	submorphs ifNotEmpty: [
+		self sceneSavedDamageRectangle: myBounds.
+	] ifEmpty: [
+		self sceneSavedDamageRectangle: nil.
+	].
+
+	^ damageRect
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+HandMorph >> doBuildFullSceneGraphWith: builder [
+	| contentNode childrenNode overlayNode |
+	childrenNode := self buildChildrenSceneGraphNodeWith: builder.
+	contentNode := self buildSceneGraphNodeWith: builder.
+	overlayNode := self buildOverlaySceneGraphNodeWith: builder.
+	^ childrenNode , contentNode , overlayNode
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+HandMorph >> sceneRenderingCursor [
+	^ hardwareCursor ifNil: [ temporaryCursor ifNil: [ Cursor normal ] ]
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+HandMorph >> sceneSavedDamageRectangle [
+	^ self valueOfProperty: #sceneSavedDamageRectangle ifAbsent: [ nil ]
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+HandMorph >> sceneSavedDamageRectangle: rectangle [
+	^ self setProperty: #sceneSavedDamageRectangle toValue: rectangle
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+HandMorph >> shouldUseHardwareCursorForScene [
+	^ self sceneRenderingCursor isValidHardwareCompatibleCursor and: [self == self world activeHand]
 ]

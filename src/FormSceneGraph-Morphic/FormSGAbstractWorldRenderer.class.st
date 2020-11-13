@@ -215,8 +215,8 @@ FormSGAbstractWorldRenderer >> drawingSurfaceExtent [
 FormSGAbstractWorldRenderer >> extractMergedDamageRectangleFromWorldState: aWorldState ofWorld: aWorld [
 	| handsToDraw worldDamageRectangles damageRectangles result scaleFactor surfaceDamageRectangle |
 	worldDamageRectangles := aWorldState damageRecorder invalidRectsFullBounds: self drawingSurfaceBounds.
-	handsToDraw := aWorldState selectHandsToDrawForDamage: worldDamageRectangles.
-	damageRectangles := worldDamageRectangles , (handsToDraw collect: [:each | each computeDamageRectForNextFrame ]).
+	handsToDraw := aWorldState hands.
+	damageRectangles := worldDamageRectangles , (handsToDraw collect: [:each | each computeDamageRectForNextFrame ] thenReject: [:each | each isEmpty]).
 	
 	result := damageRectangles
 		ifEmpty: [ ^ Rectangle empty ]
