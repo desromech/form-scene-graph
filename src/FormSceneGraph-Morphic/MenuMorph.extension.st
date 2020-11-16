@@ -13,3 +13,8 @@ MenuMorph >> buildSceneGraphNodeWith: builder [
 
 	^ result
 ]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+MenuMorph >> shouldCacheSceneGraphSurface [
+	^ true
+]

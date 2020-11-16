@@ -44,6 +44,11 @@ FormSGCachingSubSceneNode >> child: aChild [
 ]
 
 { #category : #accessing }
+FormSGCachingSubSceneNode >> child: aChild extent: anExtent [
+	self child: aChild rectangle: (0@0 extent: anExtent)
+]
+
+{ #category : #accessing }
 FormSGCachingSubSceneNode >> child: aChild rectangle: aClippingRectangle [
 	self rectangle: aClippingRectangle.
 	clipChildNode child: aChild.
@@ -58,6 +63,11 @@ FormSGCachingSubSceneNode >> children [
 { #category : #accessing }
 FormSGCachingSubSceneNode >> clipChildNode [
 	^ clipChildNode
+]
+
+{ #category : #accessing }
+FormSGCachingSubSceneNode >> extent: anExtent [
+	self rectangle: (0@0 extent: anExtent)
 ]
 
 { #category : #initialization }
@@ -118,6 +128,7 @@ FormSGCachingSubSceneNode >> validCachedAthensCairoSurfaceWithExtent: requiredEx
 
 	translation := rectangle origin rounded negated.
 	cachedSubSceneAthensCairoSurface drawDuring: [ :canvas |
+		canvas surface clear.
 		FormSGAthensRenderer render: self child
 			withTransform: (FormSGAffineTransform
 				scaleX: requiredExtent x / logicalExtent x

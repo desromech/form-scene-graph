@@ -9,7 +9,7 @@ Class {
 
 { #category : #hooks }
 FormAthensSGWorldRenderer >> adjustSurfaceDamageRectangle: rectangle [
-	^ rectangle origin corner: rectangle corner + (1@1)
+	^ rectangle origin floor corner: (rectangle corner + (1@1)) ceiling
 ]
 
 { #category : #operations }

@@ -41,3 +41,8 @@ RubScrolledTextMorph >> buildSceneGraphNodeWith: builder [
 	^ (super buildSceneGraphNodeWith: builder) ,
 	(self buildHighlightsSceneGraphNodeWith: builder)
 ]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+RubScrolledTextMorph >> shouldCacheSceneGraphSurface [
+	^ true
+]

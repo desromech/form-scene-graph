@@ -10,3 +10,12 @@ TransformMorph >> buildChildrenSceneGraphNodeWith: builder [
 	].
 
 ]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+TransformMorph >> invalidRect: damageRect from: aMorph [
+	"Translate damage reports from submorphs by the scrollOffset."
+	self setProperty: #invalidSceneGraph toValue: true.
+	aMorph == self
+		ifTrue:[super invalidRect: damageRect from: self]
+		ifFalse:[super invalidRect: (((transform localBoundsToGlobal: damageRect) intersect: bounds ifNone: [ ^ self ] ) expandBy: 1) from: self].
+]

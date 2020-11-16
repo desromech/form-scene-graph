@@ -1,6 +1,25 @@
 Extension { #name : #Morph }
 
 { #category : #'*FormSceneGraph-Morphic' }
+Morph >> buildCachedFullSceneGraphWith: builder [
+	| invalidSceneGraph cachedSubSceneNode cachedSubSceneBounds |
+	self shouldCacheSceneGraphSurface ifFalse: [ ^ self doBuildFullSceneGraphWith: builder ].
+	
+	invalidSceneGraph := self valueOfProperty: #invalidSceneGraph ifAbsent: [ true ]. 
+	cachedSubSceneNode := self valueOfProperty: #cachedSubSceneGraph ifAbsentPut: [ builder cachingSubScene ].
+	
+	cachedSubSceneBounds := bounds."self fullBounds."
+	
+	invalidSceneGraph ifTrue: [
+		cachedSubSceneNode
+			child: (builder translate: (self doBuildFullSceneGraphWith: builder) with: cachedSubSceneBounds origin negated) extent: cachedSubSceneBounds extent.
+		self setProperty: #invalidSceneGraph toValue: false.
+	].
+
+	^ builder translate: cachedSubSceneNode with: cachedSubSceneBounds origin
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
 Morph >> buildChildrenSceneGraphNodeWith: builder [
 	submorphs ifEmpty: [ ^ builder null ].
 	^ builder withClippingBounds: self clippingBounds when: self clipSubmorphs build: [ 
@@ -54,7 +73,7 @@ Morph >> buildFullSceneGraphWith: builder [
 	(self hasProperty: #errorOnDraw) ifTrue: [^ self buildDrawErrorSceneGraphNodeWith: builder ].
 
 	^ [
-		self doBuildFullSceneGraphWith: builder
+		self buildCachedFullSceneGraphWith: builder
 	] on: Error do: [ :err |
 		self setProperty: #errorOnDraw toValue: true.
 		self setProperty: #drawError toValue: err freeze.
@@ -90,6 +109,19 @@ Morph >> doBuildFullSceneGraphWith: builder [
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
+Morph >> invalidRect: aRectangle from: aMorph [
+	| damageRect |
+	aRectangle hasPositiveExtent ifFalse: [ ^self ].
+	self setProperty: #invalidSceneGraph toValue: true.
+	damageRect := aRectangle.
+	aMorph == self ifFalse:[
+		"Clip to receiver's clipping bounds if the damage came from a child"
+		self clipSubmorphs 
+			ifTrue:[damageRect := aRectangle intersect: self clippingBounds ifNone: [ ^ self ]]].
+	owner ifNotNil: [owner invalidRect: damageRect from: self].
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
 Morph >> listBuildSceneGraphWith: builder atRow: aRow bounds: drawBounds color: drawColor backgroundColor: backgroundColor from: aMorph [
 	| result |
 	self bounds: drawBounds.
@@ -98,6 +130,11 @@ Morph >> listBuildSceneGraphWith: builder atRow: aRow bounds: drawBounds color: 
 		ifFalse: [ aMorph addMorph: self ].
 		
 	^ result
+]
+
+{ #category : #'*FormSceneGraph-Morphic' }
+Morph >> shouldCacheSceneGraphSurface [
+	^ false
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
