@@ -165,7 +165,9 @@ FormSGAbstractWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState of
 		^ self
 	].
 
+	displayRectangle := (0@0 extent: 350@40).
 	damageRectangle := self extractMergedDamageRectangleFromWorldState: aWorldState ofWorld: aWorld.
+	damageRectangle := damageRectangle merge: displayRectangle.
 	damageRectangle isEmpty ifTrue: [ ^ self ].
 
 	measurements := { 'Graph building' -> sceneGraphBuildingTime }.
@@ -173,7 +175,6 @@ FormSGAbstractWorldRenderer >> doDisplayWorldStateWhileProfiling: aWorldState of
 		measurements := measurements , { 'Previous frame' -> previousFrameRenderingTime}.
 	].
 
-	displayRectangle := (0@0 extent: 350@40).
 	builder := FormSGBuilder extent: aWorld extent.
 	font := TextStyle defaultFont.
 	newSceneGraph := builder containerWith: {

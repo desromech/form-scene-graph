@@ -8,15 +8,15 @@ Morph >> buildCachedFullSceneGraphWith: builder [
 	invalidSceneGraph := self valueOfProperty: #invalidSceneGraph ifAbsent: [ true ]. 
 	cachedSubSceneNode := self valueOfProperty: #cachedSubSceneGraph ifAbsentPut: [ builder cachingSubScene ].
 	
-	cachedSubSceneBounds := bounds."self fullBounds."
+	cachedSubSceneBounds := self fullBounds.
 	
 	invalidSceneGraph ifTrue: [
 		cachedSubSceneNode
-			child: (builder translate: (self doBuildFullSceneGraphWith: builder) with: cachedSubSceneBounds origin negated) extent: cachedSubSceneBounds extent.
+			child: (self doBuildFullSceneGraphWith: builder) rectangle: cachedSubSceneBounds.
 		self setProperty: #invalidSceneGraph toValue: false.
 	].
 
-	^ builder translate: cachedSubSceneNode with: cachedSubSceneBounds origin
+	^ builder translate: cachedSubSceneNode with: cachedSubSceneBounds origin - cachedSubSceneNode rectangle origin
 ]
 
 { #category : #'*FormSceneGraph-Morphic' }
