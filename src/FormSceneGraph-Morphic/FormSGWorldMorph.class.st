@@ -4,10 +4,6 @@ I am OSWindowMorph that uses the form scene graph for all of its rendering tasks
 Class {
 	#name : #FormSGWorldMorph,
 	#superclass : #OSWindowWorldMorph,
-	#instVars : [
-		'sceneScaleFactor',
-		'userScaleFactor'
-	],
 	#category : #'FormSceneGraph-Morphic-WorldRenderer'
 }
 
@@ -20,18 +16,9 @@ FormSGWorldMorph >> open [
 ]
 
 { #category : #accessing }
-FormSGWorldMorph >> scaleFactor [
-	^ self userScaleFactor
-]
+FormSGWorldMorph >> scaleFactor: value [
+	^ self setProperty: #scaleFactor toValue: value
 
-{ #category : #accessing }
-FormSGWorldMorph >> userScaleFactor [
-	^ userScaleFactor ifNil: [ userScaleFactor := 1.0 ]
-]
-
-{ #category : #accessing }
-FormSGWorldMorph >> userScaleFactor: anObject [
-	userScaleFactor := anObject
 ]
 
 { #category : #hooks }

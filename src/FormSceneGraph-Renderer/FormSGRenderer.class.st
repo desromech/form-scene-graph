@@ -4,12 +4,31 @@ I am an abstract renderer for a scene graph.
 Class {
 	#name : #FormSGRenderer,
 	#superclass : #FormSGVisitor,
-	#category : #'FormSceneGraph-Renderer'
+	#instVars : [
+		'surfaceScaleFactor'
+	],
+	#category : #'FormSceneGraph-Renderer-Basic'
 }
 
 { #category : #testing }
 FormSGRenderer class >> isAbstract [
 	^ self == FormSGRenderer
+]
+
+{ #category : #accessing }
+FormSGRenderer >> initialize [
+	super initialize.
+	surfaceScaleFactor := 1.0.
+]
+
+{ #category : #accessing }
+FormSGRenderer >> surfaceScaleFactor [
+	^ surfaceScaleFactor
+]
+
+{ #category : #accessing }
+FormSGRenderer >> surfaceScaleFactor: anObject [
+	surfaceScaleFactor := anObject
 ]
 
 { #category : #visiting }

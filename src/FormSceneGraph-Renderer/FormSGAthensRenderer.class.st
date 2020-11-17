@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'canvas'
 	],
-	#category : #'FormSceneGraph-Renderer'
+	#category : #'FormSceneGraph-Renderer-Basic'
 }
 
 { #category : #rendering }
@@ -54,19 +54,19 @@ FormSGAthensRenderer >> visitAthensNode: node [
 
 	transformedRectangle := self transformRectangle: rectangle.
 	logicalExtent := rectangle extent ceiling.
-	surfaceExtent := transformedRectangle extent ceiling.
+	surfaceExtent := (rectangle extent * surfaceScaleFactor) ceiling.
 	(surfaceExtent x <= 1 or: [ surfaceExtent y <= 1 ]) ifTrue: [ ^ self ].
 	
 	surface := node validAthensCairoSurfaceWithExtent: surfaceExtent.
 	surface ifNil: [ ^ self ].
 
 	canvas pathTransform restoreAfter: [
-		canvas paintTransform loadIdentity
-			setScaleX: (logicalExtent x / surfaceExtent x) asFloat
-				Y: (logicalExtent y / surfaceExtent y) asFloat.
+		canvas paintTransform loadIdentity.
+
 		canvas setPaint: surface.
-		canvas pathTransform translateBy: node rectangle origin rounded.
-		canvas drawShape: (0@0 extent: logicalExtent).
+		canvas pathTransform loadIdentity
+			translateBy: transformedRectangle origin rounded.
+		canvas drawShape: (0@0 extent: surfaceExtent).
 	].
 
 
@@ -88,12 +88,13 @@ FormSGAthensRenderer >> visitCachedSubScene: node [
 	| rectangle surface transformedRectangle logicalExtent surfaceExtent |
 	rectangle := node rectangle.
 	(rectangle isNil or: [rectangle isEmpty]) ifTrue: [ ^ self ].
-		
+
 	transformedRectangle := self transformRectangle: rectangle.
-	surfaceExtent := transformedRectangle extent ceiling.
+	surfaceExtent := (rectangle extent * surfaceScaleFactor) ceiling.
 	(surfaceExtent x <= 1 or: [ surfaceExtent y <= 1 ]) ifTrue: [ ^ self ].
+
 	logicalExtent := rectangle extent ceiling.
-	surface := node validCachedAthensCairoSurfaceWithExtent: surfaceExtent.
+	surface := node validCachedAthensCairoSurfaceWithExtent: surfaceExtent surfaceScaleFactor: surfaceScaleFactor.
 	surface ifNil: [ ^ self ].
 
 	canvas pathTransform restoreAfter: [

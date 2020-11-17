@@ -141,6 +141,41 @@ FormSGCachingSubSceneNode >> validCachedAthensCairoSurfaceWithExtent: requiredEx
 ]
 
 { #category : #'rendering helpers' }
+FormSGCachingSubSceneNode >> validCachedAthensCairoSurfaceWithExtent: requiredExtent surfaceScaleFactor: surfaceScaleFactor [
+	| rectangle logicalExtent translation |
+	cachedSubSceneAthensCairoSurfaceSession == Smalltalk session ifFalse: [
+		cachedSubSceneAthensCairoSurface := nil.
+		cachedSubSceneAthensCairoSurfaceValidationCount := nil.
+	].
+
+	(cachedSubSceneAthensCairoSurfaceValidationCount = modificationCount
+	and: [ cachedSubSceneAthensCairoSurface extent = requiredExtent ]) ifTrue: [
+		^ cachedSubSceneAthensCairoSurface
+	].
+
+	rectangle := self rectangle.
+	logicalExtent := rectangle extent ceiling.
+	(cachedSubSceneAthensCairoSurface isNil or: [ cachedSubSceneAthensCairoSurface extent ~= requiredExtent ]) ifTrue: [
+		cachedSubSceneAthensCairoSurface := AthensCairoSurface extent: requiredExtent.
+		cachedSubSceneAthensCairoSurfaceSession := Smalltalk session
+	].
+
+	translation := rectangle origin rounded negated.
+	cachedSubSceneAthensCairoSurface drawDuring: [ :canvas |
+		canvas surface clear.
+		FormSGAthensRenderer new
+			surfaceScaleFactor: surfaceScaleFactor;
+			render: self child
+			withTransform: (FormSGAffineTransform
+				scale: surfaceScaleFactor)
+				* (FormSGAffineTransform translation: translation) on: canvas
+	].
+
+	cachedSubSceneAthensCairoSurfaceValidationCount := modificationCount.
+	^ cachedSubSceneAthensCairoSurface
+]
+
+{ #category : #'rendering helpers' }
 FormSGCachingSubSceneNode >> validCachedForm [
 	^ self validCachedFormWithExtent: self rectangle extent ceiling
 ]

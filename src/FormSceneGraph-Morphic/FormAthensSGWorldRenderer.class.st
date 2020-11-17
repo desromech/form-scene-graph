@@ -24,7 +24,9 @@ FormAthensSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRecta
 				drawShape: damageRectangle.
 
 			canvas paintMode default.
-			FormSGAthensRenderer render: newSceneGraph on: canvas.
+			FormSGAthensRenderer new
+				surfaceScaleFactor: self scaleFactor;
+				render: newSceneGraph on: canvas.
 		].
 	].
 	renderer updateRectangle: damageRectangle.

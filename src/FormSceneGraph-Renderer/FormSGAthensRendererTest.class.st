@@ -4,7 +4,7 @@ A FormSGAthensRendererTest is a test class for testing the behavior of FormSGAth
 Class {
 	#name : #FormSGAthensRendererTest,
 	#superclass : #TestCase,
-	#category : #'FormSceneGraph-Renderer'
+	#category : #'FormSceneGraph-Renderer-Basic'
 }
 
 { #category : #tests }

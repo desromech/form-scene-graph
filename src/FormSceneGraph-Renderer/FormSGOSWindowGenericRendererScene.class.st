@@ -9,7 +9,7 @@ Class {
 		'renderTarget',
 		'renderTargetExtent'
 	],
-	#category : #'FormSceneGraph-Renderer'
+	#category : #'FormSceneGraph-Renderer-Basic'
 }
 
 { #category : #rendering }

@@ -1,3 +1,6 @@
+"
+I am a world renderer that uses the BitBlt canvas for rendering.
+"
 Class {
 	#name : #FormCanvasSGWorldRenderer,
 	#superclass : #FormSGAbstractWorldRenderer,

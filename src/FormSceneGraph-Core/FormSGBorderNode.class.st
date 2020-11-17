@@ -22,7 +22,7 @@ FormSGBorderNode >> accept: visitor [
 { #category : #accessing }
 FormSGBorderNode >> borderRectangles [
 	| interiorRectangle |
-	interiorRectangle := rectangle origin + (leftWidth @ bottomWidth) corner: rectangle corner - (rightWidth @ topWidth).
+	interiorRectangle := self interiorRectangle.
 	^ (rectangle areasOutside: interiorRectangle)
 ]
 
@@ -49,6 +49,11 @@ FormSGBorderNode >> color [
 { #category : #accessing }
 FormSGBorderNode >> color: anObject [
 	color := anObject
+]
+
+{ #category : #accessing }
+FormSGBorderNode >> interiorRectangle [
+	^ rectangle origin + (leftWidth @ bottomWidth) corner: rectangle corner - (rightWidth @ topWidth)
 ]
 
 { #category : #testing }

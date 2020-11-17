@@ -94,9 +94,7 @@ FormSGAbstractWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld
 		rootNodes add: (each buildFullSceneGraphWith: builder)
 	].
 
-	^ builder scale: (builder containerWith: rootNodes)
-		withFactorX: scaleFactor x asFloat
-		Y: scaleFactor y asFloat
+	^ builder scale: (builder containerWith: rootNodes) with: scaleFactor asFloat
 ]
 
 { #category : #initialization }
@@ -241,7 +239,9 @@ FormSGAbstractWorldRenderer >> scaleFactor [
 
 { #category : #operations }
 FormSGAbstractWorldRenderer >> surfaceScaleFactor [
-	^ (self drawingSurfaceExtent / self windowExtent) asFloatPoint
+	| result |
+	result := self drawingSurfaceExtent / self windowExtent.
+	^ (result x min: result y) asFloat
 ]
 
 { #category : #operations }
