@@ -94,7 +94,7 @@ FormSGFontTextureAtlasCache >> submitNewEntryIntoTexture: newEntry [
 		]
 	].
 
-	newPage := newEntry hasSubpixelAntialiasing
+	newPage := newEntry glyphForm depth > 8
 		ifTrue: [ FormSGFontTextureAtlasPage newColor ]
 		ifFalse: [ FormSGFontTextureAtlasPage newAlpha ].
 	newPage cache: self.

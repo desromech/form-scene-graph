@@ -29,11 +29,7 @@ FormSGFontTextureAtlasPageColumn >> insertEntry: newEntry [
 		page: page;
 		rectangle: (destPosition / pageExtent corner: (destPosition + glyphForm extent) / pageExtent).
 		
-	(page form depth = 8 and: [glyphForm depth = 32]) ifTrue: [ 
-		self halt
-	] ifFalse: [ 
-		page form getCanvas drawImage: glyphForm at: destPosition.
-	].
+	page form getCanvas drawImage: glyphForm at: destPosition.
 	page increaseModificationCount.
 	
 	nextRow := nextRow + glyphForm height.

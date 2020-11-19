@@ -2,9 +2,11 @@ Extension { #name : #AbstractFont }
 
 { #category : #'*FormSceneGraph-Renderer' }
 AbstractFont >> makeFormSGFontTextureAtlasPageEntryFor: character subpixelAllowed: subpixelAllowed [
+	| glyphForm |
+	glyphForm := (self characterFormAt: character) asTextureRenderingGlyphForm.
 	^ FormSGFontTextureAtlasPageEntry new
-		glyphForm: (self characterFormAt: character);
-		hasSubpixelAntialiasing: false;
+		glyphForm: glyphForm;
+		hasSubpixelAntialiasing: glyphForm depth = 32;
 		yourself
 ]
 
