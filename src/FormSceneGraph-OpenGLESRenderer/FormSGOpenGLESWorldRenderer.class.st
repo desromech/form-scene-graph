@@ -40,20 +40,9 @@ FormSGOpenGLESWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRec
 			render: newSceneGraph with: commandList transform: FormSGAffineTransform identity clippingBounds: (0@0 extent: self drawingSurfaceExtent).
 		
 		self drawCommandProcessor
-			uploadModifiedTextureFontCachePages.
-			
-		srgbFramebuffer ifNotNil: [ 
-			self drawCommandProcessor beginRenderPass: srgbFramebuffer clearColor: Color transparent
-		] ifNil: [ 
-			self drawCommandProcessor beginRenderPassWithExtent: self drawingSurfaceExtent clearColor: Color transparent
-		].
-		self drawCommandProcessor
-			processDrawCommandList: commandList;
-			endRenderPass.
-
-		srgbFramebuffer ifNotNil: [
-			srgbFramebuffer blitToMainFramebuffer
-		].
+			uploadModifiedTextureFontCachePages;
+			processCommandListWithDependencies: commandList
+				mainFramebuffer: srgbFramebuffer mainFramebufferExtent: self drawingSurfaceExtent.
 
 		context swapBuffers: osWindow
 	].

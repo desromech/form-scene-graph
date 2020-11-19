@@ -14,7 +14,9 @@ Class {
 		'currentColorB',
 		'currentColorA',
 		'currentTextureCommand',
-		'vertexCount'
+		'vertexCount',
+		'requiredRenderTargetCommands',
+		'renderTargetCommandForRenderPass'
 	],
 	#category : #'FormSceneGraph-Renderer-GPU'
 }
@@ -41,6 +43,12 @@ FormSGGPUCommandListBuilder >> beginTriangles [
 		firstIndex: indices size;
 		indexCount: 0;
 		yourself)
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> buildForRenderTargetCommand: renderTargetCommand [
+	renderTargetCommandForRenderPass := renderTargetCommand.
+	renderTargetCommand renderingBlock value: self.
 ]
 
 { #category : #accessing }
@@ -87,6 +95,11 @@ FormSGGPUCommandListBuilder >> noTexture [
 	drawCommands add: (currentTextureCommand := FormSGGPUNoTextureCommand uniqueInstance)
 ]
 
+{ #category : #accessing }
+FormSGGPUCommandListBuilder >> renderTargetCommandForRenderPass [
+	^ renderTargetCommandForRenderPass
+]
+
 { #category : #'draw commands' }
 FormSGGPUCommandListBuilder >> replayCommandsFrom: startCommandIndex to: endCommandIndex [
 	startCommandIndex + 1 to: endCommandIndex - 1 do: [ :index |
@@ -95,10 +108,16 @@ FormSGGPUCommandListBuilder >> replayCommandsFrom: startCommandIndex to: endComm
 ]
 
 { #category : #initialization }
+FormSGGPUCommandListBuilder >> requiredRenderTargetCommands [
+	^ requiredRenderTargetCommands
+]
+
+{ #category : #initialization }
 FormSGGPUCommandListBuilder >> reset [
 	vertices := OrderedCollection new.
 	indices := OrderedCollection new.
 	drawCommands := OrderedCollection new.
+	requiredRenderTargetCommands := Dictionary new.
 	currentTextureCommand := FormSGGPUNoTextureCommand uniqueInstance.
 	drawCommands add: currentTextureCommand.
 
@@ -165,6 +184,23 @@ FormSGGPUCommandListBuilder >> setFormTexture: form for: keyObject withModificat
 { #category : #'draw commands' }
 FormSGGPUCommandListBuilder >> setFormTexture: form withModificationCount: modificationCount [
 	^ self setFormTexture: form for: form withModificationCount: modificationCount
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> setRenderTargetTextureWithExtent: extent for: keyObject withModificationCount: modificationCount renderedWith: renderingBlock [
+	(currentTextureCommand isSetRenderTargetTextureWithModificationCountCommand
+	and: [ currentTextureCommand extent == extent
+	and: [ currentTextureCommand modificationCount = modificationCount
+	and: [ currentTextureCommand renderingBlock == renderingBlock ]]]) ifTrue: [ ^ self ].
+
+	currentTextureCommand := FormSGGPUSetRenderTargetTextureWithModificationCountCommand new
+		extent: extent;
+		keyObject: keyObject;
+		modificationCount: modificationCount;
+		renderingBlock: renderingBlock;
+		yourself.
+	requiredRenderTargetCommands at: keyObject put: currentTextureCommand.
+	drawCommands add: currentTextureCommand
 ]
 
 { #category : #'draw commands' }

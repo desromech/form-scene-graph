@@ -53,6 +53,11 @@ FormSGGPUDrawCommand >> isSetFormTextureWithModificationCount [
 ]
 
 { #category : #testing }
+FormSGGPUDrawCommand >> isSetRenderTargetTextureWithModificationCountCommand [
+	^ false
+]
+
+{ #category : #testing }
 FormSGGPUDrawCommand >> isSetScissor [
 	^ false
 ]

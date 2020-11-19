@@ -7,8 +7,3 @@ FTTableContainerMorph >> buildSceneGraphNodeWith: builder [
 	self drawRowsOn: nil.
 	^ result
 ]
-
-{ #category : #'*FormSceneGraph-Morphic' }
-FTTableContainerMorph >> shouldCacheSceneGraphSurface [
-	^ true
-]

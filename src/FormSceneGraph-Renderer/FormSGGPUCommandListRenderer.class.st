@@ -29,6 +29,38 @@ FormSGGPUCommandListRenderer class >> render: sceneNode with: commandListBuilder
 ]
 
 { #category : #visiting }
+FormSGGPUCommandListRenderer >> attemptRectangleBlittingWithPrecision: rectangle extent: surfaceExtent [
+	| attemptScaledPixelPerfectBlitting |
+	attemptScaledPixelPerfectBlitting := currentTransform hasNoRotationAndScale: surfaceScaleFactor.
+	commandList
+		beginTriangles;
+		color: Color white.
+			
+	attemptScaledPixelPerfectBlitting ifTrue: [
+		| blitRectangle |
+		blitRectangle := (currentTransform transformPoint: rectangle origin) rounded extent: surfaceExtent.
+		commandList
+			vertexPosition: blitRectangle bottomLeft texcoord: 0.0@1.0;
+			vertexPosition: blitRectangle bottomRight texcoord: 1.0@1.0;
+			vertexPosition: blitRectangle topRight texcoord: 1.0@0.0;
+			vertexPosition: blitRectangle topLeft texcoord: 0.0@0.0
+	] ifFalse: [ 
+		commandList
+			vertexPosition: (currentTransform transformPoint: rectangle bottomLeft) texcoord: 0.0@1.0;
+			vertexPosition: (currentTransform transformPoint: rectangle bottomRight) texcoord: 1.0@1.0;
+			vertexPosition: (currentTransform transformPoint: rectangle topRight) texcoord: 1.0@0.0;
+			vertexPosition: (currentTransform transformPoint: rectangle topLeft) texcoord: 0.0@0.0
+	].
+
+	commandList
+		addIndices: #(
+			0 1 2
+			2 3 0
+		);
+		endSubmesh
+]
+
+{ #category : #visiting }
 FormSGGPUCommandListRenderer >> drawRectangle: rectangle color: color [
 	color isTransparent ifTrue: [ ^ self ].
 	
@@ -79,8 +111,22 @@ FormSGGPUCommandListRenderer >> render: sceneNode with: theCommandListBuilder tr
 ]
 
 { #category : #visiting }
+FormSGGPUCommandListRenderer >> validateCachedSubSceneRenderTarget: node extent: extent [
+	commandList setRenderTargetTextureWithExtent: extent for: node withModificationCount: node modificationCount renderedWith: [:subsceneCommandList |
+		self class new
+			fontTextureAtlasCache: fontTextureAtlasCache;
+			surfaceScaleFactor: surfaceScaleFactor;
+			render: node clipChildNode
+				with: subsceneCommandList
+				transform: (FormSGAffineTransform scale: surfaceScaleFactor) * (FormSGAffineTransform translation: node rectangle origin negated)
+				clippingBounds: (0@0 extent: extent).
+	].
+	^ true
+]
+
+{ #category : #visiting }
 FormSGGPUCommandListRenderer >> visitAthensNode: node [
-	| rectangle surface surfaceExtent attemptScaledPixelPerfectBlitting |
+	| rectangle surface surfaceExtent |
 	rectangle := node rectangle.
 	(rectangle isNil or: [rectangle isEmpty]) ifTrue: [ ^ self ].
 
@@ -90,35 +136,11 @@ FormSGGPUCommandListRenderer >> visitAthensNode: node [
 	surface := node validAthensCairoSurfaceWithExtent: surfaceExtent.
 	surface ifNil: [ ^ self ].
 
-	attemptScaledPixelPerfectBlitting := currentTransform hasNoRotationAndScale: surfaceScaleFactor.
 
 	commandList
-		setAthensSurfaceTexture: surface for: node withModificationCount: node modificationCount;
-		beginTriangles;
-		color: Color white.
-			
-	attemptScaledPixelPerfectBlitting ifTrue: [
-		| blitRectangle |
-		blitRectangle := (currentTransform transformPoint: rectangle origin) rounded extent: surfaceExtent.
-		commandList
-			vertexPosition: blitRectangle bottomLeft texcoord: 0.0@1.0;
-			vertexPosition: blitRectangle bottomRight texcoord: 1.0@1.0;
-			vertexPosition: blitRectangle topRight texcoord: 1.0@0.0;
-			vertexPosition: blitRectangle topLeft texcoord: 0.0@0.0
-	] ifFalse: [ 
-		commandList
-			vertexPosition: (currentTransform transformPoint: rectangle bottomLeft) texcoord: 0.0@1.0;
-			vertexPosition: (currentTransform transformPoint: rectangle bottomRight) texcoord: 1.0@1.0;
-			vertexPosition: (currentTransform transformPoint: rectangle topRight) texcoord: 1.0@0.0;
-			vertexPosition: (currentTransform transformPoint: rectangle topLeft) texcoord: 0.0@0.0
-	].
-
-	commandList
-		addIndices: #(
-			0 1 2
-			2 3 0
-		);
-		endSubmesh
+		setAthensSurfaceTexture: surface for: node withModificationCount: node modificationCount.
+	
+	self attemptRectangleBlittingWithPrecision: rectangle extent: surfaceExtent
 ]
 
 { #category : #visiting }
@@ -162,6 +184,19 @@ FormSGGPUCommandListRenderer >> visitBorderNode: node [
 		);
 		endSubmesh
 		
+]
+
+{ #category : #visiting }
+FormSGGPUCommandListRenderer >> visitCachedSubScene: node [
+	| rectangle surfaceExtent |
+	rectangle := node rectangle.
+	(rectangle isNil or: [rectangle isEmpty]) ifTrue: [ ^ self ].
+
+	surfaceExtent := (rectangle extent * surfaceScaleFactor) ceiling.
+	(surfaceExtent x <= 1 or: [ surfaceExtent y <= 1 ]) ifTrue: [ ^ self ].
+
+	(self validateCachedSubSceneRenderTarget: node extent: surfaceExtent) ifFalse: [ ^ self ].
+	self attemptRectangleBlittingWithPrecision: rectangle extent: surfaceExtent
 ]
 
 { #category : #visiting }

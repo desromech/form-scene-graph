@@ -16,7 +16,8 @@ Class {
 		'viewportRectangle',
 		'texturedProgram',
 		'fontTextureAtlasCache',
-		'vertexColorInfluence'
+		'vertexColorInfluence',
+		'renderTargetComposeProgram'
 	],
 	#pools : [
 		'UFFIOpenGLConstants'
@@ -134,11 +135,40 @@ FormSGOpenGLESDrawCommandProcessor >> initializeWithContext: aContext [
 	
 	colorProgram := self programWithVertexShader: self vertexShader fragmentShader: self colorFragmentShader.
 	texturedProgram := self programWithVertexShader: self vertexShader fragmentShader: self texturedFragmentShader.
+	renderTargetComposeProgram := self programWithVertexShader: self renderTargetComposeVertexShader fragmentShader: self renderTargetComposeFragmentShader.
 ]
 
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> noTexture [
 	self activateProgram: colorProgram.
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> processCommandListWithDependencies: mainCommandList mainFramebuffer: mainFramebuffer mainFramebufferExtent: mainFramebufferExtent [
+	| sortedCommandList |
+	sortedCommandList := FormSGOpenGLESCommandListSetBuilder new
+		context: context;
+		addCommandListWithDependencies: mainCommandList;
+		sortedCommandLists.
+
+	sortedCommandList do: [ :commandList |
+		| passFramebuffer passExtent |
+		commandList renderTargetCommandForRenderPass ifNotNil: [ :renderTargetCommand |
+			passExtent := renderTargetCommand extent.
+			passFramebuffer := context offscreenBufferExtent: passExtent hasColorBuffer: true isSRGB: context hasSRGB hasDepthBuffer: false hasStencilBuffer: false for: renderTargetCommand keyObject.
+		] ifNil: [
+			passExtent := mainFramebufferExtent.
+			passFramebuffer := mainFramebuffer.
+		].
+	
+		passFramebuffer
+			ifNil: [gl bindFramebuffer_target: GL_FRAMEBUFFER framebuffer: 0]
+			ifNotNil: [ passFramebuffer activate ].
+		self
+			beginRenderPassWithExtent: passExtent clearColor: Color transparent;
+			processDrawCommandList: commandList;
+			endRenderPass
+	]
 ]
 
 { #category : #'as yet unclassified' }
@@ -189,6 +219,71 @@ FormSGOpenGLESDrawCommandProcessor >> programWithVertexShader: vertexSource frag
 
 ]
 
+{ #category : #shaders }
+FormSGOpenGLESDrawCommandProcessor >> renderTargetComposeFragmentShader [
+	^ '
+#version 100
+
+uniform sampler2D activeTexture;
+uniform highp float vertexColorInfluence;
+
+varying highp vec4 fColor;
+varying highp vec2 fTexcoord;
+
+void main()
+{ 
+	highp vec4 textureColor = texture2D(activeTexture, fTexcoord).rgba;
+	gl_FragData[0] = mix(textureColor, fColor * textureColor, vertexColorInfluence);
+}
+
+'
+]
+
+{ #category : #shaders }
+FormSGOpenGLESDrawCommandProcessor >> renderTargetComposeVertexShader [
+	context hasSRGB ifTrue: [ 
+	^ '
+#version 100
+attribute highp vec2 vPosition;
+attribute highp vec4 vColor;
+attribute highp vec2 vTexcoord;
+
+varying highp vec4 fColor;
+varying highp vec2 fTexcoord;
+
+uniform highp vec4 viewBoxTransform;
+
+void main()
+{ 
+	fColor = vec4(pow(vColor.rgb, vec3(2.2)), vColor.a);
+	fTexcoord = vTexcoord;
+	gl_Position = vec4(vPosition*viewBoxTransform.xy + viewBoxTransform.zw, 0.0, 1.0);
+}
+
+'
+].
+
+	^ '
+#version 100
+attribute highp vec2 vPosition;
+attribute highp vec4 vColor;
+attribute highp vec2 vTexcoord;
+
+varying highp vec4 fColor;
+varying highp vec2 fTexcoord;
+
+uniform highp vec4 viewBoxTransform;
+
+void main()
+{ 
+	fColor = vColor;
+	fTexcoord = vTexcoord*vec2(1.0, -1.0) + vec2(0.0, 1.0);
+	gl_Position = vec4(vPosition*viewBoxTransform.xy + viewBoxTransform.zw, 0.0, 1.0);
+}
+
+'
+]
+
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: command [
 	| texture |
@@ -217,6 +312,15 @@ FormSGOpenGLESDrawCommandProcessor >> setFormTextureWithModificationCount: comma
 
 	self activateProgram: texturedProgram.
 	gl bindTexture_target: GL_TEXTURE_2D texture: texture handle
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> setRenderTargetWithModificationCount: renderTargetCommand [
+	| fb |
+	fb := context offscreenBufferExtent: renderTargetCommand extent hasColorBuffer: true isSRGB: context hasSRGB hasDepthBuffer: false hasStencilBuffer: false for: renderTargetCommand keyObject.
+
+	self activateProgram: renderTargetComposeProgram.
+	gl bindTexture_target: GL_TEXTURE_2D texture: fb colorTexture handle
 ]
 
 { #category : #'as yet unclassified' }

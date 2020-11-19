@@ -43,6 +43,11 @@ FormSGGPUDrawCommandProcessor >> setFormTextureWithModificationCount: formTextur
 ]
 
 { #category : #'as yet unclassified' }
+FormSGGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: renderTargetValidationCommand [
+	self subclassResponsibility
+]
+
+{ #category : #'as yet unclassified' }
 FormSGGPUDrawCommandProcessor >> setScissor: command [
 	self subclassResponsibility
 ]
