@@ -27,6 +27,11 @@ FormSGGPUDrawCommandProcessor >> noTexture [
 	self subclassResponsibility
 ]
 
+{ #category : #initialization }
+FormSGGPUDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: athensSurfaceTexture [
+	self subclassResponsibility
+]
+
 { #category : #'as yet unclassified' }
 FormSGGPUDrawCommandProcessor >> setFormTexture: formTexture [
 	self subclassResponsibility

@@ -38,6 +38,11 @@ FormSGGPUDrawCommand >> isNoTexture [
 ]
 
 { #category : #testing }
+FormSGGPUDrawCommand >> isSetAthensSurfaceTextureWithModificationCount [
+	^ false
+]
+
+{ #category : #testing }
 FormSGGPUDrawCommand >> isSetFormTexture [
 	^ false
 ]

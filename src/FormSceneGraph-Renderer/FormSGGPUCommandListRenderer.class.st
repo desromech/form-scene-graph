@@ -79,6 +79,49 @@ FormSGGPUCommandListRenderer >> render: sceneNode with: theCommandListBuilder tr
 ]
 
 { #category : #visiting }
+FormSGGPUCommandListRenderer >> visitAthensNode: node [
+	| rectangle surface surfaceExtent attemptScaledPixelPerfectBlitting |
+	rectangle := node rectangle.
+	(rectangle isNil or: [rectangle isEmpty]) ifTrue: [ ^ self ].
+
+	surfaceExtent := (rectangle extent * surfaceScaleFactor) ceiling.
+	(surfaceExtent x <= 1 or: [ surfaceExtent y <= 1 ]) ifTrue: [ ^ self ].
+	
+	surface := node validAthensCairoSurfaceWithExtent: surfaceExtent.
+	surface ifNil: [ ^ self ].
+
+	attemptScaledPixelPerfectBlitting := currentTransform hasNoRotationAndScale: surfaceScaleFactor.
+
+	commandList
+		setAthensSurfaceTexture: surface for: node withModificationCount: node modificationCount;
+		beginTriangles;
+		color: Color white.
+			
+	attemptScaledPixelPerfectBlitting ifTrue: [
+		| blitRectangle |
+		blitRectangle := (currentTransform transformPoint: rectangle origin) rounded extent: surfaceExtent.
+		commandList
+			vertexPosition: blitRectangle bottomLeft texcoord: 0.0@1.0;
+			vertexPosition: blitRectangle bottomRight texcoord: 1.0@1.0;
+			vertexPosition: blitRectangle topRight texcoord: 1.0@0.0;
+			vertexPosition: blitRectangle topLeft texcoord: 0.0@0.0
+	] ifFalse: [ 
+		commandList
+			vertexPosition: (currentTransform transformPoint: rectangle bottomLeft) texcoord: 0.0@1.0;
+			vertexPosition: (currentTransform transformPoint: rectangle bottomRight) texcoord: 1.0@1.0;
+			vertexPosition: (currentTransform transformPoint: rectangle topRight) texcoord: 1.0@0.0;
+			vertexPosition: (currentTransform transformPoint: rectangle topLeft) texcoord: 0.0@0.0
+	].
+
+	commandList
+		addIndices: #(
+			0 1 2
+			2 3 0
+		);
+		endSubmesh
+]
+
+{ #category : #visiting }
 FormSGGPUCommandListRenderer >> visitBorderNode: node [
 	| rectangle interiorRectangle |
 	node color isTransparent ifTrue: [ ^ self ].
@@ -201,7 +244,7 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 			attemptScaledPixelPerfectBlitting ifTrue: [ 
 				destRectangle := ((currentTransform transformPoint: destPositionX@destPositionY) + glyphForm offset) rounded extent: glyphForm extent.
 				commandList
-					setFormTexture: page form withModificationCount: page modificationCount;
+					setFormTexture: page form for: page withModificationCount: page modificationCount;
 					beginTriangles;
 					vertexPosition: destRectangle bottomLeft texcoord: sourceRectangle bottomLeft;
 					vertexPosition: destRectangle bottomRight texcoord: sourceRectangle bottomRight;
@@ -215,7 +258,7 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 			] ifFalse: [ 
 				destRectangle := ((destPositionX@destPositionY) + glyphEntry glyphForm offset) rounded extent: glyphEntry glyphForm extent.
 				commandList
-					setFormTexture: page form withModificationCount: page modificationCount;
+					setFormTexture: page form for: page withModificationCount: page modificationCount;
 					beginTriangles;
 					vertexPosition: (currentTransform transformPoint: destRectangle bottomLeft) texcoord: sourceRectangle bottomLeft;
 					vertexPosition: (currentTransform transformPoint: destRectangle bottomRight) texcoord: sourceRectangle bottomRight;

@@ -111,6 +111,26 @@ FormSGGPUCommandListBuilder >> reset [
 ]
 
 { #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> setAthensSurfaceTexture: athensSurface for: keyObject withModificationCount: modificationCount [
+	(currentTextureCommand isSetAthensSurfaceTextureWithModificationCount
+	and: [ currentTextureCommand athensSurface == athensSurface
+	and: [ currentTextureCommand modificationCount = modificationCount]]) ifTrue: [ ^ self ].
+
+	drawCommands last isSetAthensSurfaceTextureWithModificationCount ifTrue: [ 
+		drawCommands last
+			athensSurface: athensSurface;
+			keyObject: keyObject;
+			modificationCount: modificationCount.
+		^ self
+	].
+	drawCommands add: (currentTextureCommand := FormSGGPUSetAthensSurfaceTextureWithModificationCountCommand new
+		athensSurface: athensSurface;
+		keyObject: keyObject;
+		modificationCount: modificationCount;
+		yourself)
+]
+
+{ #category : #'draw commands' }
 FormSGGPUCommandListBuilder >> setFormTexture: form [
 	(currentTextureCommand isSetFormTexture and: [ currentTextureCommand form == form ]) ifTrue: [ ^ self ].
 	
@@ -123,7 +143,7 @@ FormSGGPUCommandListBuilder >> setFormTexture: form [
 ]
 
 { #category : #'draw commands' }
-FormSGGPUCommandListBuilder >> setFormTexture: form withModificationCount: modificationCount [
+FormSGGPUCommandListBuilder >> setFormTexture: form for: keyObject withModificationCount: modificationCount [
 	(currentTextureCommand isSetFormTextureWithModificationCount
 	and: [ currentTextureCommand form == form
 	and: [ currentTextureCommand modificationCount = modificationCount]]) ifTrue: [ ^ self ].
@@ -131,13 +151,20 @@ FormSGGPUCommandListBuilder >> setFormTexture: form withModificationCount: modif
 	drawCommands last isSetFormTextureWithModificationCount ifTrue: [ 
 		drawCommands last
 			form: form;
+			keyObject: keyObject;
 			modificationCount: modificationCount.
 		^ self
 	].
 	drawCommands add: (currentTextureCommand := FormSGGPUSetFormTextureWithModificationCountCommand new
 		form: form;
+		keyObject: keyObject;
 		modificationCount: modificationCount;
 		yourself)
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> setFormTexture: form withModificationCount: modificationCount [
+	^ self setFormTexture: form for: form withModificationCount: modificationCount
 ]
 
 { #category : #'draw commands' }

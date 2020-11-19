@@ -190,6 +190,17 @@ FormSGOpenGLESDrawCommandProcessor >> programWithVertexShader: vertexSource frag
 ]
 
 { #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: command [
+	| texture |
+	texture := (context textureObjectWithModificationCountFor: command keyObject)
+		uploadFromAthensSurface: command athensSurface withModificationCount: command modificationCount;
+		yourself.
+
+	self activateProgram: texturedProgram.
+	gl bindTexture_target: GL_TEXTURE_2D texture: texture handle
+]
+
+{ #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> setFormTexture: command [
 	| texture |
 	texture := context textureObjectFromForm: command form.
@@ -200,7 +211,10 @@ FormSGOpenGLESDrawCommandProcessor >> setFormTexture: command [
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> setFormTextureWithModificationCount: command [
 	| texture |
-	texture := context textureObjectFromForm: command form withModificationCount: command modificationCount.
+	texture := (context textureObjectWithModificationCountFor: command keyObject)
+		uploadFromForm: command form withModificationCount: command modificationCount;
+		yourself.
+
 	self activateProgram: texturedProgram.
 	gl bindTexture_target: GL_TEXTURE_2D texture: texture handle
 ]
@@ -282,7 +296,8 @@ FormSGOpenGLESDrawCommandProcessor >> uploadIndices: indices [
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> uploadModifiedTextureFontCachePages [
 	self fontTextureAtlasCache modifiedPages do: [ :page |
-		context textureObjectFromForm: page form withModificationCount: page modificationCount
+		(context textureObjectWithModificationCountFor: page)
+			uploadFromForm: page form withModificationCount: page modificationCount
 	]
 ]
 

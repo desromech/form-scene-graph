@@ -8,7 +8,8 @@ Class {
 		'surface',
 		'drawBlock',
 		'surfaceSession',
-		'isSurfaceValidated'
+		'isSurfaceValidated',
+		'modificationCount'
 	],
 	#category : #'FormSceneGraph-Core-Nodes'
 }
@@ -62,11 +63,17 @@ FormSGAthensNode >> drawRedScreenOfDeathOnCanvas: canvas for: error [
 FormSGAthensNode >> initialize [
 	super initialize.
 	isSurfaceValidated := false.
+	modificationCount := 0.
 ]
 
 { #category : #testing }
 FormSGAthensNode >> isAthensNode [
 	^ true
+]
+
+{ #category : #accessing }
+FormSGAthensNode >> modificationCount [
+	^ modificationCount
 ]
 
 { #category : #accessing }
@@ -100,6 +107,7 @@ FormSGAthensNode >> validAthensCairoSurfaceWithExtent: requiredExtent [
 		].
 	
 		isSurfaceValidated := true.
+		modificationCount := modificationCount + 1.
 	].
 
 	^ surface

@@ -2,6 +2,7 @@ Class {
 	#name : #FormSGGPUSetFormTextureWithModificationCountCommand,
 	#superclass : #FormSGGPUDrawCommand,
 	#instVars : [
+		'keyObject',
 		'form',
 		'modificationCount'
 	],
@@ -26,6 +27,16 @@ FormSGGPUSetFormTextureWithModificationCountCommand >> form: anObject [
 { #category : #testing }
 FormSGGPUSetFormTextureWithModificationCountCommand >> isSetFormTextureWithModificationCount [
 	^ true
+]
+
+{ #category : #accessing }
+FormSGGPUSetFormTextureWithModificationCountCommand >> keyObject [
+	^ keyObject
+]
+
+{ #category : #accessing }
+FormSGGPUSetFormTextureWithModificationCountCommand >> keyObject: anObject [
+	keyObject := anObject
 ]
 
 { #category : #accessing }
