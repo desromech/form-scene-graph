@@ -18,7 +18,17 @@ FormSGGPUDrawCommand >> accept: visitor [
 ]
 
 { #category : #testing }
+FormSGGPUDrawCommand >> isBeginCommandRecording [
+	^ false
+]
+
+{ #category : #testing }
 FormSGGPUDrawCommand >> isDrawElements [
+	^ false
+]
+
+{ #category : #testing }
+FormSGGPUDrawCommand >> isEndCommandRecording [
 	^ false
 ]
 
@@ -29,6 +39,11 @@ FormSGGPUDrawCommand >> isNoTexture [
 
 { #category : #testing }
 FormSGGPUDrawCommand >> isSetFormTexture [
+	^ false
+]
+
+{ #category : #testing }
+FormSGGPUDrawCommand >> isSetFormTextureWithModificationCount [
 	^ false
 ]
 

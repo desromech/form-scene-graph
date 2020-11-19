@@ -26,6 +26,12 @@ FormSGGPUCommandListBuilder >> addIndices: newIndices [
 	]
 ]
 
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> beginCommandRecording [
+	drawCommands add: FormSGGPUBeginCommandRecording uniqueInstance.
+	^ drawCommands size
+]
+
 { #category : #'mesh building' }
 FormSGGPUCommandListBuilder >> beginTriangles [
 	baseVertex := vertexCount.
@@ -48,6 +54,12 @@ FormSGGPUCommandListBuilder >> color: color [
 { #category : #accessing }
 FormSGGPUCommandListBuilder >> drawCommands [
 	^ drawCommands
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> endCommandRecording [
+	drawCommands add: FormSGGPUEndCommandRecording uniqueInstance.
+	^ drawCommands size
 ]
 
 { #category : #'mesh building' }
@@ -75,6 +87,13 @@ FormSGGPUCommandListBuilder >> noTexture [
 	drawCommands add: (currentTextureCommand := FormSGGPUNoTextureCommand uniqueInstance)
 ]
 
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> replayCommandsFrom: startCommandIndex to: endCommandIndex [
+	startCommandIndex + 1 to: endCommandIndex - 1 do: [ :index |
+		drawCommands add: (drawCommands at: index)
+	]
+]
+
 { #category : #initialization }
 FormSGGPUCommandListBuilder >> reset [
 	vertices := OrderedCollection new.
@@ -93,7 +112,32 @@ FormSGGPUCommandListBuilder >> reset [
 
 { #category : #'draw commands' }
 FormSGGPUCommandListBuilder >> setFormTexture: form [
+	(currentTextureCommand isSetFormTexture and: [ currentTextureCommand form == form ]) ifTrue: [ ^ self ].
+	
+	drawCommands last isSetFormTexture ifTrue: [ 
+		drawCommands last form: form.
+		^ self
+	].
+
 	drawCommands add: (currentTextureCommand := FormSGGPUSetFormTextureCommand new form: form; yourself)
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> setFormTexture: form withModificationCount: modificationCount [
+	(currentTextureCommand isSetFormTextureWithModificationCount
+	and: [ currentTextureCommand form == form
+	and: [ currentTextureCommand modificationCount = modificationCount]]) ifTrue: [ ^ self ].
+
+	drawCommands last isSetFormTextureWithModificationCount ifTrue: [ 
+		drawCommands last
+			form: form;
+			modificationCount: modificationCount.
+		^ self
+	].
+	drawCommands add: (currentTextureCommand := FormSGGPUSetFormTextureWithModificationCountCommand new
+		form: form;
+		modificationCount: modificationCount;
+		yourself)
 ]
 
 { #category : #'draw commands' }
@@ -104,6 +148,21 @@ FormSGGPUCommandListBuilder >> setScissor: rectangle [
 	].
 
 	drawCommands add: (FormSGGPUSetScissorCommand new rectangle: rectangle).
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> useCompositeAlphaBlending [
+	drawCommands add: FormSGGPUUseCompositeAlphaBlendingCommand uniqueInstance
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> useSubpixelFontFirstPassBlending [
+	drawCommands add: FormSGGPUUseSubpixelFontFirstPassBlendingCommand uniqueInstance
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> useSubpixelFontSecondPassBlending [
+	drawCommands add: FormSGGPUUseSubpixelFontSecondPassBlendingCommand uniqueInstance
 ]
 
 { #category : #'mesh building' }

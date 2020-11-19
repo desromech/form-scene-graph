@@ -14,7 +14,9 @@ Class {
 		'viewBoxScale',
 		'viewBoxOffset',
 		'viewportRectangle',
-		'texturedProgram'
+		'texturedProgram',
+		'fontTextureAtlasCache',
+		'vertexColorInfluence'
 	],
 	#pools : [
 		'UFFIOpenGLConstants'
@@ -34,7 +36,8 @@ FormSGOpenGLESDrawCommandProcessor >> activateProgram: program [
 	gl useProgram: program validHandle.
 	program
 		uniform: #viewBoxTransform float: viewBoxScale x float: viewBoxScale y float: viewBoxOffset x float: viewBoxOffset y;
-		uniform: #activeTexture int: 0.
+		uniform: #activeTexture int: 0;
+		uniform: #vertexColorInfluence float: vertexColorInfluence.
 	activeProgram := program.
 
 ]
@@ -66,6 +69,8 @@ FormSGOpenGLESDrawCommandProcessor >> beginRenderPassWithExtent: framebufferExte
 	viewportRectangle := 0@0 extent: framebufferExtent.
 	viewBoxScale := (2.0 / framebufferExtent x) @ (-2.0 / framebufferExtent y).
 	viewBoxOffset := -1.0 @ 1.0.
+	activeProgram := nil.
+	vertexColorInfluence := 1.0.
 
 	gl
 		viewport_x: 0 y: 0 width: framebufferExtent x height: framebufferExtent y;
@@ -75,9 +80,8 @@ FormSGOpenGLESDrawCommandProcessor >> beginRenderPassWithExtent: framebufferExte
 		clearColor_red: clearColor red green: clearColor green blue: clearColor blue alpha: clearColor alpha;
 		clear: GL_COLOR_BUFFER_BIT;
 
-		enable: GL_BLEND;
-		blendFuncSeparate_sfactorRGB: GL_SRC_ALPHA dfactorRGB: GL_ONE_MINUS_SRC_ALPHA sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE
-		
+		enable: GL_BLEND.
+	self useCompositeAlphaBlending
 ]
 
 { #category : #shaders }
@@ -90,26 +94,6 @@ varying highp vec4 fColor;
 void main()
 { 
 	gl_FragData[0] = fColor;
-}
-
-'
-]
-
-{ #category : #shaders }
-FormSGOpenGLESDrawCommandProcessor >> colorVertexShader [
-	^ '
-#version 100
-attribute highp vec2 vPosition;
-attribute highp vec4 vColor;
-
-varying highp vec4 fColor;
-
-uniform highp vec4 viewBoxTransform;
-
-void main()
-{ 
-	fColor = vColor;
-	gl_Position = vec4(vPosition*viewBoxTransform.xy + viewBoxTransform.zw, 0.0, 1.0);
 }
 
 '
@@ -138,13 +122,18 @@ FormSGOpenGLESDrawCommandProcessor >> drawElements: command [
 FormSGOpenGLESDrawCommandProcessor >> endRenderPass [
 ]
 
+{ #category : #accessing }
+FormSGOpenGLESDrawCommandProcessor >> fontTextureAtlasCache [
+	^ fontTextureAtlasCache ifNil: [ fontTextureAtlasCache := FormSGFontTextureAtlasCache new ]
+]
+
 { #category : #initialization }
 FormSGOpenGLESDrawCommandProcessor >> initializeWithContext: aContext [
 	context := aContext.
 	gl := context gl.
 	
-	colorProgram := self programWithVertexShader: self colorVertexShader fragmentShader: self colorFragmentShader.
-	texturedProgram := self programWithVertexShader: self texturedVertexShader fragmentShader: self texturedFragmentShader.
+	colorProgram := self programWithVertexShader: self vertexShader fragmentShader: self colorFragmentShader.
+	texturedProgram := self programWithVertexShader: self vertexShader fragmentShader: self texturedFragmentShader.
 ]
 
 { #category : #'as yet unclassified' }
@@ -209,6 +198,14 @@ FormSGOpenGLESDrawCommandProcessor >> setFormTexture: command [
 ]
 
 { #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> setFormTextureWithModificationCount: command [
+	| texture |
+	texture := context textureObjectFromForm: command form withModificationCount: command modificationCount.
+	self activateProgram: texturedProgram.
+	gl bindTexture_target: GL_TEXTURE_2D texture: texture handle
+]
+
+{ #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> setScissor: command [
 	| viewClippedRectangle scissorMin scissorMax |
 	viewClippedRectangle := command rectangle intersect: viewportRectangle ifNone: [
@@ -227,13 +224,15 @@ FormSGOpenGLESDrawCommandProcessor >> texturedFragmentShader [
 #version 100
 
 uniform sampler2D activeTexture;
+uniform highp float vertexColorInfluence;
 
 varying highp vec4 fColor;
 varying highp vec2 fTexcoord;
 
 void main()
 { 
-	gl_FragData[0] = fColor * texture2D(activeTexture, fTexcoord).bgra;
+	highp vec4 textureColor = texture2D(activeTexture, fTexcoord).bgra;
+	gl_FragData[0] = mix(textureColor, fColor * textureColor, vertexColorInfluence);
 }
 
 '
@@ -280,6 +279,13 @@ FormSGOpenGLESDrawCommandProcessor >> uploadIndices: indices [
 ]
 
 { #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> uploadModifiedTextureFontCachePages [
+	self fontTextureAtlasCache modifiedPages do: [ :page |
+		context textureObjectFromForm: page form withModificationCount: page modificationCount
+	]
+]
+
+{ #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> uploadVertices: vertices [
 	| encodedVertices destOffset |
 	encodedVertices := ByteArray new: vertices size*4.
@@ -294,4 +300,74 @@ FormSGOpenGLESDrawCommandProcessor >> uploadVertices: vertices [
 	].
 
 	vertexBuffer forTarget: GL_ARRAY_BUFFER setData: encodedVertices withUsage: GL_STREAM_DRAW.
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> useCompositeAlphaBlending [
+	gl blendFuncSeparate_sfactorRGB: GL_SRC_ALPHA dfactorRGB: GL_ONE_MINUS_SRC_ALPHA sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
+	self vertexColorInfluence: 0.0.
+	gl blendFuncSeparate_sfactorRGB: GL_ZERO dfactorRGB: GL_ONE_MINUS_SRC_COLOR sfactorAlpha: GL_ZERO dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> useSubpixelFontSecondPassBlending [
+	self vertexColorInfluence: 1.0.
+	gl blendFuncSeparate_sfactorRGB: GL_ONE dfactorRGB: GL_ONE sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> vertexColorInfluence: factor [
+	vertexColorInfluence := factor.
+	activeProgram ifNotNil: [
+		activeProgram uniform: #vertexColorInfluence float: vertexColorInfluence
+	]
+]
+
+{ #category : #shaders }
+FormSGOpenGLESDrawCommandProcessor >> vertexShader [
+	context hasSRGB ifTrue: [ 
+	^ '
+#version 100
+attribute highp vec2 vPosition;
+attribute highp vec4 vColor;
+attribute highp vec2 vTexcoord;
+
+varying highp vec4 fColor;
+varying highp vec2 fTexcoord;
+
+uniform highp vec4 viewBoxTransform;
+
+void main()
+{ 
+	fColor = vec4(pow(vColor.rgb, vec3(2.2)), vColor.a);
+	fTexcoord = vTexcoord;
+	gl_Position = vec4(vPosition*viewBoxTransform.xy + viewBoxTransform.zw, 0.0, 1.0);
+}
+
+'
+].
+
+	^ '
+#version 100
+attribute highp vec2 vPosition;
+attribute highp vec4 vColor;
+attribute highp vec2 vTexcoord;
+
+varying highp vec4 fColor;
+varying highp vec2 fTexcoord;
+
+uniform highp vec4 viewBoxTransform;
+
+void main()
+{ 
+	fColor = vColor;
+	fTexcoord = vTexcoord;
+	gl_Position = vec4(vPosition*viewBoxTransform.xy + viewBoxTransform.zw, 0.0, 1.0);
+}
+
+'
 ]

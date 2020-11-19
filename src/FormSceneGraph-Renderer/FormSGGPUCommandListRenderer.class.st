@@ -7,7 +7,8 @@ Class {
 	#instVars : [
 		'currentTransform',
 		'currentClipRectangle',
-		'commandList'
+		'commandList',
+		'fontTextureAtlasCache'
 	],
 	#category : #'FormSceneGraph-Renderer-GPU'
 }
@@ -25,6 +26,16 @@ FormSGGPUCommandListRenderer class >> render: sceneNode with: commandListBuilder
 { #category : #rendering }
 FormSGGPUCommandListRenderer class >> render: sceneNode with: commandListBuilder transform: initialTransform clippingBounds: initialClippingBounds [
 	^ self new render: sceneNode with: commandListBuilder transform: initialTransform clippingBounds: initialClippingBounds
+]
+
+{ #category : #accessing }
+FormSGGPUCommandListRenderer >> fontTextureAtlasCache [
+	^ fontTextureAtlasCache
+]
+
+{ #category : #accessing }
+FormSGGPUCommandListRenderer >> fontTextureAtlasCache: anObject [
+	fontTextureAtlasCache := anObject
 ]
 
 { #category : #initialization }
@@ -142,6 +153,81 @@ FormSGGPUCommandListRenderer >> visitNullNode: node [
 ]
 
 { #category : #visiting }
+FormSGGPUCommandListRenderer >> visitTextNode: node [
+	| scaledFont font rectangle convertedRectangle startPositionX startPositionY widthAndKernedWidth destPositionX destPositionY hasSubpixelAntialiasing stringCommandStartRecording stringCommandEndRecording |
+	node color isTransparent ifTrue: [ ^ self ].
+
+	font := node font.
+	font ifNil: [ ^ self ].
+
+	fontTextureAtlasCache ifNil: [ ^ self ].
+
+	rectangle := node rectangle.
+	convertedRectangle := currentTransform transformRectangle: node rectangle.
+	(currentClipRectangle intersects: convertedRectangle) ifFalse: [ ^ self ].
+
+	startPositionX := rectangle left + node kern.
+	startPositionY := rectangle top + font ascent.
+	
+	widthAndKernedWidth := Array new: 2.
+
+	destPositionX := startPositionX.
+	destPositionY := startPositionY.
+
+	commandList
+		color: node color.
+
+	scaledFont := font.
+	(surfaceScaleFactor closeTo: 1.0) ifFalse: [
+		scaledFont := scaledFont withSizeIncrementedBy: (scaledFont pointSize*surfaceScaleFactor) - scaledFont pointSize
+	].
+
+	hasSubpixelAntialiasing := false.
+	fontTextureAtlasCache processString: node string from: node firstIndex to: node lastIndex font: scaledFont subpixelAllowed: true entriesWith: [ :glyphEntry :character :nextCharacter |
+		glyphEntry page ifNotNil: [ :page |
+			| glyphForm sourceRectangle destRectangle |
+			(hasSubpixelAntialiasing not and: [ glyphEntry hasSubpixelAntialiasing]) ifTrue: [
+				commandList useSubpixelFontFirstPassBlending.
+				stringCommandStartRecording := commandList beginCommandRecording.
+				hasSubpixelAntialiasing := true.
+			].
+		
+			glyphForm := glyphEntry glyphForm.
+			sourceRectangle := glyphEntry rectangle.
+			destRectangle := (destPositionX@destPositionY) + glyphForm offset extent: glyphForm extent.
+			commandList
+				setFormTexture: page form withModificationCount: page modificationCount;
+				beginTriangles;
+				vertexPosition: (currentTransform transformPoint: destRectangle bottomLeft) texcoord: sourceRectangle bottomLeft;
+				vertexPosition: (currentTransform transformPoint: destRectangle bottomRight) texcoord: sourceRectangle bottomRight;
+				vertexPosition: (currentTransform transformPoint: destRectangle topRight) texcoord: sourceRectangle topRight;
+				vertexPosition: (currentTransform transformPoint: destRectangle topLeft) texcoord: sourceRectangle topLeft;
+				addIndices: #(
+					0 1 2
+					2 3 0
+				);
+				endSubmesh
+		].
+
+		font 
+			widthAndKernedWidthOfLeft: character 
+			right: nextCharacter
+			into: widthAndKernedWidth.
+			
+		destPositionX := destPositionX + (widthAndKernedWidth at: 2)
+	].
+
+	hasSubpixelAntialiasing ifTrue: [ 
+		stringCommandEndRecording := commandList endCommandRecording.
+		commandList
+			useSubpixelFontSecondPassBlending;
+			replayCommandsFrom: stringCommandStartRecording to: stringCommandEndRecording;
+			useCompositeAlphaBlending
+	]
+
+]
+
+{ #category : #visiting }
 FormSGGPUCommandListRenderer >> visitTextureNode: node [
 	| sourceRectangle rectangle extent sourceExtent texcoordScale |
 	node form ifNil: [ ^ self ].
@@ -169,29 +255,6 @@ FormSGGPUCommandListRenderer >> visitTextureNode: node [
 			2 3 0
 		);
 		endSubmesh
-	"node isRepeated ifTrue: [
-		paint repeat
-	] ifFalse: [
-		paint noRepeat
-	].
-
-	canvas pathTransform restoreAfter: [
-		canvas paintTransform
-			loadIdentity.
-		node isRepeated ifTrue: [
-			paint repeat
-		] ifFalse: [
-			paint noRepeat.
-			canvas paintTransform
-				scaleBy: extent / sourceExtent;
-				translateBy: sourceRectangle origin.
-		].
-		
-		canvas setPaint: paint.
-		canvas pathTransform translateBy: node rectangle origin.
-		canvas drawShape: (0@0 extent: node rectangle extent).
-	].
-"
 ]
 
 { #category : #visiting }

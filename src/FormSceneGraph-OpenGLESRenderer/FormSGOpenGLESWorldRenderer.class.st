@@ -6,7 +6,9 @@ Class {
 	#superclass : #FormSGAbstractWorldRenderer,
 	#instVars : [
 		'context',
-		'drawCommandProcessor'
+		'drawCommandProcessor',
+		'fontTextureAtlasCache',
+		'srgbFramebuffer'
 	],
 	#pools : [
 		'UFFIOpenGLConstants'
@@ -24,14 +26,35 @@ FormSGOpenGLESWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRec
 	osWindow ifNil: [ ^ self ].
 	self context withWindow: osWindow do: [
 		| commandList |
+		context hasSRGB ifTrue: [ 
+			srgbFramebuffer ifNil: [
+				srgbFramebuffer := context offscreenBufferExtent: self drawingSurfaceExtent hasColorBuffer: true isSRGB: true hasDepthBuffer: false hasStencilBuffer: false
+			].
+			srgbFramebuffer extent: self drawingSurfaceExtent
+		].
+	
 		commandList := FormSGGPUCommandListBuilder new.
-		FormSGGPUCommandListRenderer render: newSceneGraph with: commandList.
+		FormSGGPUCommandListRenderer new
+			surfaceScaleFactor: self scaleFactor;
+			fontTextureAtlasCache: self drawCommandProcessor fontTextureAtlasCache;
+			render: newSceneGraph with: commandList.
 		
-		Transcript show: self drawingSurfaceExtent; cr.
 		self drawCommandProcessor
-			beginRenderPassWithExtent: self drawingSurfaceExtent clearColor: Color transparent;
+			uploadModifiedTextureFontCachePages.
+			
+		srgbFramebuffer ifNotNil: [ 
+			self drawCommandProcessor beginRenderPass: srgbFramebuffer clearColor: Color transparent
+		] ifNil: [ 
+			self drawCommandProcessor beginRenderPassWithExtent: self drawingSurfaceExtent clearColor: Color transparent
+		].
+		self drawCommandProcessor
 			processDrawCommandList: commandList;
 			endRenderPass.
+
+		srgbFramebuffer ifNotNil: [
+			srgbFramebuffer blitToMainFramebuffer
+		].
+
 		context swapBuffers: osWindow
 	].
 ]
@@ -69,6 +92,16 @@ FormSGOpenGLESWorldRenderer >> doActivate [
 { #category : #initialization }
 FormSGOpenGLESWorldRenderer >> drawCommandProcessor [
 	^ drawCommandProcessor ifNil: [ drawCommandProcessor := FormSGOpenGLESDrawCommandProcessor for: self context ]
+]
+
+{ #category : #accessing }
+FormSGOpenGLESWorldRenderer >> fontTextureAtlasCache [
+	^ fontTextureAtlasCache
+]
+
+{ #category : #accessing }
+FormSGOpenGLESWorldRenderer >> fontTextureAtlasCache: anObject [
+	fontTextureAtlasCache := anObject
 ]
 
 { #category : #initialization }
