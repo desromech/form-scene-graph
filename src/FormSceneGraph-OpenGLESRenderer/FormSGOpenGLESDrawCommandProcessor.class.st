@@ -17,7 +17,9 @@ Class {
 		'texturedProgram',
 		'fontTextureAtlasCache',
 		'vertexColorInfluence',
-		'renderTargetComposeProgram'
+		'renderTargetComposeProgram',
+		'radialGradientProgram',
+		'linearGradientProgram'
 	],
 	#pools : [
 		'UFFIOpenGLConstants'
@@ -128,6 +130,24 @@ FormSGOpenGLESDrawCommandProcessor >> fontTextureAtlasCache [
 	^ fontTextureAtlasCache ifNil: [ fontTextureAtlasCache := FormSGFontTextureAtlasCache new ]
 ]
 
+{ #category : #shaders }
+FormSGOpenGLESDrawCommandProcessor >> gradientVertexShader [
+	^ '
+#version 100
+attribute highp vec2 vPosition;
+attribute highp vec2 vTexcoord;
+
+uniform highp vec4 viewBoxTransform;
+varying highp vec2 fTexcoord;
+
+void main()
+{ 
+	fTexcoord = vTexcoord;
+	gl_Position = vec4(vPosition*viewBoxTransform.xy + viewBoxTransform.zw, 0.0, 1.0);
+}
+'
+]
+
 { #category : #initialization }
 FormSGOpenGLESDrawCommandProcessor >> initializeWithContext: aContext [
 	context := aContext.
@@ -136,6 +156,31 @@ FormSGOpenGLESDrawCommandProcessor >> initializeWithContext: aContext [
 	colorProgram := self programWithVertexShader: self vertexShader fragmentShader: self colorFragmentShader.
 	texturedProgram := self programWithVertexShader: self vertexShader fragmentShader: self texturedFragmentShader.
 	renderTargetComposeProgram := self programWithVertexShader: self renderTargetComposeVertexShader fragmentShader: self renderTargetComposeFragmentShader.
+	radialGradientProgram := self programWithVertexShader: self gradientVertexShader fragmentShader: self radialGradientFragmentShader.
+	linearGradientProgram := self programWithVertexShader: self gradientVertexShader fragmentShader: self linearGradientFragmentShader.
+]
+
+{ #category : #shaders }
+FormSGOpenGLESDrawCommandProcessor >> linearGradientFragmentShader [
+	^ '
+#version 100
+
+varying highp vec2 fTexcoord;
+
+uniform highp vec4 startColor;
+uniform highp vec4 endColor;
+
+uniform highp vec2 startPoint;
+uniform highp vec2 endPoint;
+
+void main()
+{ 
+	highp vec2 gradientVector = endPoint - startPoint;
+	highp float alpha = dot(fTexcoord - startPoint, gradientVector) / max(dot(gradientVector, gradientVector), 0.000001);
+	gl_FragData[0] = mix(startColor, endColor, alpha);
+}
+
+'
 ]
 
 { #category : #'as yet unclassified' }
@@ -217,6 +262,33 @@ FormSGOpenGLESDrawCommandProcessor >> programWithVertexShader: vertexSource frag
 		^ program
 	].
 
+]
+
+{ #category : #shaders }
+FormSGOpenGLESDrawCommandProcessor >> radialGradientFragmentShader [
+	^ '
+#version 100
+
+uniform highp vec4 startColor;
+uniform highp vec4 endColor;
+
+uniform highp vec2 centerPoint;
+uniform highp vec2 focalPoint;
+uniform highp vec4 radiuses;
+
+varying highp vec2 fTexcoord;
+
+void main()
+{ 
+	highp float radius = length(fTexcoord - centerPoint)	;
+	if (radius < radius.x || radius > radiuses.w)
+		discard;
+		
+	highp float alpha = clamp((radius - radiuses.y) / max(radiuses.z - radiuses.y, 0.00001), 0.0, 1.0);
+	gl_FragData[0] = mix(startColor, endColor, alpha);
+}
+
+'
 ]
 
 { #category : #shaders }
@@ -312,6 +384,29 @@ FormSGOpenGLESDrawCommandProcessor >> setFormTextureWithModificationCount: comma
 
 	self activateProgram: texturedProgram.
 	gl bindTexture_target: GL_TEXTURE_2D texture: texture handle
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> setLinearGradientCommand: gradient [
+	self activateProgram: linearGradientProgram.
+	linearGradientProgram
+		uniform: #startColor float: gradient startColor red float: gradient startColor green float: gradient startColor blue float: gradient startColor alpha;
+		uniform: #endColor float: gradient endColor red float: gradient endColor green float: gradient endColor blue float: gradient endColor alpha;
+		uniform: #startPoint float: gradient startPoint x asFloat float: gradient startPoint y asFloat;
+		uniform: #endPoint float: gradient endPoint x asFloat float: gradient endPoint y asFloat
+
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> setRadialGradientCommand: gradient [
+	self activateProgram: radialGradientProgram.
+	radialGradientProgram
+		uniform: #startColor float: gradient startColor red float: gradient startColor green float: gradient startColor blue float: gradient startColor alpha;
+		uniform: #endColor float: gradient endColor red float: gradient endColor green float: gradient endColor blue float: gradient endColor alpha;
+		uniform: #centerPoint float: gradient center x asFloat float: gradient center y asFloat;
+		uniform: #focalPoint float: gradient focalPoint x asFloat float: gradient focalPoint y asFloat;
+		uniform: #radiuses float: gradient clipInnerRadius asFloat float: gradient innerRadius asFloat
+			float: gradient outerRadius asFloat float: gradient clipOuterRadius asFloat
 ]
 
 { #category : #'as yet unclassified' }
@@ -424,7 +519,7 @@ FormSGOpenGLESDrawCommandProcessor >> uploadVertices: vertices [
 
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> useCompositeAlphaBlending [
-	gl blendFuncSeparate_sfactorRGB: GL_SRC_ALPHA dfactorRGB: GL_ONE_MINUS_SRC_ALPHA sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE
+	gl blendFuncSeparate_sfactorRGB: GL_SRC_ALPHA dfactorRGB: GL_ONE_MINUS_SRC_ALPHA sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA
 ]
 
 { #category : #'as yet unclassified' }

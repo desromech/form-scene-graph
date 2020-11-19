@@ -1,3 +1,6 @@
+"
+I am command list set builder that validates on whether OpenGL render targets associated to the cached sub scene nodes need to be recomputed or not.
+"
 Class {
 	#name : #FormSGOpenGLESCommandListSetBuilder,
 	#superclass : #FormSGGPUCommandListSetBuilder,
@@ -21,8 +24,11 @@ FormSGOpenGLESCommandListSetBuilder >> context: anObject [
 FormSGOpenGLESCommandListSetBuilder >> isRenderTargetCommandValidated: renderTargetCommand [
 	| target |
 	target := context offscreenBufferExtent: renderTargetCommand extent hasColorBuffer: true isSRGB: context hasSRGB hasDepthBuffer: false hasStencilBuffer: false for: renderTargetCommand keyObject.
-	(target modificationCount isNil or: [target modificationCount < renderTargetCommand modificationCount]) ifTrue: [
+	(target modificationCount isNil or:
+	[target modificationCount < renderTargetCommand modificationCount or:
+	[target extent ~= renderTargetCommand extent]]) ifTrue: [
 		target
+			extent: renderTargetCommand extent;
 			modificationCount: renderTargetCommand modificationCount.
 		^ false
 	].

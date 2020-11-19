@@ -187,6 +187,33 @@ FormSGGPUCommandListBuilder >> setFormTexture: form withModificationCount: modif
 ]
 
 { #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> setLinearGradiantStartPoint: startPoint color: startColor endPoint: endPoint color: endColor [
+	drawCommands add: (currentTextureCommand := FormSGGPUSetLinearGradientCommand new
+		startPoint: startPoint;
+		startColor: startColor;
+		endColor: endColor;
+		endPoint: endPoint;
+		yourself)
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> setRadialGradiantCenter: center focalPoint: focalPoint
+clipInnerRadius: clipInnerRadius innerRadius: innerRadius
+outerRadius: outerRadius clipOuterRadius: clipOuterRadius
+startColor: startColor endColor: endColor [
+	drawCommands add: (currentTextureCommand := FormSGGPUSetRadialGradientCommand new
+		center: center;
+		focalPoint: focalPoint;
+		clipInnerRadius: clipInnerRadius;
+		innerRadius: innerRadius;
+		outerRadius: outerRadius;
+		clipOuterRadius: clipOuterRadius;
+		startColor: startColor;
+		endColor: endColor;
+		yourself)
+]
+
+{ #category : #'draw commands' }
 FormSGGPUCommandListBuilder >> setRenderTargetTextureWithExtent: extent for: keyObject withModificationCount: modificationCount renderedWith: renderingBlock [
 	(currentTextureCommand isSetRenderTargetTextureWithModificationCountCommand
 	and: [ currentTextureCommand extent == extent

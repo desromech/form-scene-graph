@@ -228,8 +228,55 @@ FormSGGPUCommandListRenderer >> visitContainerNode: node [
 ]
 
 { #category : #visiting }
+FormSGGPUCommandListRenderer >> visitLinearGradientNode: node [
+	| rectangle |
+	(node startColor isTransparent and: [ node endColor isTransparent ]) ifTrue: [ ^ self ].
+			
+	rectangle := node rectangle.
+	commandList
+		setLinearGradiantStartPoint: node startPoint color: node startColor endPoint: node endPoint color: node endColor;
+		beginTriangles;
+		color: Color white;
+		vertexPosition: (currentTransform transformPoint: rectangle bottomLeft) texcoord: rectangle bottomLeft;
+		vertexPosition: (currentTransform transformPoint: rectangle bottomRight) texcoord: rectangle bottomRight;
+		vertexPosition: (currentTransform transformPoint: rectangle topRight) texcoord: rectangle topRight;
+		vertexPosition: (currentTransform transformPoint: rectangle topLeft) texcoord: rectangle topLeft;
+		addIndices: #(
+			0 1 2
+			2 3 0
+		);
+		endSubmesh
+	
+]
+
+{ #category : #visiting }
 FormSGGPUCommandListRenderer >> visitNullNode: node [
 	"Nothing is required here."
+]
+
+{ #category : #visiting }
+FormSGGPUCommandListRenderer >> visitRadialGradientNode: node [
+	| rectangle |
+	(node startColor isTransparent and: [ node endColor isTransparent ]) ifTrue: [ ^ self ].
+			
+	rectangle := node rectangle.
+	commandList
+		setRadialGradiantCenter: node center focalPoint: node focalPoint
+			clipInnerRadius: node clipInnerRadius innerRadius: node innerRadius
+			outerRadius: node outerRadius clipOuterRadius: node outerRadius
+			startColor: node startColor endColor: node endColor;
+		beginTriangles;
+		color: Color white;
+		vertexPosition: (currentTransform transformPoint: rectangle bottomLeft) texcoord: rectangle bottomLeft;
+		vertexPosition: (currentTransform transformPoint: rectangle bottomRight) texcoord: rectangle bottomRight;
+		vertexPosition: (currentTransform transformPoint: rectangle topRight) texcoord: rectangle topRight;
+		vertexPosition: (currentTransform transformPoint: rectangle topLeft) texcoord: rectangle topLeft;
+		addIndices: #(
+			0 1 2
+			2 3 0
+		);
+		endSubmesh
+	
 ]
 
 { #category : #visiting }
@@ -345,7 +392,7 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 
 { #category : #visiting }
 FormSGGPUCommandListRenderer >> visitTextureNode: node [
-	| sourceRectangle rectangle extent sourceExtent texcoordScale |
+	| sourceRectangle rectangle extent sourceExtent texcoordScale textureRectangle |
 	node form ifNil: [ ^ self ].
 
 	rectangle := node rectangle.
@@ -357,15 +404,19 @@ FormSGGPUCommandListRenderer >> visitTextureNode: node [
 	(sourceExtent x <= 0.0 or: [ sourceExtent y <= 0.0 ]) ifTrue: [ ^ self ].
 	
 	texcoordScale := (1.0@1.0) / node form extent.
+
+	textureRectangle := node isRepeated
+		ifTrue: [ sourceRectangle origin extent: rectangle extent / sourceExtent ]
+		ifFalse: [ sourceRectangle origin*texcoordScale corner: sourceRectangle corner*texcoordScale ].
 	
 	commandList
 		setFormTexture: node form;
 		beginTriangles;
 		color: Color white;
-		vertexPosition: (currentTransform transformPoint: rectangle bottomLeft) texcoord: sourceRectangle bottomLeft*texcoordScale;
-		vertexPosition: (currentTransform transformPoint: rectangle bottomRight) texcoord: sourceRectangle bottomRight*texcoordScale;
-		vertexPosition: (currentTransform transformPoint: rectangle topRight) texcoord: sourceRectangle topRight*texcoordScale;
-		vertexPosition: (currentTransform transformPoint: rectangle topLeft) texcoord: sourceRectangle topLeft*texcoordScale;
+		vertexPosition: (currentTransform transformPoint: rectangle bottomLeft) texcoord: textureRectangle bottomLeft;
+		vertexPosition: (currentTransform transformPoint: rectangle bottomRight) texcoord: textureRectangle bottomRight;
+		vertexPosition: (currentTransform transformPoint: rectangle topRight) texcoord: textureRectangle topRight;
+		vertexPosition: (currentTransform transformPoint: rectangle topLeft) texcoord: textureRectangle topLeft;
 		addIndices: #(
 			0 1 2
 			2 3 0

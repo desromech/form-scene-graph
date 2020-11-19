@@ -42,6 +42,16 @@ FormSGGPUDrawCommandProcessor >> setFormTextureWithModificationCount: formTextur
 	self subclassResponsibility
 ]
 
+{ #category : #initialization }
+FormSGGPUDrawCommandProcessor >> setLinearGradientCommand: linearGradient [
+	self subclassResponsibility
+]
+
+{ #category : #initialization }
+FormSGGPUDrawCommandProcessor >> setRadialGradientCommand: radialGradient [
+	self subclassResponsibility
+]
+
 { #category : #'as yet unclassified' }
 FormSGGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: renderTargetValidationCommand [
 	self subclassResponsibility
