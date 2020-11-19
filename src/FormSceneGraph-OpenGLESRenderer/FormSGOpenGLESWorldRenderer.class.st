@@ -37,7 +37,7 @@ FormSGOpenGLESWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRec
 		FormSGGPUCommandListRenderer new
 			surfaceScaleFactor: self scaleFactor;
 			fontTextureAtlasCache: self drawCommandProcessor fontTextureAtlasCache;
-			render: newSceneGraph with: commandList.
+			render: newSceneGraph with: commandList transform: FormSGAffineTransform identity clippingBounds: (0@0 extent: self drawingSurfaceExtent).
 		
 		self drawCommandProcessor
 			uploadModifiedTextureFontCachePages.

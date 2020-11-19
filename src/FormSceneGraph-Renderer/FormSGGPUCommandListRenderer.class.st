@@ -56,6 +56,7 @@ FormSGGPUCommandListRenderer >> render: sceneNode with: theCommandListBuilder [
 FormSGGPUCommandListRenderer >> render: sceneNode with: theCommandListBuilder transform: initialTransform clippingBounds: initialClippingBounds [
 	currentTransform := initialTransform.
 	currentClipRectangle := initialClippingBounds.
+	self render: sceneNode with: theCommandListBuilder
 ]
 
 { #category : #visiting }

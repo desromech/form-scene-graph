@@ -207,15 +207,16 @@ FormSGOpenGLESDrawCommandProcessor >> setFormTextureWithModificationCount: comma
 
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> setScissor: command [
-	| viewClippedRectangle scissorMin scissorMax |
+	| viewClippedRectangle scissorMin scissorMax screenHeight |
 	viewClippedRectangle := command rectangle intersect: viewportRectangle ifNone: [
 		gl scissor_x: 0 y: 0 width: 0 height: 0.
 		^ self
 	].
 
-	scissorMin := viewportRectangle origin floor.
-	scissorMax := viewportRectangle corner ceiling.
-	gl scissor_x: scissorMin x y: scissorMin y width: scissorMax x - scissorMin x height: scissorMax y - scissorMin y.
+	screenHeight := viewportRectangle height.
+	scissorMin := viewClippedRectangle origin floor.
+	scissorMax := viewClippedRectangle corner ceiling.
+	gl scissor_x: scissorMin x y: screenHeight - scissorMax y width: scissorMax x - scissorMin x height: scissorMax y - scissorMin y.
 ]
 
 { #category : #shaders }
