@@ -28,6 +28,25 @@ FormSGGPUCommandListRenderer class >> render: sceneNode with: commandListBuilder
 	^ self new render: sceneNode with: commandListBuilder transform: initialTransform clippingBounds: initialClippingBounds
 ]
 
+{ #category : #visiting }
+FormSGGPUCommandListRenderer >> drawRectangle: rectangle color: color [
+	color isTransparent ifTrue: [ ^ self ].
+	
+	commandList
+		noTexture;
+		beginTriangles;
+		color: color;
+		vertexPosition: (currentTransform transformPoint: rectangle bottomLeft);
+		vertexPosition: (currentTransform transformPoint: rectangle bottomRight);
+		vertexPosition: (currentTransform transformPoint: rectangle topRight);
+		vertexPosition: (currentTransform transformPoint: rectangle topLeft);
+		addIndices: #(
+			0 1 2
+			2 3 0
+		);
+		endSubmesh
+]
+
 { #category : #accessing }
 FormSGGPUCommandListRenderer >> fontTextureAtlasCache [
 	^ fontTextureAtlasCache
@@ -122,25 +141,7 @@ FormSGGPUCommandListRenderer >> visitClipNode: node [
 
 { #category : #visiting }
 FormSGGPUCommandListRenderer >> visitColorNode: node [
-	| rectangle |
-	node color isTransparent ifTrue: [ ^ self ].
-	
-	rectangle := node rectangle.
-	
-	commandList
-		noTexture;
-		beginTriangles;
-		color: node color;
-		vertexPosition: (currentTransform transformPoint: rectangle bottomLeft);
-		vertexPosition: (currentTransform transformPoint: rectangle bottomRight);
-		vertexPosition: (currentTransform transformPoint: rectangle topRight);
-		vertexPosition: (currentTransform transformPoint: rectangle topLeft);
-		addIndices: #(
-			0 1 2
-			2 3 0
-		);
-		endSubmesh
-		
+	self drawRectangle: node rectangle color: node color
 ]
 
 { #category : #visiting }
@@ -155,7 +156,7 @@ FormSGGPUCommandListRenderer >> visitNullNode: node [
 
 { #category : #visiting }
 FormSGGPUCommandListRenderer >> visitTextNode: node [
-	| scaledFont font rectangle convertedRectangle startPositionX startPositionY widthAndKernedWidth destPositionX destPositionY hasSubpixelAntialiasing stringCommandStartRecording stringCommandEndRecording attemptPixelPerfectBlitting |
+	| scaledFont font rectangle convertedRectangle startPositionX startPositionY widthAndKernedWidth destPositionX destPositionY hasSubpixelAntialiasing stringCommandStartRecording stringCommandEndRecording attemptScaledPixelPerfectBlitting |
 	node color isTransparent ifTrue: [ ^ self ].
 
 	font := node font.
@@ -184,7 +185,7 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 	].
 
 	hasSubpixelAntialiasing := false.
-	attemptPixelPerfectBlitting := currentTransform hasNoRotationAndScale: surfaceScaleFactor.
+	attemptScaledPixelPerfectBlitting := scaledFont ~~ font and: [currentTransform hasNoRotationAndScale: surfaceScaleFactor].
 	fontTextureAtlasCache processString: node string from: node firstIndex to: node lastIndex font: font scaledFont: scaledFont subpixelAllowed: true entriesWith: [ :glyphEntry :scaledGlyphEntry :character :nextCharacter |
 		scaledGlyphEntry page ifNotNil: [ :page |
 			| glyphForm sourceRectangle destRectangle |
@@ -197,7 +198,7 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 			glyphForm := scaledGlyphEntry glyphForm.
 			sourceRectangle := scaledGlyphEntry rectangle.
 			
-			attemptPixelPerfectBlitting ifTrue: [ 
+			attemptScaledPixelPerfectBlitting ifTrue: [ 
 				destRectangle := ((currentTransform transformPoint: destPositionX@destPositionY) + glyphForm offset) rounded extent: glyphForm extent.
 				commandList
 					setFormTexture: page form withModificationCount: page modificationCount;
@@ -212,7 +213,7 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 					);
 					endSubmesh
 			] ifFalse: [ 
-				destRectangle := ((destPositionX@destPositionY) + glyphEntry glyphForm offset) extent: glyphEntry glyphForm extent.
+				destRectangle := ((destPositionX@destPositionY) + glyphEntry glyphForm offset) rounded extent: glyphEntry glyphForm extent.
 				commandList
 					setFormTexture: page form withModificationCount: page modificationCount;
 					beginTriangles;
@@ -242,7 +243,25 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 			useSubpixelFontSecondPassBlending;
 			replayCommandsFrom: stringCommandStartRecording to: stringCommandEndRecording;
 			useCompositeAlphaBlending
-	]
+	].
+
+	node underline ifTrue: [
+		| underlineThickness underlineTop |
+	 	underlineThickness := font underlineThickness asFloat.
+		underlineTop := font underlineTop asFloat.
+		self drawRectangle:
+			(startPositionX @ (startPositionY + underlineTop) corner: destPositionX @ (destPositionY + underlineTop + underlineThickness))
+			color: node underlineColor
+	].
+
+	node strikethrough ifTrue: [ 
+		| strikeoutThickness strikeoutTop |
+	 	strikeoutThickness := font strikeoutThickness asFloat.
+		strikeoutTop := font strikeoutTop asFloat.
+		self drawRectangle:
+			(startPositionX @ (startPositionY + strikeoutTop) corner: destPositionX @ (destPositionY + strikeoutTop + strikeoutThickness))
+			color: node underlineColor
+	].
 
 ]
 

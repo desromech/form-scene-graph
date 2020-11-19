@@ -1,3 +1,6 @@
+"
+I represent a single texture page for in the font texture atlas cache.
+"
 Class {
 	#name : #FormSGFontTextureAtlasPage,
 	#superclass : #Object,

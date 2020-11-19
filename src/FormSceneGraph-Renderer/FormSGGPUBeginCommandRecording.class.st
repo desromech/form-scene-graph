@@ -1,3 +1,6 @@
+"
+I am the start marker for command recording. I am typically used for rendering text with subpixel antialiasing by doing two passes.
+"
 Class {
 	#name : #FormSGGPUBeginCommandRecording,
 	#superclass : #FormSGGPUSingletonDrawCommand,

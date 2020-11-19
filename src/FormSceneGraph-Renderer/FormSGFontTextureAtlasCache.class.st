@@ -1,3 +1,6 @@
+"
+I am a cache for fonts that places glyphs dynamically in a large texture atlas. I am based in the following technique that is described for accelerated Android text rendering: https://medium.com/@romainguy/androids-font-renderer-c368bbde87d9
+"
 Class {
 	#name : #FormSGFontTextureAtlasCache,
 	#superclass : #Object,

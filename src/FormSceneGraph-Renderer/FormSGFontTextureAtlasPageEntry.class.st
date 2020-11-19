@@ -1,3 +1,6 @@
+"
+I represent a single glyph entry in a font texture atlas based cache.
+"
 Class {
 	#name : #FormSGFontTextureAtlasPageEntry,
 	#superclass : #Object,

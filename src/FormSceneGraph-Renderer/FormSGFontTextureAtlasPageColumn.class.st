@@ -1,3 +1,6 @@
+"
+I represent a column in a texture atlas page. I am used for computing the remaining height for placing glyphs.
+"
 Class {
 	#name : #FormSGFontTextureAtlasPageColumn,
 	#superclass : #Object,
