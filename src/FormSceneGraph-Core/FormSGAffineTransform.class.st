@@ -132,6 +132,14 @@ FormSGAffineTransform >> determinant [
 	^ (m11 * m22) - (m21*m12)
 ]
 
+{ #category : #testing }
+FormSGAffineTransform >> hasNoRotationAndScale: expectedScale [
+	^ (m11 closeTo: expectedScale) and: [
+		(m12 closeTo: 0.0) and: [
+		(m21 closeTo: 0.0) and: [
+		(m22 closeTo: expectedScale) ]]]
+]
+
 { #category : #initialization }
 FormSGAffineTransform >> hash [
 	^ self class identityHash bitXor: (
@@ -185,10 +193,7 @@ FormSGAffineTransform >> isTranslationAndPositiveScaleOnly [
 
 { #category : #testing }
 FormSGAffineTransform >> isTranslationOnly [
-	^ (m11 closeTo: 1.0) and: [
-		(m12 closeTo: 0.0) and: [
-		(m21 closeTo: 0.0) and: [
-		(m22 closeTo: 1.0) ]]]
+	^ self hasNoRotationAndScale: 1.0
 ]
 
 { #category : #accessing }

@@ -155,7 +155,7 @@ FormSGGPUCommandListRenderer >> visitNullNode: node [
 
 { #category : #visiting }
 FormSGGPUCommandListRenderer >> visitTextNode: node [
-	| scaledFont font rectangle convertedRectangle startPositionX startPositionY widthAndKernedWidth destPositionX destPositionY hasSubpixelAntialiasing stringCommandStartRecording stringCommandEndRecording |
+	| scaledFont font rectangle convertedRectangle startPositionX startPositionY widthAndKernedWidth destPositionX destPositionY hasSubpixelAntialiasing stringCommandStartRecording stringCommandEndRecording attemptPixelPerfectBlitting |
 	node color isTransparent ifTrue: [ ^ self ].
 
 	font := node font.
@@ -184,30 +184,48 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 	].
 
 	hasSubpixelAntialiasing := false.
-	fontTextureAtlasCache processString: node string from: node firstIndex to: node lastIndex font: scaledFont subpixelAllowed: true entriesWith: [ :glyphEntry :character :nextCharacter |
-		glyphEntry page ifNotNil: [ :page |
+	attemptPixelPerfectBlitting := currentTransform hasNoRotationAndScale: surfaceScaleFactor.
+	fontTextureAtlasCache processString: node string from: node firstIndex to: node lastIndex font: font scaledFont: scaledFont subpixelAllowed: true entriesWith: [ :glyphEntry :scaledGlyphEntry :character :nextCharacter |
+		scaledGlyphEntry page ifNotNil: [ :page |
 			| glyphForm sourceRectangle destRectangle |
-			(hasSubpixelAntialiasing not and: [ glyphEntry hasSubpixelAntialiasing]) ifTrue: [
+			(hasSubpixelAntialiasing not and: [ scaledGlyphEntry hasSubpixelAntialiasing]) ifTrue: [
 				commandList useSubpixelFontFirstPassBlending.
 				stringCommandStartRecording := commandList beginCommandRecording.
 				hasSubpixelAntialiasing := true.
 			].
 		
-			glyphForm := glyphEntry glyphForm.
-			sourceRectangle := glyphEntry rectangle.
-			destRectangle := (destPositionX@destPositionY) + glyphForm offset extent: glyphForm extent.
-			commandList
-				setFormTexture: page form withModificationCount: page modificationCount;
-				beginTriangles;
-				vertexPosition: (currentTransform transformPoint: destRectangle bottomLeft) texcoord: sourceRectangle bottomLeft;
-				vertexPosition: (currentTransform transformPoint: destRectangle bottomRight) texcoord: sourceRectangle bottomRight;
-				vertexPosition: (currentTransform transformPoint: destRectangle topRight) texcoord: sourceRectangle topRight;
-				vertexPosition: (currentTransform transformPoint: destRectangle topLeft) texcoord: sourceRectangle topLeft;
-				addIndices: #(
-					0 1 2
-					2 3 0
-				);
-				endSubmesh
+			glyphForm := scaledGlyphEntry glyphForm.
+			sourceRectangle := scaledGlyphEntry rectangle.
+			
+			attemptPixelPerfectBlitting ifTrue: [ 
+				destRectangle := ((currentTransform transformPoint: destPositionX@destPositionY) + glyphForm offset) rounded extent: glyphForm extent.
+				commandList
+					setFormTexture: page form withModificationCount: page modificationCount;
+					beginTriangles;
+					vertexPosition: destRectangle bottomLeft texcoord: sourceRectangle bottomLeft;
+					vertexPosition: destRectangle bottomRight texcoord: sourceRectangle bottomRight;
+					vertexPosition: destRectangle topRight texcoord: sourceRectangle topRight;
+					vertexPosition: destRectangle topLeft texcoord: sourceRectangle topLeft;
+					addIndices: #(
+						0 1 2
+						2 3 0
+					);
+					endSubmesh
+			] ifFalse: [ 
+				destRectangle := ((destPositionX@destPositionY) + glyphEntry glyphForm offset) extent: glyphEntry glyphForm extent.
+				commandList
+					setFormTexture: page form withModificationCount: page modificationCount;
+					beginTriangles;
+					vertexPosition: (currentTransform transformPoint: destRectangle bottomLeft) texcoord: sourceRectangle bottomLeft;
+					vertexPosition: (currentTransform transformPoint: destRectangle bottomRight) texcoord: sourceRectangle bottomRight;
+					vertexPosition: (currentTransform transformPoint: destRectangle topRight) texcoord: sourceRectangle topRight;
+					vertexPosition: (currentTransform transformPoint: destRectangle topLeft) texcoord: sourceRectangle topLeft;
+					addIndices: #(
+						0 1 2
+						2 3 0
+					);
+					endSubmesh
+			].
 		].
 
 		font 

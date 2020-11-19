@@ -55,6 +55,18 @@ FormSGFontTextureAtlasCache >> prepareForString: string from: startIndex to: end
 ]
 
 { #category : #'as yet unclassified' }
+FormSGFontTextureAtlasCache >> processString: string from: startIndex to: endIndex font: font scaledFont: scaledFont subpixelAllowed: subpixelAllowed entriesWith: aBlock [
+	startIndex to: endIndex do: [ :i |
+		| character |
+		character := string at: i.
+		aBlock
+			value: (self prepareForCharacter: character font: font subpixelAllowed: subpixelAllowed)
+			value: (self prepareForCharacter: character font: scaledFont subpixelAllowed: subpixelAllowed)
+			value: character value: (i < endIndex ifTrue: [string at: i + 1] ifFalse: [nil])
+	]
+]
+
+{ #category : #'as yet unclassified' }
 FormSGFontTextureAtlasCache >> processString: string from: startIndex to: endIndex font: font subpixelAllowed: subpixelAllowed entriesWith: aBlock [
 	startIndex to: endIndex do: [ :i |
 		| character |
