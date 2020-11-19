@@ -14,7 +14,7 @@ Class {
 	#category : #'FormSceneGraph-Renderer-Font'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGFontTextureAtlasCache >> beginFrame [
 	frameIndex := frameIndex + 1.
 	modifiedPages removeAll.
@@ -35,7 +35,7 @@ FormSGFontTextureAtlasCache >> modifiedPages [
 	^ modifiedPages
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGFontTextureAtlasCache >> prepareForCharacter: character font: font subpixelAllowed: subpixelAllowed [
 	^ cachedCharacters at: { character . font . subpixelAllowed } ifAbsentPut: [
 		| entry |
@@ -45,19 +45,19 @@ FormSGFontTextureAtlasCache >> prepareForCharacter: character font: font subpixe
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGFontTextureAtlasCache >> prepareForString: string font: font subpixelAllowed: subpixelAllowed [
 	self prepareForString: string from: 1 to: string size font: font subpixelAllowed: subpixelAllowed
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGFontTextureAtlasCache >> prepareForString: string from: startIndex to: endIndex font: font subpixelAllowed: subpixelAllowed [
 	startIndex to: endIndex do: [ :i |
 		self prepareForCharacter: (string at: i) font: font subpixelAllowed: subpixelAllowed
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGFontTextureAtlasCache >> processString: string from: startIndex to: endIndex font: font scaledFont: scaledFont subpixelAllowed: subpixelAllowed entriesWith: aBlock [
 	startIndex to: endIndex do: [ :i |
 		| character |
@@ -69,7 +69,7 @@ FormSGFontTextureAtlasCache >> processString: string from: startIndex to: endInd
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGFontTextureAtlasCache >> processString: string from: startIndex to: endIndex font: font subpixelAllowed: subpixelAllowed entriesWith: aBlock [
 	startIndex to: endIndex do: [ :i |
 		| character |
@@ -78,12 +78,12 @@ FormSGFontTextureAtlasCache >> processString: string from: startIndex to: endInd
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #internal }
 FormSGFontTextureAtlasCache >> recordModifiedPage: page [
 	modifiedPages add: page
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #internal }
 FormSGFontTextureAtlasCache >> submitNewEntryIntoTexture: newEntry [
 	| pageList newPage |
 	newEntry hasValidGlyphForm ifFalse: [ ^ self ].

@@ -20,7 +20,7 @@ FormSGFontTextureAtlasPageColumn >> initialize [
 	nextRow := 1.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #adding }
 FormSGFontTextureAtlasPageColumn >> insertEntry: newEntry [
 	| glyphForm destPosition pageExtent |
 	glyphForm := newEntry glyphForm.

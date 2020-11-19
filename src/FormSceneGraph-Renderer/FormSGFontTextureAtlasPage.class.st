@@ -49,7 +49,7 @@ FormSGFontTextureAtlasPage >> form: anObject [
 	form := anObject
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifying }
 FormSGFontTextureAtlasPage >> increaseModificationCount [
 	modificationCount := modificationCount + 1.
 	cache recordModifiedPage: self.
@@ -68,7 +68,7 @@ FormSGFontTextureAtlasPage >> modificationCount [
 	^ modificationCount
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #modifying }
 FormSGFontTextureAtlasPage >> tryToInsertEntry: entry [
 	| glyphForm |
 	glyphForm := entry glyphForm.
