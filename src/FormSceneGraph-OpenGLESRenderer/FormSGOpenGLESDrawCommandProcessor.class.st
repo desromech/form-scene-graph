@@ -16,10 +16,10 @@ Class {
 		'viewportRectangle',
 		'texturedProgram',
 		'fontTextureAtlasCache',
-		'vertexColorInfluence',
 		'renderTargetComposeProgram',
 		'radialGradientProgram',
-		'linearGradientProgram'
+		'linearGradientProgram',
+		'isSubpixelMask'
 	],
 	#pools : [
 		'UFFIOpenGLConstants'
@@ -40,7 +40,7 @@ FormSGOpenGLESDrawCommandProcessor >> activateProgram: program [
 	program
 		uniform: #viewBoxTransform float: viewBoxScale x float: viewBoxScale y float: viewBoxOffset x float: viewBoxOffset y;
 		uniform: #activeTexture int: 0;
-		uniform: #vertexColorInfluence float: vertexColorInfluence.
+		uniform: #isSubpixelMask float: isSubpixelMask.
 	activeProgram := program.
 
 ]
@@ -73,7 +73,7 @@ FormSGOpenGLESDrawCommandProcessor >> beginRenderPassWithExtent: framebufferExte
 	viewBoxScale := (2.0 / framebufferExtent x) @ (-2.0 / framebufferExtent y).
 	viewBoxOffset := -1.0 @ 1.0.
 	activeProgram := nil.
-	vertexColorInfluence := 1.0.
+	isSubpixelMask := 0.0.
 
 	gl
 		viewport_x: 0 y: 0 width: framebufferExtent x height: framebufferExtent y;
@@ -96,7 +96,7 @@ varying highp vec4 fColor;
 
 void main()
 { 
-	gl_FragData[0] = fColor;
+	gl_FragData[0] = vec4(fColor.rgb*fColor.a, fColor.a);
 }
 
 '
@@ -158,6 +158,14 @@ FormSGOpenGLESDrawCommandProcessor >> initializeWithContext: aContext [
 	renderTargetComposeProgram := self programWithVertexShader: self renderTargetComposeVertexShader fragmentShader: self renderTargetComposeFragmentShader.
 	radialGradientProgram := self programWithVertexShader: self gradientVertexShader fragmentShader: self radialGradientFragmentShader.
 	linearGradientProgram := self programWithVertexShader: self gradientVertexShader fragmentShader: self linearGradientFragmentShader.
+]
+
+{ #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> isSubpixelMask: factor [
+	isSubpixelMask := factor.
+	activeProgram ifNotNil: [
+		activeProgram uniform: #isSubpixelMask float: isSubpixelMask
+	]
 ]
 
 { #category : #shaders }
@@ -438,7 +446,7 @@ FormSGOpenGLESDrawCommandProcessor >> texturedFragmentShader [
 #version 100
 
 uniform sampler2D activeTexture;
-uniform highp float vertexColorInfluence;
+uniform highp float isSubpixelMask;
 
 varying highp vec4 fColor;
 varying highp vec2 fTexcoord;
@@ -446,7 +454,12 @@ varying highp vec2 fTexcoord;
 void main()
 { 
 	highp vec4 textureColor = texture2D(activeTexture, fTexcoord).bgra;
-	gl_FragData[0] = mix(textureColor, fColor * textureColor, vertexColorInfluence);
+	highp vec4 color = fColor * textureColor;
+	highp vec4 premultipliedColor = vec4(color.rgb*color.a, color.a);
+	
+	highp vec4 subpixelMaskColor = vec4(textureColor.rgb, max(textureColor.r, max(textureColor.g, textureColor.b)));
+	
+	gl_FragData[0] = mix(premultipliedColor, subpixelMaskColor, isSubpixelMask);
 }
 
 '
@@ -519,27 +532,19 @@ FormSGOpenGLESDrawCommandProcessor >> uploadVertices: vertices [
 
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> useCompositeAlphaBlending [
-	gl blendFuncSeparate_sfactorRGB: GL_SRC_ALPHA dfactorRGB: GL_ONE_MINUS_SRC_ALPHA sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA
+	gl blendFuncSeparate_sfactorRGB: GL_ONE dfactorRGB: GL_ONE_MINUS_SRC_ALPHA sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA
 ]
 
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
-	self vertexColorInfluence: 0.0.
-	gl blendFuncSeparate_sfactorRGB: GL_ZERO dfactorRGB: GL_ONE_MINUS_SRC_COLOR sfactorAlpha: GL_ZERO dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA
+	self isSubpixelMask: 1.0.
+	gl blendFuncSeparate_sfactorRGB: GL_ZERO dfactorRGB: GL_ONE_MINUS_SRC_COLOR sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA
 ]
 
 { #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> useSubpixelFontSecondPassBlending [
-	self vertexColorInfluence: 1.0.
-	gl blendFuncSeparate_sfactorRGB: GL_ONE dfactorRGB: GL_ONE sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE
-]
-
-{ #category : #'as yet unclassified' }
-FormSGOpenGLESDrawCommandProcessor >> vertexColorInfluence: factor [
-	vertexColorInfluence := factor.
-	activeProgram ifNotNil: [
-		activeProgram uniform: #vertexColorInfluence float: vertexColorInfluence
-	]
+	self isSubpixelMask: 0.0.
+	gl blendFuncSeparate_sfactorRGB: GL_ONE dfactorRGB: GL_ONE sfactorAlpha: GL_ZERO dfactorAlpha: GL_ONE
 ]
 
 { #category : #shaders }
