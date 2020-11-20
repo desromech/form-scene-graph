@@ -7,7 +7,6 @@ Class {
 	#instVars : [
 		'context',
 		'drawCommandProcessor',
-		'fontTextureAtlasCache',
 		'srgbFramebuffer'
 	],
 	#pools : [
@@ -18,13 +17,13 @@ Class {
 
 { #category : #initialization }
 FormSGOpenGLESWorldRenderer >> context [
-	^ context ifNil: [ context := UFFIOpenGLESContext globalContext ]
+	^ context
 ]
 
 { #category : #initialization }
 FormSGOpenGLESWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle [
 	osWindow ifNil: [ ^ self ].
-	self context withWindow: osWindow do: [
+	self context asCurrentDo: [
 		| commandList |
 		context hasSRGB ifTrue: [ 
 			srgbFramebuffer ifNil: [
@@ -61,7 +60,7 @@ FormSGOpenGLESWorldRenderer >> doActivate [
 		title: Smalltalk image imageFile fullName;
 		windowCentered:true;
 		icon: (self iconNamed: #pharoBig);
-		glAttributes: self context glAttributes.
+		glAttributes: self glAttributes.
 
 	display := Form extent: initialExtent depth: 32.
 	world extent: initialExtent.
@@ -69,7 +68,8 @@ FormSGOpenGLESWorldRenderer >> doActivate [
 	driver := self pickMostSuitableWindowDriver.
 	attributes preferableDriver: driver.
 	osWindow := OSWindow createWithAttributes: attributes eventHandler: (OSWindowMorphicEventHandler for: world).
-	
+	context := UFFIOpenGLESContext newWithAttributes: attributes glAttributes forWindow: osWindow.
+	self drawCommandProcessor.
 	osWindow focus. 
 	
 	world worldState doFullRepaint.
@@ -83,19 +83,19 @@ FormSGOpenGLESWorldRenderer >> drawCommandProcessor [
 	^ drawCommandProcessor ifNil: [ drawCommandProcessor := FormSGOpenGLESDrawCommandProcessor for: self context ]
 ]
 
-{ #category : #accessing }
-FormSGOpenGLESWorldRenderer >> fontTextureAtlasCache [
-	^ fontTextureAtlasCache
-]
-
-{ #category : #accessing }
-FormSGOpenGLESWorldRenderer >> fontTextureAtlasCache: anObject [
-	fontTextureAtlasCache := anObject
+{ #category : #initialization }
+FormSGOpenGLESWorldRenderer >> glAttributes [
+	^ OSWindowGLAttributes new
+		setForOpenGLES20;
+		depthSize: 0;
+		stencilSize: 0;
+		srgbFramebuffer: false;
+		yourself
 ]
 
 { #category : #initialization }
 FormSGOpenGLESWorldRenderer >> osWindowRenderer [
 	osWindow ifNil: [ ^ nil ].
-	^ nil
+	^ osWindow renderer
 	
 ]

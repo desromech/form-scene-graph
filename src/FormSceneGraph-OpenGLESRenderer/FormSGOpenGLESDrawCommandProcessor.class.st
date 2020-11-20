@@ -153,11 +153,14 @@ FormSGOpenGLESDrawCommandProcessor >> initializeWithContext: aContext [
 	context := aContext.
 	gl := context gl.
 	
-	colorProgram := self programWithVertexShader: self vertexShader fragmentShader: self colorFragmentShader.
-	texturedProgram := self programWithVertexShader: self vertexShader fragmentShader: self texturedFragmentShader.
-	renderTargetComposeProgram := self programWithVertexShader: self renderTargetComposeVertexShader fragmentShader: self renderTargetComposeFragmentShader.
-	radialGradientProgram := self programWithVertexShader: self gradientVertexShader fragmentShader: self radialGradientFragmentShader.
-	linearGradientProgram := self programWithVertexShader: self gradientVertexShader fragmentShader: self linearGradientFragmentShader.
+	context asCurrentDo: [ 
+		colorProgram := self programWithVertexShader: self vertexShader fragmentShader: self colorFragmentShader.
+		texturedProgram := self programWithVertexShader: self vertexShader fragmentShader: self texturedFragmentShader.
+		renderTargetComposeProgram := self programWithVertexShader: self renderTargetComposeVertexShader fragmentShader: self renderTargetComposeFragmentShader.
+		radialGradientProgram := self programWithVertexShader: self gradientVertexShader fragmentShader: self radialGradientFragmentShader.
+		linearGradientProgram := self programWithVertexShader: self gradientVertexShader fragmentShader: self linearGradientFragmentShader.
+	].
+
 ]
 
 { #category : #'as yet unclassified' }
