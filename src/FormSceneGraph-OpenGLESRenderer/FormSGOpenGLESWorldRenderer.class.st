@@ -39,7 +39,6 @@ FormSGOpenGLESWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRec
 			render: newSceneGraph with: commandList transform: FormSGAffineTransform identity clippingBounds: (0@0 extent: self drawingSurfaceExtent).
 		
 		self drawCommandProcessor
-			uploadModifiedTextureFontCachePages;
 			processCommandListWithDependencies: commandList
 				mainFramebuffer: srgbFramebuffer mainFramebufferExtent: self drawingSurfaceExtent.
 

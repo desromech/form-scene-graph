@@ -206,6 +206,8 @@ FormSGOpenGLESDrawCommandProcessor >> processCommandListWithDependencies: mainCo
 		context: context;
 		addCommandListWithDependencies: mainCommandList;
 		sortedCommandLists.
+		
+	self uploadModifiedTextureFontCachePages.
 
 	sortedCommandList do: [ :commandList |
 		| passFramebuffer passExtent |
