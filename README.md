@@ -22,7 +22,7 @@ to load it with the following script in a playground, and then select it in the 
 Metacello new
    baseline: 'FormSceneGraph';
    repository: 'github://ronsaldo/form-scene-graph';
-   load: AcceleratedOpenGL.
+   load: #AcceleratedOpenGL.
 ```
 
 ### Enabling the new renderer on the main Pharo window.
