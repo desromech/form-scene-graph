@@ -24,6 +24,6 @@ BaselineOfFormSceneGraph >> baseline: spec [
 			group: 'Core' with: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer');
 			group: 'UI' with: #('FormSceneGraph-Morphic' 'FormSceneGraph-Roassal');
 			group: 'OpenGL' with: #('FormSceneGraph-OpenGLESRenderer');
-			group: 'Accelerated' with: #(Core UI OpenGL)
+			group: 'AcceleratedOpenGL' with: #(Core UI OpenGL)
 	]
 ]
