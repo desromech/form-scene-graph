@@ -39,7 +39,7 @@ The effect of changing this setting is only visible after restarting the image b
 FormSGAthensWorldMorph new open.
 
 "Open an external world with the OpenGL ES based scene graph renderer. (Experimental, may be unstable)"
-FormSGAthensWorldMorph new open.
+FormSGOpenGLESRendererWorldMorph new open.
 
 "Open an external world with the SDL2 based renderer. (Several glitches and pending issues to fix)"
 FormSGWorldMorph new open.
