@@ -27,7 +27,8 @@ Class {
 		'subpixelPipelineState',
 		'hasTopLeftNdcOrigin',
 		'linearGradientPipelineState',
-		'radialGradientPipelineState'
+		'radialGradientPipelineState',
+		'premultipliedTexturedPipelineState'
 	],
 	#pools : [
 		'AGPUConstants'
@@ -35,7 +36,7 @@ Class {
 	#category : #'FormSceneGraph-AbstractGPURenderer'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'sample script' }
 FormSGAGPUDrawCommandProcessor class >> drawThisWorld [
 	<script>
 	| sg fontTextureAtlasCache sgCommandList platform deviceOpenInfo device extent form drawCommandProcessor mainRenderTarget |
@@ -156,6 +157,11 @@ FormSGAGPUDrawCommandProcessor >> createPipelineStates [
 	texturedPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
 		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self texturedFragmentShader);
+		build.
+
+	premultipliedTexturedPipelineState := self createPipelineStateBuilder
+		attachShader: vertexShader;
+		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self premultipliedTexturedFragmentShader);
 		build.
 		
 	linearGradientPipelineState := self createPipelineStateBuilder
@@ -374,8 +380,9 @@ FormSGAGPUDrawCommandProcessor >> getOrCreateRenderTargetWithExtent: extent for:
 	| renderTarget |
 	renderTarget := renderTargetDictionary at: keyObject
 		ifAbsentPut: [ self createRenderTargetWithExtent: extent ].
-	(renderTarget extent ~= extent
-	and: [ renderTarget modificationCount isNil or: [ renderTarget modificationCount < modificationCount ] ]) ifTrue: [
+	(renderTarget extent ~= extent or: [
+	renderTarget modificationCount isNil or: [
+	renderTarget modificationCount < modificationCount ] ]) ifTrue: [
 		renderTarget := renderTargetDictionary at: keyObject put: (self createRenderTargetWithExtent: extent)
 	].
 	^ renderTarget
@@ -417,7 +424,9 @@ FormSGAGPUDrawCommandProcessor >> initializeWithDevice: theDevice [
 FormSGAGPUDrawCommandProcessor >> isRenderTargetCommandValidated: command [
 	| renderTarget |
 	renderTarget := renderTargetDictionary at: command keyObject ifAbsent: [ ^ false ].
-	^ renderTarget modificationCount isNotNil and: [renderTarget modificationCount >= command modificationCount]
+	^ renderTarget modificationCount isNotNil and: [
+	renderTarget modificationCount >= command modificationCount and: [
+	renderTarget extent = command extent ]]
 ]
 
 { #category : #shaders }
@@ -466,6 +475,28 @@ void main()
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> noTexture [
 	self activatePipelineState: colorPipelineState
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessor >> premultipliedTexturedFragmentShader [
+	^ '
+#version 450
+
+layout(location=0) in vec4 inColor;	
+layout(location=1) in vec2 inTexcoord;
+
+layout(location=0) out vec4 outColor;
+	
+layout (set=2, binding = 0) uniform texture2D activeTexture;
+layout (set=0, binding = 0) uniform sampler activeSampler;
+
+void main()
+{ 
+	vec4 color = inColor * texture(sampler2D(activeTexture, activeSampler), inTexcoord);
+	outColor = vec4(color.rgb*inColor.a, color.a);
+}
+
+'
 ]
 
 { #category : #api }
@@ -660,7 +691,7 @@ FormSGAGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: command 
 	| renderTarget |
 	renderTarget := self getOrCreateRenderTargetWithExtent: command extent for: command keyObject modificationCount: command modificationCount.
 
-	self enableTexturing.
+	self activatePipelineState: premultipliedTexturedPipelineState.
 	renderTarget recordOnFrameStateTracker: frameStateTracker.
 	commandList useShaderResources: renderTarget binding.
 	
