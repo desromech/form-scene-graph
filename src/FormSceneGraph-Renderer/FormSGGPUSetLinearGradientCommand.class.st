@@ -1,3 +1,6 @@
+"
+I am command used for specifying a linear gradient as a texture.
+"
 Class {
 	#name : #FormSGGPUSetLinearGradientCommand,
 	#superclass : #FormSGGPUDrawCommand,
@@ -37,7 +40,7 @@ FormSGGPUSetLinearGradientCommand >> endPoint: anObject [
 
 { #category : #testing }
 FormSGGPUSetLinearGradientCommand >> isSetLinearGradient [
-	^ false
+	^ true
 ]
 
 { #category : #accessing }

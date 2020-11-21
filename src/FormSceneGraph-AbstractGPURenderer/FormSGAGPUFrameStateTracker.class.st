@@ -39,13 +39,13 @@ FormSGAGPUFrameStateTracker class >> for: drawCommandProcessor [
 	^ self basicNew initializeWithDrawCommandProcessor: drawCommandProcessor
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> activateUniforms [
 	commandList
 		useShaderResources: uniformBinding
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> activateVerticesAndIndices [
 	vertexBufferSize = 0 ifTrue: [ ^ self ].
 	indexBufferSize = 0 ifTrue: [ ^ self ].
@@ -55,9 +55,9 @@ FormSGAGPUFrameStateTracker >> activateVerticesAndIndices [
 		useVertexBinding: vertexBinding
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #allocation }
 FormSGAGPUFrameStateTracker >> allocateUniformStorageForSGCommandLists: sgCommandLists [
-	| viewBoxTransformDataSize |
+	| viewBoxTransformDataSize linearGradientDataSize radialGradientDataSize |
 	expectedViewBoxTransformsCount := sgCommandLists size.
 	expectedLinearGradientsCount := 0.
 	expectedRadialGradientsCount := 0.
@@ -82,13 +82,18 @@ FormSGAGPUFrameStateTracker >> allocateUniformStorageForSGCommandLists: sgComman
 	linearGradientData removeAll.
 	linearGradientsCount := 0.
 	
-	viewBoxTransformDataSize := expectedViewBoxTransformsCount*16.
-	self ensureUniformBufferWithSize: viewBoxTransformDataSize.
+	viewBoxTransformDataSize := expectedViewBoxTransformsCount * "4*4" 16 alignedTo: 256.
+	linearGradientDataSize := linearGradientsCount * "12*4" 48 alignedTo: 256.
+	radialGradientDataSize := radialGradientsCount * "16*4" 64 alignedTo: 256.
+	self ensureUniformBufferWithSize: viewBoxTransformDataSize + linearGradientDataSize + radialGradientDataSize.
 	
-	uniformBinding bindUniformBufferRange: 0 uniform_buffer: uniformBuffer offset: 0 size: viewBoxTransformDataSize
+	uniformBinding
+		bindUniformBufferRange: 0 uniform_buffer: uniformBuffer offset: 0 size: (viewBoxTransformDataSize max: 256);
+		bindUniformBufferRange: 1 uniform_buffer: uniformBuffer offset: viewBoxTransformDataSize size: (linearGradientDataSize max: 256);
+		bindUniformBufferRange: 2 uniform_buffer: uniformBuffer offset: viewBoxTransformDataSize + linearGradientDataSize size: (radialGradientDataSize max: 256)
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> buildCommandListWith: aBlock [
 	commandAllocator reset.
 	commandList reset: commandAllocator initial_pipeline_state: nil.
@@ -101,7 +106,7 @@ FormSGAGPUFrameStateTracker >> buildCommandListWith: aBlock [
 	self submitUniformData
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #allocation }
 FormSGAGPUFrameStateTracker >> ensureIndexBufferWithSize: requiredSize [
 	(indexBuffer isNotNil and: [indexBufferCapacity >= requiredSize]) ifTrue: [
 		indexBufferSize := requiredSize.
@@ -123,7 +128,7 @@ FormSGAGPUFrameStateTracker >> ensureIndexBufferWithSize: requiredSize [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #allocation }
 FormSGAGPUFrameStateTracker >> ensureUniformBufferWithSize: requiredSize [
 	(uniformBuffer isNotNil and: [uniformBufferCapacity >= requiredSize]) ifTrue: [
 		^ uniformBuffer
@@ -146,7 +151,7 @@ FormSGAGPUFrameStateTracker >> ensureUniformBufferWithSize: requiredSize [
 	^ uniformBuffer
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #allocation }
 FormSGAGPUFrameStateTracker >> ensureVertexBufferWithSize: requiredSize [
 	(vertexBuffer isNotNil and: [vertexBufferCapacity >= requiredSize]) ifTrue: [
 		vertexBufferSize := requiredSize.
@@ -174,7 +179,7 @@ FormSGAGPUFrameStateTracker >> ensureVertexBufferWithSize: requiredSize [
 	^ vertexBuffer
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> finishPreviousExecution [
 	fence ifNil: [ ^ self ].
 	fence waitOnClient.
@@ -199,12 +204,73 @@ FormSGAGPUFrameStateTracker >> initializeWithDrawCommandProcessor: drawCommandPr
 	
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> recordUsedResource: resource [
 	usedResources add: resource
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'draw commands' }
+FormSGAGPUFrameStateTracker >> setColorGamma: gamma [
+	commandList pushConstants: 8 size: 4 values: (FloatArray with: gamma).
+
+]
+
+{ #category : #'draw commands' }
+FormSGAGPUFrameStateTracker >> setFontGamma: gamma [
+	commandList pushConstants: 12 size: 4 values: (FloatArray with: gamma).
+
+]
+
+{ #category : #'draw commands' }
+FormSGAGPUFrameStateTracker >> setLinearGradientStartPoint: startPoint color: startColor endPoint: endPoint color: endColor [
+	linearGradientData
+		add: startPoint x asFloat;
+		add: startPoint y asFloat;
+		add: endPoint x asFloat;
+		add: endPoint y asFloat;
+		
+		add: startColor red;
+		add: startColor green;
+		add: startColor blue;
+		add: startColor alpha;
+
+		add: endColor red;
+		add: endColor green;
+		add: endColor blue;
+		add: endColor alpha.
+		
+	commandList pushConstants: 4 size: 4 values: (WordArray with: linearGradientsCount).
+	linearGradientsCount := linearGradientsCount + 1.
+]
+
+{ #category : #'draw commands' }
+FormSGAGPUFrameStateTracker >> setRadialGradiantCenter: center focalPoint: focalPoint clipInnerRadius: clipInnerRadius innerRadius: innerRadius outerRadius: outerRadius clipOuterRadius: clipOuterRadius startColor: startColor endColor: endColor [ 
+	radialGradientData
+		add: center x asFloat;
+		add: center y asFloat;
+		add: focalPoint x asFloat;
+		add: focalPoint y asFloat;
+
+		add: clipInnerRadius asFloat;
+		add: innerRadius asFloat;
+		add: outerRadius asFloat;
+		add: clipOuterRadius asFloat;
+		
+		add: startColor red;
+		add: startColor green;
+		add: startColor blue;
+		add: startColor alpha;
+
+		add: endColor red;
+		add: endColor green;
+		add: endColor blue;
+		add: endColor alpha.
+		
+	commandList pushConstants: 4 size: 4 values: (WordArray with: radialGradientsCount).
+	radialGradientsCount := radialGradientsCount + 1.
+]
+
+{ #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> setViewBoxScale: scale offset: offset [
 	viewBoxTransformsData
 		add: scale x asFloat;
@@ -215,7 +281,7 @@ FormSGAGPUFrameStateTracker >> setViewBoxScale: scale offset: offset [
 	viewBoxTransformsCount := viewBoxTransformsCount + 1.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> submitToCommandQueue [
 	fence ifNil: [
 		fence := device createFence
@@ -225,7 +291,7 @@ FormSGAGPUFrameStateTracker >> submitToCommandQueue [
 		signalFence: fence.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> submitUniformData [
 	| destOffset copyFloatBlock uniformBufferAddress |
 	self assert: viewBoxTransformsCount = expectedViewBoxTransformsCount.
@@ -242,8 +308,13 @@ FormSGAGPUFrameStateTracker >> submitUniformData [
 	].
 
 	viewBoxTransformsData do: copyFloatBlock.
+	destOffset := destOffset alignedTo: 256.
+
 	linearGradientData do: copyFloatBlock.
+	destOffset := destOffset alignedTo: 256.
+
 	radialGradientData do: copyFloatBlock.
+	destOffset := destOffset alignedTo: 256.
 
 	uniformBuffer unmapBuffer.
 ]

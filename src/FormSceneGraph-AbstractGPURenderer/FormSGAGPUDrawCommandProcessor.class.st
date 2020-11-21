@@ -21,7 +21,10 @@ Class {
 		'textureWithModificationCountDictionary',
 		'renderTargetDictionary',
 		'texturedPipelineState',
-		'subpixelPipelineState'
+		'subpixelPipelineState',
+		'hasTopLeftNdcOrigin',
+		'linearGradientPipelineState',
+		'radialGradientPipelineState'
 	],
 	#pools : [
 		'AGPUConstants'
@@ -91,6 +94,11 @@ void main()
 '
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> colorGamma [
+	^ 1.0
+]
+
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessor >> compileShader: shaderType source: shaderSource [
 	| shaderCompiler sourceText |
@@ -146,6 +154,16 @@ FormSGAGPUDrawCommandProcessor >> createPipelineStates [
 		attachShader: vertexShader;
 		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self texturedFragmentShader);
 		build.
+		
+	linearGradientPipelineState := self createPipelineStateBuilder
+		attachShader: vertexShader;
+		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self linearGradientFragmentShader);
+		build.
+
+	radialGradientPipelineState := self createPipelineStateBuilder
+		attachShader: vertexShader;
+		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self radialGradientFragmentShader);
+		build.
 
 	subpixelPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
@@ -179,9 +197,14 @@ FormSGAGPUDrawCommandProcessor >> createRenderPassWithColor: color [
 
 ]
 
-{ #category : #initialization }
+{ #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> createRenderTargetWithExtent: extent [
-	| colorBuffer colorBufferView framebuffer |
+	^ self createRenderTargetWithExtent: extent format: self colorBufferFormat
+]
+
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> createRenderTargetWithExtent: extent format: format [
+	| colorBuffer colorBufferView framebuffer binding |
 	colorBuffer := device createTexture: (AGPUTextureDescription new
 			type: AGPU_TEXTURE_2D;
 			width: extent x;
@@ -189,16 +212,20 @@ FormSGAGPUDrawCommandProcessor >> createRenderTargetWithExtent: extent [
 			depth: 1;
 			layers: 1;
 			miplevels: 1;
-			format: AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM_SRGB;
-			usage_modes: (AGPU_TEXTURE_USAGE_COLOR_ATTACHMENT bitOr: AGPU_TEXTURE_USAGE_READED_BACK);
-			main_usage_mode: AGPU_TEXTURE_USAGE_READED_BACK;
+			format: format;
+			usage_modes: (AGPU_TEXTURE_USAGE_COLOR_ATTACHMENT | AGPU_TEXTURE_USAGE_READED_BACK | AGPU_TEXTURE_USAGE_SAMPLED);
+			main_usage_mode: AGPU_TEXTURE_USAGE_SAMPLED;
 			sample_count: 1).
 	colorBufferView := colorBuffer getOrCreateFullView.
+	binding := shaderSignature createShaderResourceBinding: 2.
+	binding bindSampledTextureView: 0 view: colorBufferView.
+	
 	framebuffer := device createFrameBuffer: extent x height: extent y colorCount: 1 colorViews: (AGPU packListOfReferences: {colorBufferView}) depthStencilView: nil.
 	^ FormSGAGPURenderTarget new
 		device: device;
 		colorBuffer: colorBuffer;
 		colorBufferView: colorBufferView;
+		binding: binding;
 		framebuffer: framebuffer;
 		renderpass: defaultRenderPass;
 		extent: extent;
@@ -226,12 +253,16 @@ FormSGAGPUDrawCommandProcessor >> createShaderSignature [
 
 		beginBindingBank: 100;
 		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_UNIFORM_BUFFER bindingPointCount: 1;
+		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_UNIFORM_BUFFER bindingPointCount: 1;
+		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_UNIFORM_BUFFER bindingPointCount: 1;
 
 		beginBindingBank: 1000;
 		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_SAMPLED_IMAGE bindingPointCount: 1;
 		
 		"viewBoxTransformIndex" addBindingConstant;
 		"gradientIndex" addBindingConstant;
+		"colorGamma" addBindingConstant;
+		"fontGamma" addBindingConstant;
 		build
 ]
 
@@ -320,6 +351,11 @@ FormSGAGPUDrawCommandProcessor >> enableTexturing [
 
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> fontGamma [
+	^ 1.0
+]
+
 { #category : #accessing }
 FormSGAGPUDrawCommandProcessor >> fontTextureAtlasCache [
 	^ fontTextureAtlasCache ifNil: [ fontTextureAtlasCache := FormSGFontTextureAtlasCache new ]
@@ -330,11 +366,36 @@ FormSGAGPUDrawCommandProcessor >> fontTextureAtlasCache: aFontTextureAtlasCache 
 	fontTextureAtlasCache := aFontTextureAtlasCache
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> getOrCreateRenderTargetWithExtent: extent for: keyObject modificationCount: modificationCount [
+	| renderTarget |
+	renderTarget := renderTargetDictionary at: keyObject
+		ifAbsentPut: [ self createRenderTargetWithExtent: extent ].
+	(renderTarget extent ~= extent
+	and: [ renderTarget modificationCount isNil or: [ renderTarget modificationCount < modificationCount ] ]) ifTrue: [
+		renderTarget := renderTargetDictionary at: keyObject put: (self createRenderTargetWithExtent: extent)
+	].
+	^ renderTarget
+]
+
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> getOrCreateTextureWithExtent: extent for: keyObject modificationCount: modificationCount [
+	| texture |
+	texture := textureWithModificationCountDictionary at: keyObject
+		ifAbsentPut: [ self createTextureWithExtent: extent ].
+	(texture extent ~= extent
+	and: [ texture modificationCount isNil or: [ texture modificationCount < modificationCount ] ]) ifTrue: [
+		texture := textureWithModificationCountDictionary at: keyObject put: (self createTextureWithExtent: extent)
+	].
+	^ texture
+]
+
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessor >> initializeWithDevice: theDevice [
 	device := theDevice.
 	
-	projectionInvertedY := device hasTopLeftNdcOrigin ~= 0.
+	hasTopLeftNdcOrigin := device hasTopLeftNdcOrigin ~= 0.
+	projectionInvertedY := hasTopLeftNdcOrigin.
 
 	defaultRenderPass := self createRenderPassWithColor: Color transparent.
 	self
@@ -350,34 +411,96 @@ FormSGAGPUDrawCommandProcessor >> initializeWithDevice: theDevice [
 ]
 
 { #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> isRenderTargetCommandValidated: command [
+	| renderTarget |
+	renderTarget := renderTargetDictionary at: command keyObject ifAbsent: [ ^ false ].
+	^ renderTarget modificationCount isNotNil and: [renderTarget modificationCount >= command modificationCount]
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessor >> linearGradientFragmentShader [
+	^ '
+#version 450
+
+layout(location=0) in vec4 inColor;
+layout(location=1) in vec2 inTexcoord;
+layout(location=0) out vec4 outColor;
+
+struct LinearGradient {
+	vec2 startPoint;
+	vec2 endPoint;
+
+	vec4 startColor;
+	vec4 endColor;
+};
+
+layout(set=1, binding=1, std140) uniform LinearGradients { 
+	LinearGradient linearGradients[1000];
+};	
+
+layout(push_constant) uniform Indices { 
+	uint viewBoxTransformIndex;
+	uint gradientIndex;
+	float colorGamma;
+};
+
+void main()
+{ 
+	LinearGradient gradient = linearGradients[gradientIndex];
+	vec2 gradientVector = gradient.endPoint - gradient.startPoint;
+	float alpha = dot(inTexcoord - gradient.startPoint, gradientVector) / max(dot(gradientVector, gradientVector), 0.000001);
+
+	vec4 startColor = vec4(pow(gradient.startColor.rgb, vec3(colorGamma)), gradient.startColor.a);
+	vec4 endColor = vec4(pow(gradient.endColor.rgb, vec3(colorGamma)), gradient.endColor.a);
+	vec4 resultColor = mix(startColor, endColor, alpha);
+
+	outColor = vec4(resultColor.rgb*resultColor.a, resultColor.a);
+}
+
+'
+]
+
+{ #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> noTexture [
 	self activatePipelineState: colorPipelineState
 ]
 
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGCommandList mainRenderTarget: mainRenderTarget [
-	| verticesOffsets indicesOffsets sgCommandLists |
-	sgCommandLists := {mainSGCommandList}.
+	| verticesOffsets indicesOffsets sortedCommandList |
+	sortedCommandList := FormSGAGPUCommandListSetBuilder new
+		drawCommandProcessor: self;
+		addCommandListWithDependencies: mainSGCommandList;
+		sortedCommandLists.
 	frameStateTracker finishPreviousExecution.
-	verticesOffsets := self uploadVerticesForSGCommandsLists: sgCommandLists.
-	indicesOffsets := self uploadIndicesForSGCommandsLists: sgCommandLists.
+	verticesOffsets := self uploadVerticesForSGCommandsLists: sortedCommandList.
+	indicesOffsets := self uploadIndicesForSGCommandsLists: sortedCommandList.
 	
 	frameStateTracker
 		buildCommandListWith: [ :theCommandList |
 			[
-				|renderTarget|
-				renderTarget := mainRenderTarget.
 				commandList := theCommandList.
 				commandList
 					setShaderSignature: shaderSignature;
 					useShaderResources: linearSamplerBinding.
 				frameStateTracker
-					allocateUniformStorageForSGCommandLists: sgCommandLists;
+					allocateUniformStorageForSGCommandLists: sortedCommandList;
 					activateUniforms;
 					activateVerticesAndIndices.
+					
+				sortedCommandList doWithIndex: [ :each :index |
+					| renderTarget |
+					renderTarget := each renderTargetCommandForRenderPass
+						ifNotNil: [ :passCommand |
+							self getOrCreateRenderTargetWithExtent: passCommand extent for: passCommand keyObject modificationCount: passCommand modificationCount
+						]
+						ifNil: [ mainRenderTarget ].
 
-				self processSGCommandList: mainSGCommandList renderTarget: mainRenderTarget verticesOffset: verticesOffsets first indicesOffsets: indicesOffsets first.
-				
+					self processSGCommandList: each renderTarget: renderTarget
+						verticesOffset: (verticesOffsets at: index)
+						indicesOffsets: (indicesOffsets at: index).
+				].
+
 			] ensure: [ commandList := nil]
 		];
 		submitToCommandQueue.
@@ -389,6 +512,11 @@ FormSGAGPUDrawCommandProcessor >> processSGCommandList: sgCommandList renderTarg
 	| extent viewBoxScale viewBoxOffset |
 	baseVertex := verticesOffset.
 	baseIndex := indicesOffset.
+	sgCommandList renderTargetCommandForRenderPass ifNotNil: [ :rpCommand |
+		(renderTarget modificationCount isNil or: [renderTarget modificationCount < rpCommand modificationCount]) ifTrue: [
+			renderTarget modificationCount: rpCommand modificationCount
+		]
+	].
 	
 	extent := renderTarget extent.
 	commandList
@@ -404,7 +532,10 @@ FormSGAGPUDrawCommandProcessor >> processSGCommandList: sgCommandList renderTarg
 		viewBoxScale := (2.0 / extent x) @ (2.0 / extent y).
 		viewBoxOffset := -1.0 @ -1.0.
 	].
-	frameStateTracker setViewBoxScale: viewBoxScale offset: viewBoxOffset.
+	frameStateTracker
+		setColorGamma: self colorGamma;
+		setFontGamma: self fontGamma;
+		setViewBoxScale: viewBoxScale offset: viewBoxOffset.
 
 	self
 		useCompositeAlphaBlending;
@@ -417,16 +548,61 @@ FormSGAGPUDrawCommandProcessor >> processSGCommandList: sgCommandList renderTarg
 		endRenderPass
 ]
 
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessor >> radialGradientFragmentShader [
+	^ '
+#version 450
+
+layout(location=0) in vec4 inColor;
+layout(location=1) in vec2 inTexcoord;
+layout(location=0) out vec4 outColor;
+
+struct RadialGradient {
+	vec2 center;
+	vec2 focalPoint;
+
+	float clipInnerRadius;
+	float innerRadius;
+	float outerRadius;
+	float clipOuterRadius;
+
+	vec4 startColor;
+	vec4 endColor;
+};
+
+layout(set=1, binding=1, std140) uniform RadialGradients { 
+	RadialGradient radialGradients[1000];
+};	
+
+layout(push_constant) uniform Indices { 
+	uint viewBoxTransformIndex;
+	uint gradientIndex;
+	float colorGamma;
+};
+
+void main()
+{ 
+	RadialGradient gradient = radialGradients[gradientIndex];
+	float radius = (length(inTexcoord - gradient.center) + length(inTexcoord - gradient.focalPoint))*0.5;
+	if (radius < gradient.clipInnerRadius || radius > gradient.clipOuterRadius)
+		discard;
+
+	float alpha = clamp((radius - gradient.innerRadius) / max(gradient.outerRadius - gradient.innerRadius, 0.00001), 0.0, 1.0);
+
+	vec4 startColor = vec4(pow(gradient.startColor.rgb, vec3(colorGamma)), gradient.startColor.a);
+	vec4 endColor = vec4(pow(gradient.endColor.rgb, vec3(colorGamma)), gradient.endColor.a);
+	vec4 resultColor = mix(startColor, endColor, alpha);
+
+	outColor = vec4(resultColor.rgb*resultColor.a, resultColor.a);
+}
+
+'
+]
+
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: command [
 	| texture |
-	texture := textureWithModificationCountDictionary at: command keyObject
-		ifAbsentPut: [ self createTextureWithExtent: command athensSurface extent ].
-	texture extent ~= command athensSurface extent ifTrue: [
-		texture := textureWithModificationCountDictionary at: command keyObject
-			put: (self createTextureWithExtent: command athensSurface extent)
-	].
-
+	texture := self getOrCreateTextureWithExtent: command athensSurface extent for: command keyObject modificationCount: command modificationCount.
 	texture uploadAthensSurface: command athensSurface withModificationCount: command modificationCount.
 
 	self enableTexturing.
@@ -452,13 +628,7 @@ FormSGAGPUDrawCommandProcessor >> setFormTexture: formTexture [
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> setFormTextureWithModificationCount: command [
 	| texture |
-	texture := textureWithModificationCountDictionary at: command keyObject
-		ifAbsentPut: [ self createTextureWithExtent: command form extent ].
-	texture extent ~= command form extent ifTrue: [
-		texture := textureWithModificationCountDictionary at: command keyObject
-			put: (self createTextureWithExtent: command form extent)
-	].
-
+	texture := self getOrCreateTextureWithExtent: command form extent for: command keyObject modificationCount: command modificationCount.
 	texture uploadForm: command form withModificationCount: command modificationCount.
 
 	self enableTexturing.
@@ -467,23 +637,50 @@ FormSGAGPUDrawCommandProcessor >> setFormTextureWithModificationCount: command [
 ]
 
 { #category : #'as yet unclassified' }
-FormSGAGPUDrawCommandProcessor >> setLinearGradientCommand: linearGradient [
-	
+FormSGAGPUDrawCommandProcessor >> setLinearGradientCommand: command [
+	self activatePipelineState: linearGradientPipelineState.
+	frameStateTracker setLinearGradientStartPoint: command startPoint color: command startColor
+		endPoint: command endPoint color: command endColor
 ]
 
 { #category : #'as yet unclassified' }
-FormSGAGPUDrawCommandProcessor >> setRadialGradientCommand: radialGradient [
-	
+FormSGAGPUDrawCommandProcessor >> setRadialGradientCommand: command [
+	self activatePipelineState: radialGradientPipelineState.
+	frameStateTracker setRadialGradiantCenter: command center focalPoint: command focalPoint
+		clipInnerRadius: command clipInnerRadius innerRadius: command innerRadius
+		outerRadius: command outerRadius clipOuterRadius: command clipOuterRadius
+		startColor: command startColor endColor: command endColor
 ]
 
 { #category : #'as yet unclassified' }
-FormSGAGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: renderTargetValidationCommand [
+FormSGAGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: command [
+	| renderTarget |
+	renderTarget := self getOrCreateRenderTargetWithExtent: command extent for: command keyObject modificationCount: command modificationCount.
+
+	self enableTexturing.
+	renderTarget recordOnFrameStateTracker: frameStateTracker.
+	commandList useShaderResources: renderTarget binding.
 	
 ]
 
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> setScissor: command [
+	| viewClippedRectangle scissorMin scissorMax screenHeight |
+	viewClippedRectangle := command rectangle intersect: viewportRectangle ifNone: [
+		commandList setScissor: 0 y: 0 w: 0 h: 0.
+		^ self
+	].
+
+	screenHeight := viewportRectangle height.
+	scissorMin := viewClippedRectangle origin floor.
+	scissorMax := viewClippedRectangle corner ceiling.
 	
+	hasTopLeftNdcOrigin ifTrue: [ 
+		commandList setScissor: scissorMin x y: scissorMin y w: scissorMax x - scissorMin x h: scissorMax y - scissorMin y.
+	] ifFalse: [ 
+		commandList setScissor: scissorMin x y: screenHeight - scissorMax y w: scissorMax x - scissorMin x h: scissorMax y - scissorMin y.
+	].
+
 ]
 
 { #category : #accessing }
@@ -505,9 +702,16 @@ layout(location=0, index = 1) out vec4 outColorMask;
 layout (set=2, binding = 0) uniform texture2D activeTexture;
 layout (set=0, binding = 0) uniform sampler activeSampler;
 
+layout(push_constant) uniform Indices { 
+	uint viewBoxTransformIndex;
+	uint gradientIndex;
+	float colorGamma;
+	float fontGamma;
+};
+
 void main()
 { 
-	vec3 colorMask = texture(sampler2D(activeTexture, activeSampler), inTexcoord).rgb;
+	vec3 colorMask = pow(texture(sampler2D(activeTexture, activeSampler), inTexcoord).rgb, vec3(fontGamma));
 	float alpha = max(colorMask.r, max(colorMask.g, colorMask.b));
 
 	outColor = vec4(inColor.rgb*colorMask, alpha);
@@ -574,7 +778,7 @@ FormSGAGPUDrawCommandProcessor >> uploadVerticesForSGCommandsLists: sgCommandLis
 		| offset |
 		offset := requiredSize.
 		requiredSize := requiredSize + (each vertices size * 4).
-		offset // 8
+		offset // 32
 	].
 
 	vertexBuffer := frameStateTracker ensureVertexBufferWithSize: requiredSize.
@@ -631,18 +835,20 @@ layout(location=2) in vec2 inTexcoord;
 layout(location=0) out vec4 outColor;
 layout(location=1) out vec2 outTexcoord;
 
-layout(set=1, binding=0) uniform ViewBoxTransforms { 
+layout(set=1, binding=0, std140) uniform ViewBoxTransforms { 
 	vec4 viewBoxTransforms[1000];
 };	
 
 layout(push_constant) uniform Indices { 
 	uint viewBoxTransformIndex;
+	uint gradientIndex;
+	float colorGamma;
 };
 
 void main()
-{ 
+{
 	vec4 viewBoxTransform = viewBoxTransforms[viewBoxTransformIndex];
-	outColor = inColor; //vec4(pow(inColor.rgb, vec3(2.2)), inColor.a);
+	outColor = vec4(pow(inColor.rgb, vec3(colorGamma)), inColor.a);
 	outTexcoord = inTexcoord;
 	gl_Position = vec4(inPosition*viewBoxTransform.xy + viewBoxTransform.zw, 0.0, 1.0);
 }

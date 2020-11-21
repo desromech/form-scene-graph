@@ -87,6 +87,16 @@ FormSGAGPURenderTarget >> modificationCount: anObject [
 	modificationCount := anObject
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGAGPURenderTarget >> recordOnFrameStateTracker: frameStateTracker [
+	frameStateTracker
+		recordUsedResource: colorBuffer;
+		recordUsedResource: colorBufferView;
+		recordUsedResource: binding;
+		recordUsedResource: framebuffer;
+		recordUsedResource: renderpass
+]
+
 { #category : #accessing }
 FormSGAGPURenderTarget >> renderpass [
 	^ renderpass

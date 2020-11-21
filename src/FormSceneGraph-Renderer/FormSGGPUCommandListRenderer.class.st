@@ -128,6 +128,7 @@ FormSGGPUCommandListRenderer >> validateCachedSubSceneRenderTarget: node extent:
 		self class new
 			fontTextureAtlasCache: fontTextureAtlasCache;
 			surfaceScaleFactor: surfaceScaleFactor;
+			hasDirectSubpixelBlending: hasDirectSubpixelBlending;
 			render: node clipChildNode
 				with: subsceneCommandList
 				transform: (FormSGAffineTransform scale: surfaceScaleFactor) * (FormSGAffineTransform translation: node rectangle origin negated)

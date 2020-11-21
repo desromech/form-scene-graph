@@ -1,3 +1,6 @@
+"
+I am GPU drawing command for activating a mutable texture whose content is specified through an AthensCairoSurface.
+"
 Class {
 	#name : #FormSGGPUSetAthensSurfaceTextureWithModificationCountCommand,
 	#superclass : #FormSGGPUDrawCommand,

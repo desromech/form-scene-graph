@@ -1,3 +1,6 @@
+"
+I am builder for a set of command lists. I am used for topological sorting command list for render target dependencies.
+"
 Class {
 	#name : #FormSGGPUCommandListSetBuilder,
 	#superclass : #Object,

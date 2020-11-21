@@ -1,3 +1,6 @@
+"
+I am command used for specifying a radial gradient as a texture.
+"
 Class {
 	#name : #FormSGGPUSetRadialGradientCommand,
 	#superclass : #FormSGGPUDrawCommand,

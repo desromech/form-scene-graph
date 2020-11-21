@@ -188,7 +188,9 @@ void main()
 { 
 	highp vec2 gradientVector = endPoint - startPoint;
 	highp float alpha = dot(fTexcoord - startPoint, gradientVector) / max(dot(gradientVector, gradientVector), 0.000001);
-	gl_FragData[0] = mix(startColor, endColor, alpha);
+	highp vec4 color = mix(startColor, endColor, alpha);
+
+	gl_FragData[0] = vec4(color.rgb*color.a, color.a);
 }
 
 '
@@ -293,12 +295,14 @@ varying highp vec2 fTexcoord;
 
 void main()
 { 
-	highp float radius = length(fTexcoord - centerPoint)	;
-	if (radius < radius.x || radius > radiuses.w)
+	highp float radius = (length(fTexcoord - centerPoint)	 + length(fTexcoord - focalPoint)) * 0.5;
+	if (radius < radiuses.x || radius > radiuses.w)
 		discard;
 		
 	highp float alpha = clamp((radius - radiuses.y) / max(radiuses.z - radiuses.y, 0.00001), 0.0, 1.0);
-	gl_FragData[0] = mix(startColor, endColor, alpha);
+	highp vec4 color = mix(startColor, endColor, alpha);
+
+	gl_FragData[0] = vec4(color.rgb*color.a, color.a);
 }
 
 '

@@ -1,3 +1,6 @@
+"
+I am a command that is used for specifying a render target texture whose content is conditionally updated.
+"
 Class {
 	#name : #FormSGGPUSetRenderTargetTextureWithModificationCountCommand,
 	#superclass : #FormSGGPUDrawCommand,
