@@ -1,3 +1,6 @@
+"
+I am draw command processor that performs GPU rendering through by using the AbstractGPU library to communicate with Vulkan, Direct3D 12 and Metal.
+"
 Class {
 	#name : #FormSGAGPUDrawCommandProcessor,
 	#superclass : #FormSGGPUDrawCommandProcessor,
@@ -68,7 +71,7 @@ FormSGAGPUDrawCommandProcessor class >> for: device [
 	^ self basicNew initializeWithDevice: device; yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> activatePipelineState: newPipelineState [
 	commandList usePipelineState: newPipelineState
 ]
@@ -94,7 +97,7 @@ void main()
 '
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 FormSGAGPUDrawCommandProcessor >> colorGamma [
 	^ 1.0
 ]
@@ -197,12 +200,12 @@ FormSGAGPUDrawCommandProcessor >> createRenderPassWithColor: color [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> createRenderTargetWithExtent: extent [
 	^ self createRenderTargetWithExtent: extent format: self colorBufferFormat
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> createRenderTargetWithExtent: extent format: format [
 	| colorBuffer colorBufferView framebuffer binding |
 	colorBuffer := device createTexture: (AGPUTextureDescription new
@@ -266,12 +269,12 @@ FormSGAGPUDrawCommandProcessor >> createShaderSignature [
 		build
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> createTextureWithExtent: extent [
 	^ self createTextureWithExtent: extent format: self colorBufferFormat
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> createTextureWithExtent: extent format: format [
 	| texture view binding |
 	texture := device createTexture: (AGPUTextureDescription new
@@ -336,12 +339,12 @@ FormSGAGPUDrawCommandProcessor >> device [
 	^ device
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> drawElements: command [
 	commandList drawElements: command indexCount instance_count: 1 first_index: command firstIndex + baseIndex base_vertex: baseVertex base_instance: 0
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> enableTexturing [
 	useSubpixelBlending ifTrue: [ 
 		self activatePipelineState: subpixelPipelineState
@@ -351,7 +354,7 @@ FormSGAGPUDrawCommandProcessor >> enableTexturing [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 FormSGAGPUDrawCommandProcessor >> fontGamma [
 	^ 1.0
 ]
@@ -366,7 +369,7 @@ FormSGAGPUDrawCommandProcessor >> fontTextureAtlasCache: aFontTextureAtlasCache 
 	fontTextureAtlasCache := aFontTextureAtlasCache
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> getOrCreateRenderTargetWithExtent: extent for: keyObject modificationCount: modificationCount [
 	| renderTarget |
 	renderTarget := renderTargetDictionary at: keyObject
@@ -378,7 +381,7 @@ FormSGAGPUDrawCommandProcessor >> getOrCreateRenderTargetWithExtent: extent for:
 	^ renderTarget
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> getOrCreateTextureWithExtent: extent for: keyObject modificationCount: modificationCount [
 	| texture |
 	texture := textureWithModificationCountDictionary at: keyObject
@@ -410,7 +413,7 @@ FormSGAGPUDrawCommandProcessor >> initializeWithDevice: theDevice [
 	renderTargetDictionary := WeakKeyDictionary new.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 FormSGAGPUDrawCommandProcessor >> isRenderTargetCommandValidated: command [
 	| renderTarget |
 	renderTarget := renderTargetDictionary at: command keyObject ifAbsent: [ ^ false ].
@@ -460,12 +463,12 @@ void main()
 '
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> noTexture [
 	self activatePipelineState: colorPipelineState
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGCommandList mainRenderTarget: mainRenderTarget [
 	| verticesOffsets indicesOffsets sortedCommandList |
 	sortedCommandList := FormSGAGPUCommandListSetBuilder new
@@ -507,7 +510,7 @@ FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGComm
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> processSGCommandList: sgCommandList renderTarget: renderTarget verticesOffset: verticesOffset indicesOffsets: indicesOffset [
 	| extent viewBoxScale viewBoxOffset |
 	baseVertex := verticesOffset.
@@ -599,7 +602,7 @@ void main()
 '
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: command [
 	| texture |
 	texture := self getOrCreateTextureWithExtent: command athensSurface extent for: command keyObject modificationCount: command modificationCount.
@@ -610,7 +613,7 @@ FormSGAGPUDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: 
 	commandList useShaderResources: texture binding.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setFormTexture: formTexture [
 	| texture |
 	texture := textureFromFormDictionary at: formTexture form ifAbsentPut: [
@@ -625,7 +628,7 @@ FormSGAGPUDrawCommandProcessor >> setFormTexture: formTexture [
 	
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setFormTextureWithModificationCount: command [
 	| texture |
 	texture := self getOrCreateTextureWithExtent: command form extent for: command keyObject modificationCount: command modificationCount.
@@ -636,14 +639,14 @@ FormSGAGPUDrawCommandProcessor >> setFormTextureWithModificationCount: command [
 	commandList useShaderResources: texture binding.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setLinearGradientCommand: command [
 	self activatePipelineState: linearGradientPipelineState.
 	frameStateTracker setLinearGradientStartPoint: command startPoint color: command startColor
 		endPoint: command endPoint color: command endColor
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setRadialGradientCommand: command [
 	self activatePipelineState: radialGradientPipelineState.
 	frameStateTracker setRadialGradiantCenter: command center focalPoint: command focalPoint
@@ -652,7 +655,7 @@ FormSGAGPUDrawCommandProcessor >> setRadialGradientCommand: command [
 		startColor: command startColor endColor: command endColor
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: command [
 	| renderTarget |
 	renderTarget := self getOrCreateRenderTargetWithExtent: command extent for: command keyObject modificationCount: command modificationCount.
@@ -663,7 +666,7 @@ FormSGAGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: command 
 	
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setScissor: command [
 	| viewClippedRectangle scissorMin scissorMax screenHeight |
 	viewClippedRectangle := command rectangle intersect: viewportRectangle ifNone: [
@@ -743,7 +746,7 @@ void main()
 '
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> uploadIndicesForSGCommandsLists: sgCommandLists [
 	| requiredSize offsets indexBuffer indexBufferAddress destOffset |
 	requiredSize := 0.
@@ -770,7 +773,7 @@ FormSGAGPUDrawCommandProcessor >> uploadIndicesForSGCommandsLists: sgCommandList
 	^ offsets
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGAGPUDrawCommandProcessor >> uploadVerticesForSGCommandsLists: sgCommandLists [
 	| requiredSize offsets vertexBuffer vertexBufferAddress destOffset |
 	requiredSize := 0.
@@ -798,23 +801,23 @@ FormSGAGPUDrawCommandProcessor >> uploadVerticesForSGCommandsLists: sgCommandLis
 	^ offsets
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useCompositeAlphaBlending [
 	useSubpixelBlending := false.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useSubpixelDualOutputBlending [
 	useSubpixelBlending := true.
 	
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
 	"This mode is unused"
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useSubpixelFontSecondPassBlending [
 	"This mode is unused"
 ]

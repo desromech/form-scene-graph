@@ -1,3 +1,6 @@
+"
+I am a world renderer that uses the AbstractGPU low level graphics API wrapper.
+"
 Class {
 	#name : #FormSGAGPUWorldRenderer,
 	#superclass : #FormSGAbstractWorldRenderer,

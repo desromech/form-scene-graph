@@ -1,3 +1,6 @@
+"
+I encapsulate the state required for manipulating and binding a texture.
+"
 Class {
 	#name : #FormSGAGPUTexture,
 	#superclass : #Object,
@@ -44,7 +47,7 @@ FormSGAGPUTexture >> modificationCount: anObject [
 	modificationCount := anObject
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'life cycle management' }
 FormSGAGPUTexture >> recordOnFrameStateTracker: frameStateTracker [
 	frameStateTracker
 		recordUsedResource: texture;
@@ -62,12 +65,12 @@ FormSGAGPUTexture >> texture: anObject [
 	texture := anObject
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'texture manipulation' }
 FormSGAGPUTexture >> uploadAthensSurface: surface [
 	texture uploadTextureData: 0 arrayIndex: 0 pitch: surface stride slicePitch: surface stride * surface height data: surface getDataPtr
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'texture manipulation' }
 FormSGAGPUTexture >> uploadAthensSurface: surface withModificationCount: newModificationCount [
 	(modificationCount isNil or: [modificationCount < newModificationCount]) ifTrue: [
 		self uploadAthensSurface: surface .
@@ -75,7 +78,7 @@ FormSGAGPUTexture >> uploadAthensSurface: surface withModificationCount: newModi
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'texture manipulation' }
 FormSGAGPUTexture >> uploadForm: form [
 	| convertedForm |
 	convertedForm := form asFormOfDepth: 32.
@@ -83,7 +86,7 @@ FormSGAGPUTexture >> uploadForm: form [
 	texture uploadTextureData: 0 arrayIndex: 0 pitch: extent x * 4 slicePitch: extent x * 4 * extent y data: convertedForm bits
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'texture manipulation' }
 FormSGAGPUTexture >> uploadForm: form withModificationCount: newModificationCount [
 	(modificationCount isNil or: [modificationCount < newModificationCount]) ifTrue: [
 		self uploadForm: form.

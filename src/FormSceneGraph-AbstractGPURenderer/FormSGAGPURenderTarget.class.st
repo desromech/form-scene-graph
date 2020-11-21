@@ -1,3 +1,6 @@
+"
+I encapsulate the state required for manipulating and binding a texture that is used as a render target.
+"
 Class {
 	#name : #FormSGAGPURenderTarget,
 	#superclass : #Object,
@@ -87,7 +90,7 @@ FormSGAGPURenderTarget >> modificationCount: anObject [
 	modificationCount := anObject
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'life cycle management' }
 FormSGAGPURenderTarget >> recordOnFrameStateTracker: frameStateTracker [
 	frameStateTracker
 		recordUsedResource: colorBuffer;

@@ -1,3 +1,6 @@
+"
+I am command list set builder that validates on whether AGPU render targets associated to the cached sub scene nodes need to be recomputed or not.
+"
 Class {
 	#name : #FormSGAGPUCommandListSetBuilder,
 	#superclass : #FormSGGPUCommandListSetBuilder,

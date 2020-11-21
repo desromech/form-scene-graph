@@ -7,77 +7,77 @@ Class {
 	#category : #'FormSceneGraph-Renderer-GPU'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> beginCommandRecording [
 	"Mark the beginning of a command recording."
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> drawElements: command [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> endCommandRecording [
 	"Mark the end of a command recording."
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> noTexture [
 	self subclassResponsibility
 ]
 
-{ #category : #initialization }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: athensSurfaceTexture [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> setFormTexture: formTexture [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> setFormTextureWithModificationCount: formTexture [
 	self subclassResponsibility
 ]
 
-{ #category : #initialization }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> setLinearGradientCommand: linearGradient [
 	self subclassResponsibility
 ]
 
-{ #category : #initialization }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> setRadialGradientCommand: radialGradient [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: renderTargetValidationCommand [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> setScissor: command [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> useCompositeAlphaBlending [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> useSubpixelDualOutputBlending [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
 	self subclassResponsibility
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> useSubpixelFontSecondPassBlending [
 	self subclassResponsibility
 ]

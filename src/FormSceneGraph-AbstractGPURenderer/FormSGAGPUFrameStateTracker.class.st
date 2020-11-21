@@ -1,3 +1,6 @@
+"
+I am a per frame state tracker. I am used for keeping track of the per frame GPU states and synchronization fences.
+"
 Class {
 	#name : #FormSGAGPUFrameStateTracker,
 	#superclass : #Object,

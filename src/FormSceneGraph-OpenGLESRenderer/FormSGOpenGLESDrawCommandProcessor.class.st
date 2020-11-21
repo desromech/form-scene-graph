@@ -32,7 +32,7 @@ FormSGOpenGLESDrawCommandProcessor class >> for: aContext [
 	^ self new initializeWithContext: aContext
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGOpenGLESDrawCommandProcessor >> activateProgram: program [
 	activeProgram == program ifTrue: [ ^ self ].
 	
@@ -45,7 +45,7 @@ FormSGOpenGLESDrawCommandProcessor >> activateProgram: program [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGOpenGLESDrawCommandProcessor >> activateVertexLayout [
 	| vertexSize |
 	vertexSize := ("position" 2 + "color" 4 + "texcoord" 2)*4.
@@ -61,13 +61,13 @@ FormSGOpenGLESDrawCommandProcessor >> activateVertexLayout [
 		vertexAttribPointer_index: 2 size: 2 type: GL_FLOAT normalized: GL_FALSE stride: vertexSize pointer: (ExternalAddress fromAddress: 24)
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGOpenGLESDrawCommandProcessor >> beginRenderPass: framebuffer clearColor: clearColor [
 	framebuffer activate.
 	^ self beginRenderPassWithExtent: framebuffer extent clearColor: clearColor
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGOpenGLESDrawCommandProcessor >> beginRenderPassWithExtent: framebufferExtent clearColor: clearColor [
 	viewportRectangle := 0@0 extent: framebufferExtent.
 	viewBoxScale := (2.0 / framebufferExtent x) @ (-2.0 / framebufferExtent y).
@@ -116,12 +116,12 @@ FormSGOpenGLESDrawCommandProcessor >> compileShader: shaderSource type: shaderTy
 	^ shader
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> drawElements: command [
 	gl drawElements_mode: GL_TRIANGLES count: command indexCount type: GL_UNSIGNED_SHORT indices: (ExternalAddress fromAddress: command firstIndex * 2).
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #wrappers }
 FormSGOpenGLESDrawCommandProcessor >> endRenderPass [
 ]
 
@@ -163,7 +163,7 @@ FormSGOpenGLESDrawCommandProcessor >> initializeWithContext: aContext [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 FormSGOpenGLESDrawCommandProcessor >> isSubpixelMask: factor [
 	isSubpixelMask := factor.
 	activeProgram ifNotNil: [
@@ -196,12 +196,12 @@ void main()
 '
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> noTexture [
 	self activateProgram: colorProgram.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGOpenGLESDrawCommandProcessor >> processCommandListWithDependencies: mainCommandList mainFramebuffer: mainFramebuffer mainFramebufferExtent: mainFramebufferExtent [
 	| sortedCommandList |
 	sortedCommandList := FormSGOpenGLESCommandListSetBuilder new
@@ -231,7 +231,7 @@ FormSGOpenGLESDrawCommandProcessor >> processCommandListWithDependencies: mainCo
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #api }
 FormSGOpenGLESDrawCommandProcessor >> processDrawCommandList: commandList [
 	self
 		uploadVertices: commandList vertices;
@@ -373,7 +373,7 @@ void main()
 '
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: command [
 	| texture |
 	texture := (context textureObjectWithModificationCountFor: command keyObject)
@@ -384,7 +384,7 @@ FormSGOpenGLESDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCou
 	gl bindTexture_target: GL_TEXTURE_2D texture: texture handle
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> setFormTexture: command [
 	| texture |
 	texture := context textureObjectFromForm: command form.
@@ -392,7 +392,7 @@ FormSGOpenGLESDrawCommandProcessor >> setFormTexture: command [
 	gl bindTexture_target: GL_TEXTURE_2D texture: texture handle
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> setFormTextureWithModificationCount: command [
 	| texture |
 	texture := (context textureObjectWithModificationCountFor: command keyObject)
@@ -403,7 +403,7 @@ FormSGOpenGLESDrawCommandProcessor >> setFormTextureWithModificationCount: comma
 	gl bindTexture_target: GL_TEXTURE_2D texture: texture handle
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> setLinearGradientCommand: gradient [
 	self activateProgram: linearGradientProgram.
 	linearGradientProgram
@@ -414,7 +414,7 @@ FormSGOpenGLESDrawCommandProcessor >> setLinearGradientCommand: gradient [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> setRadialGradientCommand: gradient [
 	self activateProgram: radialGradientProgram.
 	radialGradientProgram
@@ -426,7 +426,7 @@ FormSGOpenGLESDrawCommandProcessor >> setRadialGradientCommand: gradient [
 			float: gradient outerRadius asFloat float: gradient clipOuterRadius asFloat
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> setRenderTargetWithModificationCount: renderTargetCommand [
 	| fb |
 	fb := context offscreenBufferExtent: renderTargetCommand extent hasColorBuffer: true isSRGB: context hasSRGB hasDepthBuffer: false hasStencilBuffer: false for: renderTargetCommand keyObject.
@@ -435,7 +435,7 @@ FormSGOpenGLESDrawCommandProcessor >> setRenderTargetWithModificationCount: rend
 	gl bindTexture_target: GL_TEXTURE_2D texture: fb colorTexture handle
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> setScissor: command [
 	| viewClippedRectangle scissorMin scissorMax screenHeight |
 	viewClippedRectangle := command rectangle intersect: viewportRectangle ifNone: [
@@ -497,7 +497,7 @@ void main()
 '
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGOpenGLESDrawCommandProcessor >> uploadIndices: indices [
 	| encodedIndices destOffset |
 	encodedIndices := ByteArray new: indices size*2.
@@ -514,7 +514,7 @@ FormSGOpenGLESDrawCommandProcessor >> uploadIndices: indices [
 	indexBuffer forTarget: GL_ELEMENT_ARRAY_BUFFER setData: encodedIndices withUsage: GL_STREAM_DRAW.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGOpenGLESDrawCommandProcessor >> uploadModifiedTextureFontCachePages [
 	self fontTextureAtlasCache modifiedPages do: [ :page |
 		(context textureObjectWithModificationCountFor: page)
@@ -522,7 +522,7 @@ FormSGOpenGLESDrawCommandProcessor >> uploadModifiedTextureFontCachePages [
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #private }
 FormSGOpenGLESDrawCommandProcessor >> uploadVertices: vertices [
 	| encodedVertices destOffset |
 	encodedVertices := ByteArray new: vertices size*4.
@@ -539,23 +539,23 @@ FormSGOpenGLESDrawCommandProcessor >> uploadVertices: vertices [
 	vertexBuffer forTarget: GL_ARRAY_BUFFER setData: encodedVertices withUsage: GL_STREAM_DRAW.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> useCompositeAlphaBlending [
 	gl blendFuncSeparate_sfactorRGB: GL_ONE dfactorRGB: GL_ONE_MINUS_SRC_ALPHA sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> useSubpixelDualOutputBlending [
 	"This might not always be supported."
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
 	self isSubpixelMask: 1.0.
 	gl blendFuncSeparate_sfactorRGB: GL_ZERO dfactorRGB: GL_ONE_MINUS_SRC_COLOR sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> useSubpixelFontSecondPassBlending [
 	self isSubpixelMask: 0.0.
 	gl blendFuncSeparate_sfactorRGB: GL_ONE dfactorRGB: GL_ONE sfactorAlpha: GL_ZERO dfactorAlpha: GL_ONE
