@@ -246,6 +246,11 @@ FormSGGPUCommandListBuilder >> useCompositeAlphaBlending [
 ]
 
 { #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> useSubpixelDualOutputBlending [
+	drawCommands add: FormSGGPUUseSubpixelDualOutputBlendingCommand uniqueInstance
+]
+
+{ #category : #'draw commands' }
 FormSGGPUCommandListBuilder >> useSubpixelFontFirstPassBlending [
 	drawCommands add: FormSGGPUUseSubpixelFontFirstPassBlendingCommand uniqueInstance
 ]

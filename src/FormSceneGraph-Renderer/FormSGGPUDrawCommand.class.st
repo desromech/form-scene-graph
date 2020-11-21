@@ -53,6 +53,16 @@ FormSGGPUDrawCommand >> isSetFormTextureWithModificationCount [
 ]
 
 { #category : #testing }
+FormSGGPUDrawCommand >> isSetLinearGradient [
+	^ false
+]
+
+{ #category : #testing }
+FormSGGPUDrawCommand >> isSetRadialGradient [
+	^ false
+]
+
+{ #category : #testing }
 FormSGGPUDrawCommand >> isSetRenderTargetTextureWithModificationCountCommand [
 	^ false
 ]

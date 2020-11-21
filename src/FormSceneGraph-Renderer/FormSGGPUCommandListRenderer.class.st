@@ -8,7 +8,8 @@ Class {
 		'currentTransform',
 		'currentClipRectangle',
 		'commandList',
-		'fontTextureAtlasCache'
+		'fontTextureAtlasCache',
+		'hasDirectSubpixelBlending'
 	],
 	#category : #'FormSceneGraph-Renderer-GPU'
 }
@@ -89,11 +90,22 @@ FormSGGPUCommandListRenderer >> fontTextureAtlasCache: anObject [
 	fontTextureAtlasCache := anObject
 ]
 
+{ #category : #accessing }
+FormSGGPUCommandListRenderer >> hasDirectSubpixelBlending [
+	^ hasDirectSubpixelBlending
+]
+
+{ #category : #accessing }
+FormSGGPUCommandListRenderer >> hasDirectSubpixelBlending: anObject [
+	hasDirectSubpixelBlending := anObject
+]
+
 { #category : #initialization }
 FormSGGPUCommandListRenderer >> initialize [
 	super initialize.
 	currentTransform := FormSGAffineTransform identity.
 	currentClipRectangle := Rectangle fullSpace.
+	hasDirectSubpixelBlending := false.
 ]
 
 { #category : #rendering }
@@ -315,8 +327,13 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 		scaledGlyphEntry page ifNotNil: [ :page |
 			| glyphForm sourceRectangle destRectangle |
 			(hasSubpixelAntialiasing not and: [ scaledGlyphEntry hasSubpixelAntialiasing]) ifTrue: [
-				commandList useSubpixelFontFirstPassBlending.
-				stringCommandStartRecording := commandList beginCommandRecording.
+				
+				hasDirectSubpixelBlending ifTrue: [ 
+					commandList useSubpixelDualOutputBlending.
+				] ifFalse: [ 
+					commandList useSubpixelFontFirstPassBlending.
+					stringCommandStartRecording := commandList beginCommandRecording.
+				].
 				hasSubpixelAntialiasing := true.
 			].
 		
@@ -363,11 +380,13 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 	].
 
 	hasSubpixelAntialiasing ifTrue: [ 
-		stringCommandEndRecording := commandList endCommandRecording.
-		commandList
-			useSubpixelFontSecondPassBlending;
-			replayCommandsFrom: stringCommandStartRecording to: stringCommandEndRecording;
-			useCompositeAlphaBlending
+		hasDirectSubpixelBlending ifFalse: [ 
+			stringCommandEndRecording := commandList endCommandRecording.
+			commandList
+				useSubpixelFontSecondPassBlending;
+				replayCommandsFrom: stringCommandStartRecording to: stringCommandEndRecording.
+		].
+		commandList useCompositeAlphaBlending
 	].
 
 	node underline ifTrue: [

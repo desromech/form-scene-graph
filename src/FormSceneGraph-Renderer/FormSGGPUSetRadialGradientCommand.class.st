@@ -79,6 +79,11 @@ FormSGGPUSetRadialGradientCommand >> innerRadius: anObject [
 	innerRadius := anObject
 ]
 
+{ #category : #testing }
+FormSGGPUSetRadialGradientCommand >> isSetRadialGradient [
+	^ true
+]
+
 { #category : #accessing }
 FormSGGPUSetRadialGradientCommand >> outerRadius [
 	^ outerRadius

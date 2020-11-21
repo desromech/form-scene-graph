@@ -541,6 +541,11 @@ FormSGOpenGLESDrawCommandProcessor >> useCompositeAlphaBlending [
 ]
 
 { #category : #'as yet unclassified' }
+FormSGOpenGLESDrawCommandProcessor >> useSubpixelDualOutputBlending [
+	"This might not always be supported."
+]
+
+{ #category : #'as yet unclassified' }
 FormSGOpenGLESDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
 	self isSubpixelMask: 1.0.
 	gl blendFuncSeparate_sfactorRGB: GL_ZERO dfactorRGB: GL_ONE_MINUS_SRC_COLOR sfactorAlpha: GL_ONE dfactorAlpha: GL_ONE_MINUS_SRC_ALPHA

@@ -68,6 +68,11 @@ FormSGGPUDrawCommandProcessor >> useCompositeAlphaBlending [
 ]
 
 { #category : #'as yet unclassified' }
+FormSGGPUDrawCommandProcessor >> useSubpixelDualOutputBlending [
+	self subclassResponsibility
+]
+
+{ #category : #'as yet unclassified' }
 FormSGGPUDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
 	self subclassResponsibility
 ]

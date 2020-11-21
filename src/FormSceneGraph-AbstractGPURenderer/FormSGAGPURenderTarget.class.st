@@ -7,13 +7,25 @@ Class {
 		'colorBufferView',
 		'framebuffer',
 		'renderpass',
-		'extent'
+		'extent',
+		'modificationCount',
+		'binding'
 	],
 	#pools : [
 		'AGPUConstants'
 	],
 	#category : #'FormSceneGraph-AbstractGPURenderer'
 }
+
+{ #category : #accessing }
+FormSGAGPURenderTarget >> binding [
+	^ binding
+]
+
+{ #category : #accessing }
+FormSGAGPURenderTarget >> binding: anObject [
+	binding := anObject
+]
 
 { #category : #accessing }
 FormSGAGPURenderTarget >> colorBuffer [
@@ -63,6 +75,16 @@ FormSGAGPURenderTarget >> framebuffer [
 { #category : #accessing }
 FormSGAGPURenderTarget >> framebuffer: anObject [
 	framebuffer := anObject
+]
+
+{ #category : #accessing }
+FormSGAGPURenderTarget >> modificationCount [
+	^ modificationCount
+]
+
+{ #category : #accessing }
+FormSGAGPURenderTarget >> modificationCount: anObject [
+	modificationCount := anObject
 ]
 
 { #category : #accessing }

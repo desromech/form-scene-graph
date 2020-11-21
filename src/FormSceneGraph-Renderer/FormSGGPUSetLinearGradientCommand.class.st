@@ -35,6 +35,11 @@ FormSGGPUSetLinearGradientCommand >> endPoint: anObject [
 	endPoint := anObject
 ]
 
+{ #category : #testing }
+FormSGGPUSetLinearGradientCommand >> isSetLinearGradient [
+	^ false
+]
+
 { #category : #accessing }
 FormSGGPUSetLinearGradientCommand >> startColor [
 	^ startColor

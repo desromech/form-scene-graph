@@ -12,7 +12,16 @@ Class {
 		'shaderSignature',
 		'vertexLayout',
 		'colorPipelineState',
-		'useSubpixelBlending'
+		'useSubpixelBlending',
+		'viewportRectangle',
+		'projectionInvertedY',
+		'linearSampler',
+		'linearSamplerBinding',
+		'textureFromFormDictionary',
+		'textureWithModificationCountDictionary',
+		'renderTargetDictionary',
+		'texturedPipelineState',
+		'subpixelPipelineState'
 	],
 	#pools : [
 		'AGPUConstants'
@@ -30,6 +39,7 @@ FormSGAGPUDrawCommandProcessor class >> drawThisWorld [
 	sgCommandList := FormSGGPUCommandListBuilder  new.
 	FormSGGPUCommandListRenderer new
 		fontTextureAtlasCache: fontTextureAtlasCache;
+		hasDirectSubpixelBlending: true;
 		render: sg with: sgCommandList.
 
 	platform := AGPU firstPlatform.
@@ -37,7 +47,7 @@ FormSGAGPUDrawCommandProcessor class >> drawThisWorld [
 	device := platform openDevice: deviceOpenInfo.
 
 	drawCommandProcessor := self for: device.
-	extent := 1024@768.
+	extent := World extent ceiling.
 	mainRenderTarget := drawCommandProcessor createRenderTargetWithExtent: extent.
 
 	drawCommandProcessor
@@ -55,9 +65,14 @@ FormSGAGPUDrawCommandProcessor class >> for: device [
 	^ self basicNew initializeWithDevice: device; yourself
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> activatePipelineState: newPipelineState [
+	commandList usePipelineState: newPipelineState
+]
+
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessor >> colorBufferFormat [
-	^ AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM_SRGB
+	^ AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM "AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM_SRGB"
 ]
 
 { #category : #shaders }
@@ -125,8 +140,20 @@ FormSGAGPUDrawCommandProcessor >> createPipelineStates [
 	colorPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
 		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self colorFragmentShader);
-		build
+		build.
 
+	texturedPipelineState := self createPipelineStateBuilder
+		attachShader: vertexShader;
+		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self texturedFragmentShader);
+		build.
+
+	subpixelPipelineState := self createPipelineStateBuilder
+		attachShader: vertexShader;
+		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFragmentShader);
+		setBlendFunction: 1
+			sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_1COLOR colorOperation: AGPU_BLENDING_OPERATION_ADD
+			sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA alphaOperation: AGPU_BLENDING_OPERATION_ADD;
+		build.
 		
 ]
 
@@ -179,6 +206,19 @@ FormSGAGPUDrawCommandProcessor >> createRenderTargetWithExtent: extent [
 ]
 
 { #category : #initialization }
+FormSGAGPUDrawCommandProcessor >> createSampler [
+	linearSampler := device createSampler: (AGPUSamplerDescription new
+		filter: AGPU_FILTER_MIN_LINEAR_MAG_LINEAR_MIPMAP_LINEAR;
+		address_u: AGPU_TEXTURE_ADDRESS_MODE_WRAP;
+		address_v: AGPU_TEXTURE_ADDRESS_MODE_WRAP;
+		address_w: AGPU_TEXTURE_ADDRESS_MODE_WRAP;
+		max_lod: 10000.0;
+		yourself).
+	linearSamplerBinding := shaderSignature createShaderResourceBinding: 0.
+	linearSamplerBinding bindSampler: 0 sampler: linearSampler
+]
+
+{ #category : #initialization }
 FormSGAGPUDrawCommandProcessor >> createShaderSignature [
 	shaderSignature := device createShaderSignatureBuilder
 		beginBindingBank: 1;
@@ -189,7 +229,42 @@ FormSGAGPUDrawCommandProcessor >> createShaderSignature [
 
 		beginBindingBank: 1000;
 		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_SAMPLED_IMAGE bindingPointCount: 1;
+		
+		"viewBoxTransformIndex" addBindingConstant;
+		"gradientIndex" addBindingConstant;
 		build
+]
+
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> createTextureWithExtent: extent [
+	^ self createTextureWithExtent: extent format: self colorBufferFormat
+]
+
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> createTextureWithExtent: extent format: format [
+	| texture view binding |
+	texture := device createTexture: (AGPUTextureDescription new
+		type: AGPU_TEXTURE_2D;
+		width: extent x;
+		height: extent y;
+		depth: 1;
+		layers: 1;
+		miplevels: 1;
+		format: format;
+		usage_modes: AGPU_TEXTURE_USAGE_UPLOADED | AGPU_TEXTURE_USAGE_SAMPLED;
+		main_usage_mode: AGPU_TEXTURE_USAGE_SAMPLED;
+		sample_count: 1).
+		
+	view := texture getOrCreateFullView.
+	binding := shaderSignature createShaderResourceBinding: 2.
+	binding bindSampledTextureView: 0 view: view.
+	
+	^ FormSGAGPUTexture new
+		texture: texture;
+		view: view;
+		extent: extent;
+		binding: binding;
+		yourself.
 ]
 
 { #category : #initialization }
@@ -235,6 +310,16 @@ FormSGAGPUDrawCommandProcessor >> drawElements: command [
 	commandList drawElements: command indexCount instance_count: 1 first_index: command firstIndex + baseIndex base_vertex: baseVertex base_instance: 0
 ]
 
+{ #category : #'as yet unclassified' }
+FormSGAGPUDrawCommandProcessor >> enableTexturing [
+	useSubpixelBlending ifTrue: [ 
+		self activatePipelineState: subpixelPipelineState
+	] ifFalse: [ 
+		self activatePipelineState: texturedPipelineState
+	].
+
+]
+
 { #category : #accessing }
 FormSGAGPUDrawCommandProcessor >> fontTextureAtlasCache [
 	^ fontTextureAtlasCache ifNil: [ fontTextureAtlasCache := FormSGFontTextureAtlasCache new ]
@@ -248,24 +333,34 @@ FormSGAGPUDrawCommandProcessor >> fontTextureAtlasCache: aFontTextureAtlasCache 
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessor >> initializeWithDevice: theDevice [
 	device := theDevice.
+	
+	projectionInvertedY := device hasTopLeftNdcOrigin ~= 0.
+
 	defaultRenderPass := self createRenderPassWithColor: Color transparent.
-	self createShaderSignature.
-	self createVertexLayout.
-	self createPipelineStates.
+	self
+		createShaderSignature;
+		createSampler;
+		createVertexLayout;
+		createPipelineStates.
 	frameStateTracker := FormSGAGPUFrameStateTracker for: self.
 
+	textureFromFormDictionary := WeakKeyDictionary new.
+	textureWithModificationCountDictionary := WeakKeyDictionary new.
+	renderTargetDictionary := WeakKeyDictionary new.
 ]
 
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> noTexture [
-	commandList usePipelineState: colorPipelineState
+	self activatePipelineState: colorPipelineState
 ]
 
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGCommandList mainRenderTarget: mainRenderTarget [
-	| verticesOffsets indicesOffsets |
-	verticesOffsets := self uploadVerticesForSGCommandsLists: {mainSGCommandList}.
-	indicesOffsets := self uploadIndicesForSGCommandsLists: {mainSGCommandList}.
+	| verticesOffsets indicesOffsets sgCommandLists |
+	sgCommandLists := {mainSGCommandList}.
+	frameStateTracker finishPreviousExecution.
+	verticesOffsets := self uploadVerticesForSGCommandsLists: sgCommandLists.
+	indicesOffsets := self uploadIndicesForSGCommandsLists: sgCommandLists.
 	
 	frameStateTracker
 		buildCommandListWith: [ :theCommandList |
@@ -273,10 +368,16 @@ FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGComm
 				|renderTarget|
 				renderTarget := mainRenderTarget.
 				commandList := theCommandList.
-				commandList setShaderSignature: shaderSignature.
-				frameStateTracker activateVerticesAndIndices.
+				commandList
+					setShaderSignature: shaderSignature;
+					useShaderResources: linearSamplerBinding.
+				frameStateTracker
+					allocateUniformStorageForSGCommandLists: sgCommandLists;
+					activateUniforms;
+					activateVerticesAndIndices.
 
-				self processSGCommandList: mainSGCommandList renderTarget: mainRenderTarget verticesOffset: verticesOffsets first indicesOffsets: indicesOffsets first
+				self processSGCommandList: mainSGCommandList renderTarget: mainRenderTarget verticesOffset: verticesOffsets first indicesOffsets: indicesOffsets first.
+				
 			] ensure: [ commandList := nil]
 		];
 		submitToCommandQueue.
@@ -285,7 +386,7 @@ FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGComm
 
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> processSGCommandList: sgCommandList renderTarget: renderTarget verticesOffset: verticesOffset indicesOffsets: indicesOffset [
-	| extent |
+	| extent viewBoxScale viewBoxOffset |
 	baseVertex := verticesOffset.
 	baseIndex := indicesOffset.
 	
@@ -294,6 +395,16 @@ FormSGAGPUDrawCommandProcessor >> processSGCommandList: sgCommandList renderTarg
 		beginRenderPass: renderTarget renderpass framebuffer: renderTarget framebuffer bundle_content: 0;
 		setViewport: 0 y: 0 w: extent x h: extent y;
 		setScissor: 0 y: 0 w: extent x h: extent y.
+
+	viewportRectangle := 0@0 extent: extent.
+	projectionInvertedY ifFalse: [ 
+		viewBoxScale := (2.0 / extent x) @ (-2.0 / extent y).
+		viewBoxOffset := -1.0 @ 1.0.
+	] ifTrue: [ 
+		viewBoxScale := (2.0 / extent x) @ (2.0 / extent y).
+		viewBoxOffset := -1.0 @ -1.0.
+	].
+	frameStateTracker setViewBoxScale: viewBoxScale offset: viewBoxOffset.
 
 	self
 		useCompositeAlphaBlending;
@@ -307,15 +418,52 @@ FormSGAGPUDrawCommandProcessor >> processSGCommandList: sgCommandList renderTarg
 ]
 
 { #category : #'as yet unclassified' }
-FormSGAGPUDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: athensSurfaceTexture [
+FormSGAGPUDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: command [
+	| texture |
+	texture := textureWithModificationCountDictionary at: command keyObject
+		ifAbsentPut: [ self createTextureWithExtent: command athensSurface extent ].
+	texture extent ~= command athensSurface extent ifTrue: [
+		texture := textureWithModificationCountDictionary at: command keyObject
+			put: (self createTextureWithExtent: command athensSurface extent)
+	].
+
+	texture uploadAthensSurface: command athensSurface withModificationCount: command modificationCount.
+
+	self enableTexturing.
+	texture recordOnFrameStateTracker: frameStateTracker.
+	commandList useShaderResources: texture binding.
 ]
 
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> setFormTexture: formTexture [
+	| texture |
+	texture := textureFromFormDictionary at: formTexture form ifAbsentPut: [
+		(self createTextureWithExtent: formTexture form extent)
+			uploadForm: formTexture form;
+			yourself
+	].
+
+	self enableTexturing.
+	texture recordOnFrameStateTracker: frameStateTracker.
+	commandList useShaderResources: texture binding.
+	
 ]
 
 { #category : #'as yet unclassified' }
-FormSGAGPUDrawCommandProcessor >> setFormTextureWithModificationCount: formTexture [
+FormSGAGPUDrawCommandProcessor >> setFormTextureWithModificationCount: command [
+	| texture |
+	texture := textureWithModificationCountDictionary at: command keyObject
+		ifAbsentPut: [ self createTextureWithExtent: command form extent ].
+	texture extent ~= command form extent ifTrue: [
+		texture := textureWithModificationCountDictionary at: command keyObject
+			put: (self createTextureWithExtent: command form extent)
+	].
+
+	texture uploadForm: command form withModificationCount: command modificationCount.
+
+	self enableTexturing.
+	texture recordOnFrameStateTracker: frameStateTracker.
+	commandList useShaderResources: texture binding.
 ]
 
 { #category : #'as yet unclassified' }
@@ -336,6 +484,59 @@ FormSGAGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: renderTa
 { #category : #'as yet unclassified' }
 FormSGAGPUDrawCommandProcessor >> setScissor: command [
 	
+]
+
+{ #category : #accessing }
+FormSGAGPUDrawCommandProcessor >> shaderSignature [
+	^ shaderSignature
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessor >> subpixelFragmentShader [
+	^ '
+#version 450
+
+layout(location=0) in vec4 inColor;	
+layout(location=1) in vec2 inTexcoord;
+
+layout(location=0, index = 0) out vec4 outColor;
+layout(location=0, index = 1) out vec4 outColorMask;
+
+layout (set=2, binding = 0) uniform texture2D activeTexture;
+layout (set=0, binding = 0) uniform sampler activeSampler;
+
+void main()
+{ 
+	vec3 colorMask = texture(sampler2D(activeTexture, activeSampler), inTexcoord).rgb;
+	float alpha = max(colorMask.r, max(colorMask.g, colorMask.b));
+
+	outColor = vec4(inColor.rgb*colorMask, alpha);
+	outColorMask = vec4(colorMask, alpha);
+}
+
+'
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessor >> texturedFragmentShader [
+	^ '
+#version 450
+
+layout(location=0) in vec4 inColor;	
+layout(location=1) in vec2 inTexcoord;
+
+layout(location=0) out vec4 outColor;
+	
+layout (set=2, binding = 0) uniform texture2D activeTexture;
+layout (set=0, binding = 0) uniform sampler activeSampler;
+
+void main()
+{ 
+	vec4 color = inColor * texture(sampler2D(activeTexture, activeSampler), inTexcoord);
+	outColor = vec4(color.rgb*color.a, color.a);
+}
+
+'
 ]
 
 { #category : #'as yet unclassified' }
@@ -399,8 +600,9 @@ FormSGAGPUDrawCommandProcessor >> useCompositeAlphaBlending [
 ]
 
 { #category : #'as yet unclassified' }
-FormSGAGPUDrawCommandProcessor >> useSubpixelBlending [
+FormSGAGPUDrawCommandProcessor >> useSubpixelDualOutputBlending [
 	useSubpixelBlending := true.
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -429,10 +631,18 @@ layout(location=2) in vec2 inTexcoord;
 layout(location=0) out vec4 outColor;
 layout(location=1) out vec2 outTexcoord;
 
+layout(set=1, binding=0) uniform ViewBoxTransforms { 
+	vec4 viewBoxTransforms[1000];
+};	
+
+layout(push_constant) uniform Indices { 
+	uint viewBoxTransformIndex;
+};
+
 void main()
 { 
-	vec4 viewBoxTransform = vec4(1.0/1024.0, 1.0/1024.0, 0.0, 0.0);
-	outColor = vec4(pow(inColor.rgb, vec3(2.2)), inColor.a);
+	vec4 viewBoxTransform = viewBoxTransforms[viewBoxTransformIndex];
+	outColor = inColor; //vec4(pow(inColor.rgb, vec3(2.2)), inColor.a);
 	outTexcoord = inTexcoord;
 	gl_Position = vec4(inPosition*viewBoxTransform.xy + viewBoxTransform.zw, 0.0, 1.0);
 }
