@@ -709,12 +709,7 @@ FormSGAGPUDrawCommandProcessor >> setScissor: command [
 	scissorMin := viewClippedRectangle origin floor.
 	scissorMax := viewClippedRectangle corner ceiling.
 	
-	hasTopLeftNdcOrigin ifTrue: [ 
-		commandList setScissor: scissorMin x y: scissorMin y w: scissorMax x - scissorMin x h: scissorMax y - scissorMin y.
-	] ifFalse: [ 
-		commandList setScissor: scissorMin x y: screenHeight - scissorMax y w: scissorMax x - scissorMin x h: scissorMax y - scissorMin y.
-	].
-
+	commandList setScissor: scissorMin x y: scissorMin y w: scissorMax x - scissorMin x h: scissorMax y - scissorMin y.
 ]
 
 { #category : #accessing }
