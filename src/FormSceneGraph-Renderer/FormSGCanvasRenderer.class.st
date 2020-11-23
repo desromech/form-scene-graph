@@ -49,12 +49,11 @@ FormSGCanvasRenderer >> visitBorderNode: node [
 
 { #category : #visiting }
 FormSGCanvasRenderer >> visitCachedSubScene: node [
-	| form rectangle transformedRectangle  surfaceExtent |
+	| form rectangle surfaceExtent |
 	rectangle := node rectangle.
 	node rectangle ifNil: [ ^ self ].
 
-	transformedRectangle := self transformRectangle: rectangle.
-	surfaceExtent := transformedRectangle extent ceiling.
+	surfaceExtent := (rectangle extent * surfaceScaleFactor) ceiling.
 
 	form := node validCachedFormWithExtent: surfaceExtent.
 	form ifNil: [ ^ self ].

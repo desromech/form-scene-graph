@@ -17,7 +17,9 @@ FormCanvasSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRecta
 	].
 
 	renderer drawDuring: [ :canvas |
-		FormSGCanvasRenderer render: newSceneGraph on: canvas
+		FormSGCanvasRenderer new
+			surfaceScaleFactor: self scaleFactor;
+			render: newSceneGraph on: canvas
 	].
 	renderer updateRectangle: damageRectangle.
 ]

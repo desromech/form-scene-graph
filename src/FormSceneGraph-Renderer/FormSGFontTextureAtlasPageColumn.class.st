@@ -30,6 +30,7 @@ FormSGFontTextureAtlasPageColumn >> insertEntry: newEntry [
 	pageExtent := page form extent.
 	newEntry
 		page: page;
+		pixelRectangle: (destPosition extent:  glyphForm extent);
 		rectangle: (destPosition / pageExtent corner: (destPosition + glyphForm extent) / pageExtent).
 		
 	page form getCanvas drawImage: glyphForm at: destPosition.

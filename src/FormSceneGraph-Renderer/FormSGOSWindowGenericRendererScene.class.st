@@ -6,8 +6,10 @@ Class {
 	#superclass : #OSWindowGenericRendererScene,
 	#instVars : [
 		'rootNode',
+		'fontTextureAtlasCache',
 		'renderTarget',
-		'renderTargetExtent'
+		'renderTargetExtent',
+		'surfaceScaleFactor'
 	],
 	#category : #'FormSceneGraph-Renderer-Basic'
 }
@@ -25,15 +27,47 @@ FormSGOSWindowGenericRendererScene >> composeRenderTargetInto: renderer [
 ]
 
 { #category : #rendering }
+FormSGOSWindowGenericRendererScene >> doRenderRectangle: rectangle with: renderer [
+	renderer clippingBounds: rectangle.
+	renderer
+		color: Color transparent;
+		useNoBlending;
+		fillRectangle: rectangle.
+	
+	rootNode ifNotNil: [
+		self fontTextureAtlasCache beginFrame.
+		FormSGOSWindowGenericRendererTextPreparationVisitor new
+			surfaceScaleFactor: self surfaceScaleFactor;
+			fontTextureAtlasCache: fontTextureAtlasCache;
+			renderer: renderer;
+			visitNode: rootNode.
+		self fontTextureAtlasCache modifiedPages do: [ :each |
+			(renderer getOrCreateTextureFor: each withExtent: each form extent)
+				uploadForm: each form withModificationCount: each modificationCount
+		].
+
+		FormSGOSWindowGenericRenderer new
+			surfaceScaleFactor: self surfaceScaleFactor;
+			fontTextureAtlasCache: fontTextureAtlasCache;
+			render: rootNode with: renderer clippingBounds: rectangle.
+	].
+
+]
+
+{ #category : #accessing }
+FormSGOSWindowGenericRendererScene >> fontTextureAtlasCache [
+	^ fontTextureAtlasCache ifNil: [ fontTextureAtlasCache := FormSGFontTextureAtlasCache new ]
+]
+
+{ #category : #accessing }
+FormSGOSWindowGenericRendererScene >> fontTextureAtlasCache: anObject [
+	fontTextureAtlasCache := anObject
+]
+
+{ #category : #rendering }
 FormSGOSWindowGenericRendererScene >> renderAllWith: renderer [
 	self withRenderer: renderer drawInMainRenderTargetWith: [
-		renderer
-			color: Color transparent;
-			clear.
-		
-		rootNode ifNotNil: [ 
-			FormSGOSWindowGenericRenderer render: rootNode with: renderer.
-		].
+		self doRenderRectangle: (0@0 extent: renderer pixelExtent) with: renderer
 	].
 ]
 
@@ -42,15 +76,7 @@ FormSGOSWindowGenericRendererScene >> renderRectangle: rectangle with: renderer 
 	(self validateRenderTargetFor: renderer) ifFalse: [ ^ self renderAllWith: renderer ].
 
 	renderer withRenderTarget: renderTarget do: [
-		renderer clippingBounds: rectangle origin.
-		renderer
-			color: Color transparent;
-			useNoBlending;
-			fillRectangle: rectangle.
-		
-		rootNode ifNotNil: [
-			FormSGOSWindowGenericRenderer render: rootNode with: renderer clippingBounds: rectangle.
-		].
+		self doRenderRectangle: rectangle with: renderer.
 	].
 
 	self composeRenderTargetInto: renderer
@@ -64,6 +90,16 @@ FormSGOSWindowGenericRendererScene >> rootNode [
 { #category : #accessing }
 FormSGOSWindowGenericRendererScene >> rootNode: anObject [
 	rootNode := anObject
+]
+
+{ #category : #accessing }
+FormSGOSWindowGenericRendererScene >> surfaceScaleFactor [
+	^ surfaceScaleFactor ifNil: [ surfaceScaleFactor := 1.0 ]
+]
+
+{ #category : #accessing }
+FormSGOSWindowGenericRendererScene >> surfaceScaleFactor: aNumber [
+	surfaceScaleFactor := aNumber
 ]
 
 { #category : #rendering }

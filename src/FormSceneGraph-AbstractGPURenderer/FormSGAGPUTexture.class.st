@@ -73,7 +73,7 @@ FormSGAGPUTexture >> uploadAthensSurface: surface [
 { #category : #'texture manipulation' }
 FormSGAGPUTexture >> uploadAthensSurface: surface withModificationCount: newModificationCount [
 	(modificationCount isNil or: [modificationCount < newModificationCount]) ifTrue: [
-		self uploadAthensSurface: surface .
+		self uploadAthensSurface: surface.
 		modificationCount := newModificationCount
 	]
 ]

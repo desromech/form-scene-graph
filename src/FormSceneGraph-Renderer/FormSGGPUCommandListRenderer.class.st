@@ -149,7 +149,6 @@ FormSGGPUCommandListRenderer >> visitAthensNode: node [
 	surface := node validAthensCairoSurfaceWithExtent: surfaceExtent.
 	surface ifNil: [ ^ self ].
 
-
 	commandList
 		setAthensSurfaceTexture: surface for: node withModificationCount: node modificationCount.
 	

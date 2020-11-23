@@ -8,7 +8,9 @@ Class {
 FormOSWindowGenericRendererSGWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectangle: damageRectangle [
 	| renderer |
 	renderer := self osWindowRenderer.
-	renderer scene rootNode: newSceneGraph.
+	renderer scene
+		surfaceScaleFactor: self scaleFactor;
+		rootNode: newSceneGraph.
 	renderer updateRectangle: damageRectangle.
 
 ]

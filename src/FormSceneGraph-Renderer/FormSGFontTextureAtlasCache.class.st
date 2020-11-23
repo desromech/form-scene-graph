@@ -58,6 +58,16 @@ FormSGFontTextureAtlasCache >> prepareForString: string from: startIndex to: end
 ]
 
 { #category : #api }
+FormSGFontTextureAtlasCache >> prepareString: string from: startIndex to: endIndex font: font scaledFont: scaledFont subpixelAllowed: subpixelAllowed [
+	startIndex to: endIndex do: [ :i |
+		| character |
+		character := string at: i.
+		(self prepareForCharacter: character font: font subpixelAllowed: subpixelAllowed).
+		(self prepareForCharacter: character font: scaledFont subpixelAllowed: subpixelAllowed)
+	]
+]
+
+{ #category : #api }
 FormSGFontTextureAtlasCache >> processString: string from: startIndex to: endIndex font: font scaledFont: scaledFont subpixelAllowed: subpixelAllowed entriesWith: aBlock [
 	startIndex to: endIndex do: [ :i |
 		| character |

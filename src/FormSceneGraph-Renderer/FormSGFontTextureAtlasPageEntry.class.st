@@ -6,6 +6,7 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'page',
+		'pixelRectangle',
 		'rectangle',
 		'glyphForm',
 		'hasSubpixelAntialiasing'
@@ -46,6 +47,16 @@ FormSGFontTextureAtlasPageEntry >> page [
 { #category : #accessing }
 FormSGFontTextureAtlasPageEntry >> page: anObject [
 	page := anObject
+]
+
+{ #category : #accessing }
+FormSGFontTextureAtlasPageEntry >> pixelRectangle [
+	^ pixelRectangle
+]
+
+{ #category : #accessing }
+FormSGFontTextureAtlasPageEntry >> pixelRectangle: anObject [
+	pixelRectangle := anObject
 ]
 
 { #category : #accessing }
