@@ -6,6 +6,9 @@ I am a world renderer that renders morphic in two steps:
 Class {
 	#name : #FormSGAbstractWorldRenderer,
 	#superclass : #OSWorldRenderer,
+	#instVars : [
+		'isDisplayingWorld'
+	],
 	#classVars : [
 		'IsEnabled',
 		'SelectedWorldRendererClass'
@@ -130,12 +133,16 @@ FormSGAbstractWorldRenderer >> displayWorldState: aWorldState ofWorld: aWorld [
 	"display is already up-to-date"
 	aWorldState checkIfUpdateNeeded
 		ifFalse: [ ^ nil ].
-		
-	self isProfilingRenderingTime ifTrue: [
-		self doDisplayWorldStateWhileProfiling: aWorldState ofWorld: aWorld
-	] ifFalse: [
-		self doDisplayWorldState: aWorldState ofWorld: aWorld
-	].
+	
+	self isDisplayingWorld ifTrue: [ ^ self ].
+	isDisplayingWorld := true.
+	[ 
+		self isProfilingRenderingTime ifTrue: [
+			self doDisplayWorldStateWhileProfiling: aWorldState ofWorld: aWorld
+		] ifFalse: [
+			self doDisplayWorldState: aWorldState ofWorld: aWorld
+		].
+	] ensure: [ isDisplayingWorld := false ].
 
 ]
 
@@ -225,6 +232,11 @@ FormSGAbstractWorldRenderer >> extractMergedDamageRectangleFromWorldState: aWorl
 	scaleFactor := self scaleFactor.
 	surfaceDamageRectangle := (result origin * scaleFactor) floor corner: (result corner * scaleFactor) ceiling.
 	^ self adjustSurfaceDamageRectangle: surfaceDamageRectangle.
+]
+
+{ #category : #operations }
+FormSGAbstractWorldRenderer >> isDisplayingWorld [
+	^ isDisplayingWorld ifNil: [ isDisplayingWorld := false ]
 ]
 
 { #category : #'instance creation' }
