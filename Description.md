@@ -1,4 +1,4 @@
-# A new scene graph based UI rendering framework
+# A new scene graph-based UI rendering framework
 ## Motivation
 The design and implementation underlying Morphic, the UI framework used by Pharo, is dated and has several problems. Some of these problems related to the way that Morphic draws its UI are the followings:
 - Direct usage of software based BitBlt primitives.
@@ -20,7 +20,7 @@ The UI in Morphic is defined in a hierarchical way. At the top level we have the
 ![World Inspector](images/world-inspector.png)
 
 ### How morphs are currently drawn
-The current version of Morphic (at least until Pharo 9) is rendered by using the canvas metaphor implemented through software base BitBlt methods. The *Morph>>fullDrawOn:9* method is the single entry point for completely drawing a morph and recursively drawing its content. As an example, the following script can be inspected in a Playground to draw the content of the whole world in a Form:
+The current version of Morphic (at least until Pharo 9) is rendered by using the canvas metaphor implemented through software base BitBlt methods. The *Morph>>fullDrawOn:* method is the single entry point for completely drawing a morph and recursively drawing its content. As an example, the following script can be inspected in a Playground to draw the content of the whole world in a Form:
 
 ```smalltalk
 form := Form extent: 1024@1024 depth: 32.
@@ -28,7 +28,7 @@ World fullDrawOn: form getCanvas.
 form
 ```
 
-The full implementation of the full draw on method is the following one:
+The full implementation of the `fullDrawOn:` method is the following one:
 
 ```smalltalk
 Morph >> fullDrawOn: aCanvas
@@ -60,20 +60,20 @@ Morph >> fullDrawOn: aCanvas
 	]
 ```
 
-That method can be decomposed in two important segments:
-- Error handling during the drawing process. If an error is caught, turn the Morph into a red screen of death which is drawn with the *drawErrorOn:* method.
+That method can be decomposed in two important parts:
+- Error handling during the drawing process. If an error is caught, turn the Morph into a red screen of death which is drawn with the `drawErrorOn:` method.
 - Draw the content of the morph itself on the canvas. This process is composed of the following stages:
-    - The *drawMorph:* method in the canvas performs a double dispatch that typically ends calling the *drawOn:* method.
-    - Draw the submorphs with the *drawSubmorphsOn:* method.
+    - The `drawMorph:` method in the canvas performs a double dispatch that typically ends calling the `drawOn:` method.
+    - Draw the submorphs with the `drawSubmorphsOn:` method.
     - Draw additional decorations in the morph.
 
-The following is the default implementation for the *drawOn:*:
+The following is the default implementation for the `drawOn:`:
 ```smalltalk
 Morph >> drawOn: aCanvas
 	aCanvas fillRectangle: self bounds fillStyle: self fillStyle borderStyle: self borderStyle
 ```
 
-As for the *drawSubmorphsOn:* the default implementation invokes the *fullDrawOn:* for each submorph with optional support for clipping it to the bounds of its parent:
+As for the `drawSubmorphsOn:` the default implementation invokes the `fullDrawOn:` for each submorph with optional support for clipping it to the bounds of its parent:
 
 ```smalltalk
 Morph >> drawSubmorphsOn: aCanvas
