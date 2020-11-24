@@ -87,7 +87,7 @@ FormSGAbstractWorldRenderer >> buildSceneGraphForWorldState: aWorldState ofWorld
 	scaleFactor := self scaleFactor.
 	
 	actualScreenSize := self actualScreenSize.
-	builder := FormSGBuilder extent: actualScreenSize.
+	builder := self newBuilderWithExtent: actualScreenSize.
 	rootNodes := OrderedCollection new.
 	rootNodes add: (aWorld buildFullSceneGraphWith: builder).
 	aWorldState hands reverseDo: [ :each |
@@ -225,6 +225,11 @@ FormSGAbstractWorldRenderer >> extractMergedDamageRectangleFromWorldState: aWorl
 	scaleFactor := self scaleFactor.
 	surfaceDamageRectangle := (result origin * scaleFactor) floor corner: (result corner * scaleFactor) ceiling.
 	^ self adjustSurfaceDamageRectangle: surfaceDamageRectangle.
+]
+
+{ #category : #'instance creation' }
+FormSGAbstractWorldRenderer >> newBuilderWithExtent: extent [
+	^ FormSGBuilder extent: extent
 ]
 
 { #category : #initialization }

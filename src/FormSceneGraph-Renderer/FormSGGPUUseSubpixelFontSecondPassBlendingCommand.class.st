@@ -1,3 +1,6 @@
+"
+I am a blending command that enabled the second pass blending mode required for subpixel antialiased font rendering.
+"
 Class {
 	#name : #FormSGGPUUseSubpixelFontSecondPassBlendingCommand,
 	#superclass : #FormSGGPUSingletonDrawCommand,

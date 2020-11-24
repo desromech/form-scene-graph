@@ -1,3 +1,6 @@
+"
+I am a drawing command that enables a dual source blending mode for subpixel font rendering.
+"
 Class {
 	#name : #FormSGGPUUseSubpixelDualOutputBlendingCommand,
 	#superclass : #FormSGGPUSingletonDrawCommand,

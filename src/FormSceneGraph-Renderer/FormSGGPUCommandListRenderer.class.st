@@ -343,7 +343,7 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 			attemptScaledPixelPerfectBlitting ifTrue: [ 
 				destRectangle := ((currentTransform transformPoint: destPositionX@destPositionY) + glyphForm offset) rounded extent: glyphForm extent.
 				commandList
-					setFormTexture: page form for: page withModificationCount: page modificationCount;
+					setFormTexture: page form for: page withModificationCount: page modificationCount isLinearTexture: true;
 					beginTriangles;
 					vertexPosition: destRectangle bottomLeft texcoord: sourceRectangle bottomLeft;
 					vertexPosition: destRectangle bottomRight texcoord: sourceRectangle bottomRight;
@@ -357,7 +357,7 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 			] ifFalse: [ 
 				destRectangle := ((destPositionX@destPositionY) + glyphEntry glyphForm offset) rounded extent: glyphEntry glyphForm extent.
 				commandList
-					setFormTexture: page form for: page withModificationCount: page modificationCount;
+					setFormTexture: page form for: page withModificationCount: page modificationCount isLinearTexture: true;
 					beginTriangles;
 					vertexPosition: (currentTransform transformPoint: destRectangle bottomLeft) texcoord: sourceRectangle bottomLeft;
 					vertexPosition: (currentTransform transformPoint: destRectangle bottomRight) texcoord: sourceRectangle bottomRight;
@@ -428,6 +428,10 @@ FormSGGPUCommandListRenderer >> visitTextureNode: node [
 		ifTrue: [ sourceRectangle origin extent: rectangle extent / sourceExtent ]
 		ifFalse: [ sourceRectangle origin*texcoordScale corner: sourceRectangle corner*texcoordScale ].
 	
+	node isFullyOpaque ifTrue: [ 
+		commandList useFullyOpaqueBlending
+	].
+
 	commandList
 		setFormTexture: node form;
 		beginTriangles;
@@ -440,7 +444,12 @@ FormSGGPUCommandListRenderer >> visitTextureNode: node [
 			0 1 2
 			2 3 0
 		);
-		endSubmesh
+		endSubmesh.
+		
+	node isFullyOpaque ifTrue: [ 
+		commandList useCompositeAlphaBlending
+	].
+
 ]
 
 { #category : #visiting }

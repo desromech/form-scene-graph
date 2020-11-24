@@ -162,28 +162,26 @@ FormSGGPUCommandListBuilder >> setFormTexture: form [
 ]
 
 { #category : #'draw commands' }
-FormSGGPUCommandListBuilder >> setFormTexture: form for: keyObject withModificationCount: modificationCount [
+FormSGGPUCommandListBuilder >> setFormTexture: form for: keyObject withModificationCount: modificationCount isLinearTexture: isLinearTexture [
 	(currentTextureCommand isSetFormTextureWithModificationCount
 	and: [ currentTextureCommand form == form
-	and: [ currentTextureCommand modificationCount = modificationCount]]) ifTrue: [ ^ self ].
+	and: [ currentTextureCommand modificationCount = modificationCount 
+	and: [ currentTextureCommand isLinearTexture = isLinearTexture ]]]) ifTrue: [ ^ self ].
 
 	drawCommands last isSetFormTextureWithModificationCount ifTrue: [ 
 		drawCommands last
 			form: form;
 			keyObject: keyObject;
-			modificationCount: modificationCount.
+			modificationCount: modificationCount;
+			isLinearTexture: isLinearTexture.
 		^ self
 	].
 	drawCommands add: (currentTextureCommand := FormSGGPUSetFormTextureWithModificationCountCommand new
 		form: form;
 		keyObject: keyObject;
 		modificationCount: modificationCount;
+		isLinearTexture: isLinearTexture;
 		yourself)
-]
-
-{ #category : #'draw commands' }
-FormSGGPUCommandListBuilder >> setFormTexture: form withModificationCount: modificationCount [
-	^ self setFormTexture: form for: form withModificationCount: modificationCount
 ]
 
 { #category : #'draw commands' }
@@ -243,6 +241,11 @@ FormSGGPUCommandListBuilder >> setScissor: rectangle [
 { #category : #'draw commands' }
 FormSGGPUCommandListBuilder >> useCompositeAlphaBlending [
 	drawCommands add: FormSGGPUUseCompositeAlphaBlendingCommand uniqueInstance
+]
+
+{ #category : #'draw commands' }
+FormSGGPUCommandListBuilder >> useFullyOpaqueBlending [
+	drawCommands add: FormSGGPUUseFullyOpaqueBlendingCommand uniqueInstance
 ]
 
 { #category : #'draw commands' }

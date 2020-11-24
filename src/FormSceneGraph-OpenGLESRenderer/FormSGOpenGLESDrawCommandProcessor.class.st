@@ -545,6 +545,11 @@ FormSGOpenGLESDrawCommandProcessor >> useCompositeAlphaBlending [
 ]
 
 { #category : #commands }
+FormSGOpenGLESDrawCommandProcessor >> useFullyOpaqueBlending [
+	gl blendFuncSeparate_sfactorRGB: GL_ONE dfactorRGB: GL_ZERO sfactorAlpha: GL_ONE dfactorAlpha: GL_ZERO
+]
+
+{ #category : #commands }
 FormSGOpenGLESDrawCommandProcessor >> useSubpixelDualOutputBlending [
 	"This might not always be supported."
 ]

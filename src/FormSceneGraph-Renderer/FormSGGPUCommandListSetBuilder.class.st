@@ -34,6 +34,11 @@ FormSGGPUCommandListSetBuilder >> isRenderTargetCommandValidated: renderTargetCo
 	^ false
 ]
 
+{ #category : #hooks }
+FormSGGPUCommandListSetBuilder >> makeCommandListBuilder [
+	^ FormSGGPUCommandListBuilder new
+]
+
 { #category : #accessing }
 FormSGGPUCommandListSetBuilder >> sortedCommandLists [
 	^ sortedCommandLists
@@ -43,7 +48,7 @@ FormSGGPUCommandListSetBuilder >> sortedCommandLists [
 FormSGGPUCommandListSetBuilder >> validateRenderTargetCommandsIfNeeded: renderTargetCommand [
 	| renderTargetCommandList |
 	(self isRenderTargetCommandValidated: renderTargetCommand) ifTrue: [ ^ self ].
-	renderTargetCommandList := FormSGGPUCommandListBuilder new.
+	renderTargetCommandList := self makeCommandListBuilder.
 	renderTargetCommandList buildForRenderTargetCommand: renderTargetCommand.
 	self addCommandListWithDependencies: renderTargetCommandList
 ]

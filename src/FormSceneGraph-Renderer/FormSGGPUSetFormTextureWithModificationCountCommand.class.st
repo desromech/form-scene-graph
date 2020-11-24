@@ -7,7 +7,8 @@ Class {
 	#instVars : [
 		'keyObject',
 		'form',
-		'modificationCount'
+		'modificationCount',
+		'isLinearTexture'
 	],
 	#category : #'FormSceneGraph-Renderer-GPU'
 }
@@ -25,6 +26,16 @@ FormSGGPUSetFormTextureWithModificationCountCommand >> form [
 { #category : #accessing }
 FormSGGPUSetFormTextureWithModificationCountCommand >> form: anObject [
 	form := anObject
+]
+
+{ #category : #accessing }
+FormSGGPUSetFormTextureWithModificationCountCommand >> isLinearTexture [
+	^ isLinearTexture
+]
+
+{ #category : #accessing }
+FormSGGPUSetFormTextureWithModificationCountCommand >> isLinearTexture: anObject [
+	isLinearTexture := anObject
 ]
 
 { #category : #testing }

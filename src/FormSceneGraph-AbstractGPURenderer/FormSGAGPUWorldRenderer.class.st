@@ -15,12 +15,7 @@ Class {
 
 { #category : #'scale factor' }
 FormSGAGPUWorldRenderer >> device [
-	^ device ifNil: [
-		| platform deviceOpenInfo |
-		platform := AGPU firstPlatform.
-		deviceOpenInfo := AGPUDeviceOpenInfo new debug_layer: 1.
-		device := platform openDevice: deviceOpenInfo.
-	]
+	^ device ifNil: [ device := AGPU mainDevice ]
 ]
 
 { #category : #'scale factor' }
@@ -37,9 +32,9 @@ FormSGAGPUWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectang
 		renderpass: self drawCommandProcessor defaultRenderPass;
 		yourself.
 
-	sgCommandList := FormSGGPUCommandListBuilder new.
+	sgCommandList := FormSGAGPUCommandListBuilder new.
 	
-	FormSGGPUCommandListRenderer new
+	FormSGAGPUCommandListRenderer new
 		surfaceScaleFactor: self scaleFactor;
 		fontTextureAtlasCache: self drawCommandProcessor fontTextureAtlasCache;
 		hasDirectSubpixelBlending: true;
@@ -59,6 +54,19 @@ FormSGAGPUWorldRenderer >> drawCommandProcessor [
 { #category : #'scale factor' }
 FormSGAGPUWorldRenderer >> drawingSurfaceExtent [
 	^ osWindow ifNil: [ 1@1 ] ifNotNil: [ osWindow extent ]
+]
+
+{ #category : #testing }
+FormSGAGPUWorldRenderer >> isAGPUWorldRenderer [
+	^ true
+]
+
+{ #category : #'instance creation' }
+FormSGAGPUWorldRenderer >> newBuilderWithExtent: extent [
+	^ (FormSGAGPUBuilder extent: extent)
+		device: self device;
+		drawCommandProcessor: self drawCommandProcessor;
+		yourself
 ]
 
 { #category : #initialization }

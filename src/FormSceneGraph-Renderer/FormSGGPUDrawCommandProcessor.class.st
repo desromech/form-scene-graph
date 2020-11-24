@@ -68,6 +68,11 @@ FormSGGPUDrawCommandProcessor >> useCompositeAlphaBlending [
 ]
 
 { #category : #commands }
+FormSGGPUDrawCommandProcessor >> useFullyOpaqueBlending [
+	self subclassResponsibility
+]
+
+{ #category : #commands }
 FormSGGPUDrawCommandProcessor >> useSubpixelDualOutputBlending [
 	self subclassResponsibility
 ]

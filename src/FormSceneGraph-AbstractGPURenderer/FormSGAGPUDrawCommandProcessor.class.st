@@ -28,13 +28,30 @@ Class {
 		'hasTopLeftNdcOrigin',
 		'linearGradientPipelineState',
 		'radialGradientPipelineState',
-		'premultipliedTexturedPipelineState'
+		'premultipliedTexturedPipelineState',
+		'hasFullyOpaqueBlending',
+		'fullyOpaqueTexturedPipelineState',
+		'hasColorCorrection'
+	],
+	#classVars : [
+		'DefaultHasColorCorrection'
 	],
 	#pools : [
 		'AGPUConstants'
 	],
 	#category : #'FormSceneGraph-AbstractGPURenderer'
 }
+
+{ #category : #testing }
+FormSGAGPUDrawCommandProcessor class >> agpuUISettingsOn: aBuilder [
+	<systemsettings>
+	(aBuilder setting: #hasColorCorrection)
+		parent: #agpu;
+		label: 'Enable sRGB color correction for the UI renderer.';
+		description: 'This enables the usage of the linear sRGB color space for computations.';
+		target: self
+
+]
 
 { #category : #'sample script' }
 FormSGAGPUDrawCommandProcessor class >> drawThisWorld [
@@ -72,6 +89,16 @@ FormSGAGPUDrawCommandProcessor class >> for: device [
 	^ self basicNew initializeWithDevice: device; yourself
 ]
 
+{ #category : #testing }
+FormSGAGPUDrawCommandProcessor class >> hasColorCorrection [
+	^ DefaultHasColorCorrection ifNil: [ DefaultHasColorCorrection := true ]
+]
+
+{ #category : #testing }
+FormSGAGPUDrawCommandProcessor class >> hasColorCorrection: aBoolean [
+	DefaultHasColorCorrection := aBoolean
+]
+
 { #category : #private }
 FormSGAGPUDrawCommandProcessor >> activatePipelineState: newPipelineState [
 	commandList usePipelineState: newPipelineState
@@ -79,7 +106,9 @@ FormSGAGPUDrawCommandProcessor >> activatePipelineState: newPipelineState [
 
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessor >> colorBufferFormat [
-	^ AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM "AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM_SRGB"
+	^ self hasColorCorrection
+		ifTrue: [ AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM_SRGB ]
+		ifFalse: [ AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM ]
 ]
 
 { #category : #shaders }
@@ -100,7 +129,7 @@ void main()
 
 { #category : #accessing }
 FormSGAGPUDrawCommandProcessor >> colorGamma [
-	^ 1.0
+	^ self hasColorCorrection ifTrue: [ 2.2 ] ifFalse: [1.0]
 ]
 
 { #category : #initialization }
@@ -159,6 +188,14 @@ FormSGAGPUDrawCommandProcessor >> createPipelineStates [
 		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self texturedFragmentShader);
 		build.
 
+	fullyOpaqueTexturedPipelineState := self createPipelineStateBuilder
+		attachShader: vertexShader;
+		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self fullyOpaqueTexturedFragmentShader);
+		setBlendFunction: 1
+			sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_ZERO colorOperation: AGPU_BLENDING_OPERATION_ADD
+			sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_ZERO alphaOperation: AGPU_BLENDING_OPERATION_ADD;
+		build.
+		
 	premultipliedTexturedPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
 		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self premultipliedTexturedFragmentShader);
@@ -352,17 +389,21 @@ FormSGAGPUDrawCommandProcessor >> drawElements: command [
 
 { #category : #private }
 FormSGAGPUDrawCommandProcessor >> enableTexturing [
-	useSubpixelBlending ifTrue: [ 
+	useSubpixelBlending ifTrue: [
 		self activatePipelineState: subpixelPipelineState
-	] ifFalse: [ 
-		self activatePipelineState: texturedPipelineState
+	] ifFalse: [
+		hasFullyOpaqueBlending ifTrue: [ 
+			self activatePipelineState: fullyOpaqueTexturedPipelineState
+		] ifFalse: [
+			self activatePipelineState: texturedPipelineState
+		].
 	].
 
 ]
 
 { #category : #accessing }
 FormSGAGPUDrawCommandProcessor >> fontGamma [
-	^ 1.0
+	^ self hasColorCorrection ifTrue: [ 1.0 / 2.2 ] ifFalse: [1.0]
 ]
 
 { #category : #accessing }
@@ -373,6 +414,27 @@ FormSGAGPUDrawCommandProcessor >> fontTextureAtlasCache [
 { #category : #accessing }
 FormSGAGPUDrawCommandProcessor >> fontTextureAtlasCache: aFontTextureAtlasCache [
 	fontTextureAtlasCache := aFontTextureAtlasCache
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessor >> fullyOpaqueTexturedFragmentShader [
+	^ '
+#version 450
+
+layout(location=0) in vec4 inColor;	
+layout(location=1) in vec2 inTexcoord;
+
+layout(location=0) out vec4 outColor;
+	
+layout (set=2, binding = 0) uniform texture2D activeTexture;
+layout (set=0, binding = 0) uniform sampler activeSampler;
+
+void main()
+{ 
+	outColor = vec4(inColor.rgb * texture(sampler2D(activeTexture, activeSampler), inTexcoord).rgb, 1.0);
+}
+
+'
 ]
 
 { #category : #private }
@@ -389,15 +451,20 @@ FormSGAGPUDrawCommandProcessor >> getOrCreateRenderTargetWithExtent: extent for:
 ]
 
 { #category : #private }
-FormSGAGPUDrawCommandProcessor >> getOrCreateTextureWithExtent: extent for: keyObject modificationCount: modificationCount [
+FormSGAGPUDrawCommandProcessor >> getOrCreateTextureWithExtent: extent for: keyObject modificationCount: modificationCount format: textureFormat [
 	| texture |
 	texture := textureWithModificationCountDictionary at: keyObject
-		ifAbsentPut: [ self createTextureWithExtent: extent ].
+		ifAbsentPut: [ self createTextureWithExtent: extent format: textureFormat ].
 	(texture extent ~= extent
 	and: [ texture modificationCount isNil or: [ texture modificationCount < modificationCount ] ]) ifTrue: [
-		texture := textureWithModificationCountDictionary at: keyObject put: (self createTextureWithExtent: extent)
+		texture := textureWithModificationCountDictionary at: keyObject put: (self createTextureWithExtent: extent format: textureFormat)
 	].
 	^ texture
+]
+
+{ #category : #accessing }
+FormSGAGPUDrawCommandProcessor >> hasColorCorrection [
+	^ hasColorCorrection ifNil: [ hasColorCorrection := self class hasColorCorrection ]
 ]
 
 { #category : #initialization }
@@ -509,6 +576,7 @@ FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGComm
 	frameStateTracker finishPreviousExecution.
 	verticesOffsets := self uploadVerticesForSGCommandsLists: sortedCommandList.
 	indicesOffsets := self uploadIndicesForSGCommandsLists: sortedCommandList.
+	self uploadModifiedTextureFontCachePages.
 	
 	frameStateTracker
 		buildCommandListWith: [ :theCommandList |
@@ -633,10 +701,22 @@ void main()
 '
 ]
 
+{ #category : #initialization }
+FormSGAGPUDrawCommandProcessor >> setAGPUTextureNode: textureNode [
+	self assert: textureNode binding isNotNil.
+	frameStateTracker
+		recordUsedResource: textureNode texture;
+		recordUsedResource: textureNode view;
+		recordUsedResource: textureNode binding.
+	commandList useShaderResources: textureNode binding.
+	self enableTexturing.
+
+]
+
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setAthensSurfaceTextureWithModificationCount: command [
 	| texture |
-	texture := self getOrCreateTextureWithExtent: command athensSurface extent for: command keyObject modificationCount: command modificationCount.
+	texture := self getOrCreateTextureWithExtent: command athensSurface extent for: command keyObject modificationCount: command modificationCount format: self colorBufferFormat.
 	texture uploadAthensSurface: command athensSurface withModificationCount: command modificationCount.
 
 	self enableTexturing.
@@ -661,8 +741,10 @@ FormSGAGPUDrawCommandProcessor >> setFormTexture: formTexture [
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setFormTextureWithModificationCount: command [
-	| texture |
-	texture := self getOrCreateTextureWithExtent: command form extent for: command keyObject modificationCount: command modificationCount.
+	| texture textureFormat |
+	textureFormat := self colorBufferFormat.
+	command isLinearTexture ifTrue: [ textureFormat := AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM ].
+	texture := self getOrCreateTextureWithExtent: command form extent for: command keyObject modificationCount: command modificationCount format: textureFormat.
 	texture uploadForm: command form withModificationCount: command modificationCount.
 
 	self enableTexturing.
@@ -799,6 +881,14 @@ FormSGAGPUDrawCommandProcessor >> uploadIndicesForSGCommandsLists: sgCommandList
 	^ offsets
 ]
 
+{ #category : #api }
+FormSGAGPUDrawCommandProcessor >> uploadModifiedTextureFontCachePages [
+	self fontTextureAtlasCache modifiedPages do: [ :page |
+		(self getOrCreateTextureWithExtent: page form extent for: page modificationCount: page modificationCount format: AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM)
+			uploadForm: page form withModificationCount: page modificationCount
+	]
+]
+
 { #category : #private }
 FormSGAGPUDrawCommandProcessor >> uploadVerticesForSGCommandsLists: sgCommandLists [
 	| requiredSize offsets vertexBuffer vertexBufferAddress destOffset |
@@ -830,6 +920,13 @@ FormSGAGPUDrawCommandProcessor >> uploadVerticesForSGCommandsLists: sgCommandLis
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useCompositeAlphaBlending [
 	useSubpixelBlending := false.
+	hasFullyOpaqueBlending := false.
+]
+
+{ #category : #commands }
+FormSGAGPUDrawCommandProcessor >> useFullyOpaqueBlending [
+	useSubpixelBlending := false.
+	hasFullyOpaqueBlending := true.
 ]
 
 { #category : #commands }

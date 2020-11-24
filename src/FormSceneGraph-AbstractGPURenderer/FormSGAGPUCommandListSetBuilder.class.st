@@ -25,3 +25,8 @@ FormSGAGPUCommandListSetBuilder >> isRenderTargetCommandValidated: renderTargetC
 	^ drawCommandProcessor isRenderTargetCommandValidated: renderTargetCommand
 
 ]
+
+{ #category : #hooks }
+FormSGAGPUCommandListSetBuilder >> makeCommandListBuilder [
+	^ FormSGAGPUCommandListBuilder new
+]
