@@ -88,7 +88,7 @@ Morph >> drawSubmorphsOn: aCanvas
 ```
 
 ## The design and implementation of a scene graph based renderer
-One alternative mechanism to the immediate hierarchical drawing traversal described in the previous section is to instead build an intermediate hierarchical structure that only describes how the different element are drawn. This rendering tree data structure is called a *scene graph*, and they are ubiquitous in the domain of 3D graphics rendering. Qt is a widely used 2D UI toolkit that also uses a scene graph for its rendering, and Gtk 4 is moving in favor of adopting this approach for performance reasons. Since one of our motivations is to facilitate integrating Morphic in Gtk, we decided to take as much inspiration as possible in the Gtk scene graph design so that we can have a smooth translation path for using it as an additional rendering backend.
+One alternative mechanism to the immediate hierarchical drawing traversal described in the previous section is to instead build an intermediate hierarchical structure that only describes how the different elements are drawn. This rendering tree data structure is called a *scene graph*, and they are ubiquitous in the domain of 3D graphics rendering. Qt is a widely used 2D UI toolkit that also uses a scene graph for its rendering, and Gtk 4 is moving in favor of adopting this approach for performance reasons. Since one of our motivations is to facilitate integrating Morphic in Gtk, we decided to take as much inspiration as possible in the Gtk scene graph design so that we can have a smooth translation path for using it as an additional rendering backend.
 
 ### The Gtk Scene Graph (GSK) design
 The Gtk Scene Graph design is based around nodes that represent only simple different rectangular shapes that are easy to render on the GPU. Complex UI widgets are implemented via composition of these different rectangular shapes. In the case of widgets that need to perform complex shape rendering, they can resort to use Cairo for drawing into a rectangular surface that is further composed as another rectangular shape node. The following C enum present in the Gtk 3.94 sources (gsk/gskenums.h) describes all of the different shapes that are supported by Gsk:
@@ -160,7 +160,7 @@ The Form Scene Graph is our approach for adding an intermediate scene graph to M
 	- FormSGClipNode: Clipping by a 2D rectangle (GSK_CLIP_NODE)
 		- **FormSGRoundedClipNode**: Clipping by a 2D rounded rectangle (GSK_ROUNDED_CLIP_NODE)
 	- **FormSGContainerNode**: A container of a list of nodes (GSK_CONTAINER_NODE).
-	- **FormSGNullNode**: A node that draws nothing. This is a singleton (Null object pattern).
+	- **FormSGNullNode**: A node that draws nothing. This is a singleton and NullObject pattern.
 	- **FormSGRectangleNode**: A node that actually draws a shape encompassed in a 2D rectangle.
 		- **FormSGAthensNode**: A node that uses Cairo through Athens for drawing its content. (GSK_CAIRO_NODE)
 		- **FormSGBorderNode**: A node that draws the border of a rectangle (GSK_BORDER_NODE).
@@ -175,7 +175,7 @@ The Form Scene Graph is our approach for adding an intermediate scene graph to M
 		- **FormSGTextNode**: A node for drawing a colored text string. (GSK_TEXT_NODE)
 		- **FormSGTextureNode**: A node for drawing textures (instances of the Form class). (GSK_TEXTURE_NODE)
 
-Like any other tree hierarchy, the corresponding visitor interface for traversing the hierarchy is defined in the **FormSGVisitor** class. To reduce the complexity of building a rendering tree we provide the **FormSGBuilder** class. This builder also provides some facilities for optimizing out non-visible elements by keeping a stack of transformations and the current clipping rectangle. This tracking is required by some widgets such as the fast table which needs to know during rendering time its bounds. As another convenience for building a scene graph, the *FormSGNode>>#,* method is provided to facilitate composing nodes in a functional style.
+Like any other tree hierarchy, the corresponding visitor interface for traversing the hierarchy is defined in the **FormSGVisitor** class. To reduce the complexity of building a rendering tree we provide the **FormSGBuilder** class. This builder also provides some facilities for optimizing out non-visible elements by keeping a stack of transformations and the current clipping rectangle. This tracking is required by some widgets such as the fast table which needs to know during rendering time its bounds. As another convenience for building a scene graph, the `FormSGNode>>#,` method is provided to facilitate composing nodes in a functional style.
 
 ### The implementation of rendering backends
 Once a rendering tree is generated or obtained, the actual process of performing the actual rendering is performed by a rendering backend that is typically implemented as a visitor on the rendering tree. In our current implementation we provide the following three renderer backends:
@@ -184,9 +184,10 @@ Once a rendering tree is generated or obtained, the actual process of performing
 - **FormSGOSWindowGenericRenderer**: this is a renderer backend that uses the OSWindow generic renderer interface. The default implementation of this interface uses the SDL2 render API which may be implemented with a hardware accelerated API such as OpenGL.
 
 Most of the process required for constructing a new rendering backend for the scene graph is on creating a new visitor for the rendering tree. The hardest node to implement is the text node (FormSGTextNode) due to the peculiarities of text rendering such as providing support for subpixel anti-aliasing, and implementing a proper mechanism for caching text glyphs in a texture atlas in the case of using a GPU based accelerated rendering API. These problems with text rendering are not present in the **FormSGAthensRenderer** and in the **FormSGCanvasRenderer**, but there are present in the **FormSGOSWindowGenericRenderer** backend.
+SD: Can you explain why?
 
 ### Adapting Morphic to build the scene graph
-Integrating the Form Scene Graph in Morphic is a two step process. In the first step, Morphic has to be extended with methods for building its corresponding scene graph. In the second step, a Morphic world renderer that builds the scene graph and draws it into the actual window surface has to be implemented. In terms of the extension for building the scene graph, in an analogous way to the *#fullDrawOn:* and *#drawOn:* methods we introduce the *#buildFullSceneGraphWith:* and *#buildSceneGraphNodeWith:* methods to Morphic. These methods receive a scene graph builder as the argument. The source code for these methods is listed here:
+Integrating the Form Scene Graph in Morphic is a two step process. In the first step, Morphic has to be extended with methods for building its corresponding scene graph. In the second step, a Morphic world renderer that builds the scene graph and draws it into the actual window surface has to be implemented. In terms of the extension for building the scene graph, in an analogous way to the `#fullDrawOn:` and `#drawOn:` methods we introduce the `#buildFullSceneGraphWith:` and`*#buildSceneGraphNodeWith:` methods to Morphic. These methods receive a scene graph builder as the argument. The source code for these methods is listed here:
 
 ```smalltalk
 Morph >> buildFullSceneGraphWith: builder
@@ -225,7 +226,7 @@ World buildFullSceneGraphWith: FormSGBuilder new
 
 ![World Scene Graph Inspector](images/world-sg-inspector.png)
 
-One important property of this rendering tree is that it is much easier to scale than Morphic because all of the nodes can be scaled. For applying an additional factor scale it is enough to wrap this generated tree in an additional *FormSGTransformNode*. This property facilitates supporting hi-dpi rendering without having to recompute all of the Morphic UI layouts which may be hard coded (e.g. border rectangle widths, toolbar height, etc.).
+One important property of this rendering tree is that it is much easier to scale than Morphic because all of the nodes can be scaled. For applying an additional factor scale it is enough to wrap this generated tree in an additional `FormSGTransformNode`. This property facilitates supporting hi-dpi rendering without having to recompute all of the Morphic UI layouts which may be hard coded (e.g. border rectangle widths, toolbar height, etc.).
 
 ### Rendering the scene graph into the window surface
 For replacing the rendering mechanism of the main morphic world it is required to implement a subclass of **AbstractWorldRenderer** and override the class side *#isApplicableFor:* and *priority* methods to enable it. We provide the *FormSGWorldRenderer* generic base implementation that uses the *FormSGOSWindowGenericRenderer* backend, and the *FormAthensSGWorldRenderer* class that uses the *FormSGAthensRenderer* backend. These world renderers take care of computing the scale factor required for hi-dpi support, building the actual rendering tree by delegating to their corresponding *WorldMorph*, and drawing the rendering tree directly into the window surface by delegating to a rendering backend.
