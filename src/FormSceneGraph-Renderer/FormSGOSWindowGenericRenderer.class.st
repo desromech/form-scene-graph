@@ -251,7 +251,7 @@ FormSGOSWindowGenericRenderer >> visitCachedSubScene: node [
 	renderTarget := self validateCachedSubSceneRenderTarget: node extent: surfaceExtent.
 	renderTarget ifNil: [ ^ self visitNode: node clipChildNode ].
 
-	renderer useCompositeAlphaBlending.
+	renderer usePremultipliedCompositeAlphaBlending.
 	self attemptRectangle: rectangle textureBlittingWithPrecision: renderTarget extent: surfaceExtent.
 	renderer useCompositeAlphaBlending.
 
