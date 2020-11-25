@@ -183,10 +183,10 @@ FormSGOSWindowGenericRenderer >> transformPosition: aPosition [
 { #category : #transformation }
 FormSGOSWindowGenericRenderer >> transformRectangle: rectangle [
 	| bottomLeft bottomRight topLeft topRight |
-	bottomLeft := self transformPosition: rectangle bottomLeft.
-	bottomRight := self transformPosition: rectangle bottomRight.
-	topLeft := self transformPosition: rectangle topLeft.
-	topRight := self transformPosition: rectangle topRight.
+	bottomLeft := (self transformPosition: rectangle bottomLeft) rounded.
+	bottomRight := (self transformPosition: rectangle bottomRight) rounded.
+	topLeft := (self transformPosition: rectangle topLeft) rounded.
+	topRight := (self transformPosition: rectangle topRight) rounded.
 	^ Rectangle encompassing: { bottomLeft . bottomRight . topLeft . topRight }
 ]
 
@@ -358,7 +358,7 @@ FormSGOSWindowGenericRenderer >> withScale: newScale andTranslation: newTranslat
 	oldTranslation := currentTranslation.
 
 	currentScale := currentScale*newScale.
-	currentTranslation := currentTranslation + (oldScale * newTranslation).
+	currentTranslation := currentTranslation + (newTranslation*oldScale).
 	aBlock ensure: [
 		currentTranslation := oldTranslation.
 		currentScale := oldScale.
