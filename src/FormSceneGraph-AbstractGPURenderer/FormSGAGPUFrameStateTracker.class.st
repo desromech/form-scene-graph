@@ -6,10 +6,7 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'device',
-		'commandQueue',
-		'commandAllocator',
 		'commandList',
-		'fence',
 		'indexBuffer',
 		'indexBufferCapacity',
 		'vertexBuffer',
@@ -98,15 +95,7 @@ FormSGAGPUFrameStateTracker >> allocateUniformStorageForSGCommandLists: sgComman
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> buildCommandListWith: aBlock [
-	commandAllocator reset.
-	commandList reset: commandAllocator initial_pipeline_state: nil.
-	[
-		aBlock value: commandList
-	] ensure: [
-		commandList close
-	].
-
-	self submitUniformData
+	self subclassResponsibility
 ]
 
 { #category : #allocation }
@@ -184,26 +173,20 @@ FormSGAGPUFrameStateTracker >> ensureVertexBufferWithSize: requiredSize [
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> finishPreviousExecution [
-	fence ifNil: [ ^ self ].
-	fence waitOnClient.
-	usedResources removeAll.
+	self subclassResponsibility
 ]
 
 { #category : #initialization }
 FormSGAGPUFrameStateTracker >> initializeWithDrawCommandProcessor: drawCommandProcessor [
 	device := drawCommandProcessor device.
-	vertexBinding := device createVertexBinding: drawCommandProcessor vertexLayout.
+	vertexBinding := device createVertexBinding: drawCommandProcessor context vertexLayout.
 
-	uniformBinding := drawCommandProcessor shaderSignature createShaderResourceBinding: 1.
+	uniformBinding := drawCommandProcessor context shaderSignature createShaderResourceBinding: 1.
 	viewBoxTransformsData := OrderedCollection new.
 	linearGradientData := OrderedCollection new.
 	radialGradientData := OrderedCollection new.
 	usedResources := IdentitySet new.
-	
-	commandQueue := device getDefaultCommandQueue.
-	commandAllocator := device createCommandAllocator: AGPU_COMMAND_LIST_TYPE_DIRECT queue: commandQueue.
-	commandList := device createCommandList: AGPU_COMMAND_LIST_TYPE_DIRECT allocator: commandAllocator initial_pipeline_state: nil.
-	commandList close.
+
 	
 ]
 
@@ -286,12 +269,7 @@ FormSGAGPUFrameStateTracker >> setViewBoxScale: scale offset: offset [
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> submitToCommandQueue [
-	fence ifNil: [
-		fence := device createFence
-	].
-	commandQueue
-		addCommandList: commandList;
-		signalFence: fence.
+	self subclassResponsibility
 ]
 
 { #category : #'draw commands' }
