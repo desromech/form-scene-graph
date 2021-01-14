@@ -14,7 +14,7 @@ Class {
 { #category : #'node building' }
 FormSGAGPUBuilder >> agpuTextureNode [
 	^ FormSGAGPUTextureNode new
-		binding: (drawCommandProcessor shaderSignature createShaderResourceBinding: 2);
+		binding: (drawCommandProcessor context shaderSignature createShaderResourceBinding: 2);
 		yourself
 ]
 

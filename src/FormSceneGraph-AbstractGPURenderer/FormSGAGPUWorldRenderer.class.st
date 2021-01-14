@@ -8,7 +8,11 @@ Class {
 		'device',
 		'drawCommandProcessor',
 		'swapChain',
-		'swapChainExtent'
+		'swapChainExtent',
+		'isOutOfDate'
+	],
+	#pools : [
+		'AGPUConstants'
 	],
 	#category : #'FormSceneGraph-AbstractGPURenderer'
 }
@@ -56,6 +60,12 @@ FormSGAGPUWorldRenderer >> drawingSurfaceExtent [
 	^ osWindow ifNil: [ 1@1 ] ifNotNil: [ osWindow extent ]
 ]
 
+{ #category : #activation }
+FormSGAGPUWorldRenderer >> initialize [
+	super initialize.
+	isOutOfDate := true.
+]
+
 { #category : #testing }
 FormSGAGPUWorldRenderer >> isAGPUWorldRenderer [
 	^ true
@@ -78,7 +88,7 @@ FormSGAGPUWorldRenderer >> osWindowRenderer [
 FormSGAGPUWorldRenderer >> validateSwapChain [
 	| oldSwapChain requiredExtent swapChainInfo platformSpecificHandle |
 	requiredExtent := self drawingSurfaceExtent.
-	(swapChain isNotNil and: [ swapChainExtent = requiredExtent ]) ifTrue: [ ^ true ].
+	(swapChain isNotNil and: [ swapChainExtent = requiredExtent and: [isOutOfDate not]]) ifTrue: [ ^ true ].
 	
 	swapChainInfo := AGPUSwapChainCreateInfo new
 		buffer_count: 2;
@@ -100,6 +110,7 @@ FormSGAGPUWorldRenderer >> validateSwapChain [
 	swapChain := device createSwapChain: device getDefaultCommandQueue swapChainInfo: swapChainInfo.
 	swapChainExtent := requiredExtent.
 	oldSwapChain ifNotNil: [ oldSwapChain release ].
+	isOutOfDate := false.
 
 	^ swapChain isNotNil
 ]
