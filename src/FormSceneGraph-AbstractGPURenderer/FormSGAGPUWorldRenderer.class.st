@@ -47,7 +47,17 @@ FormSGAGPUWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectang
 	self drawCommandProcessor
 		processCommandListWithDependencies: sgCommandList mainRenderTarget: mainRenderTarget.
 
-	swapChain swapBuffers
+	[ 
+		swapChain swapBuffers
+	] on: AGPUError do: [ :ex |
+		| errorCode |
+		errorCode := ex errorCode.
+		(errorCode = AGPU_OUT_OF_DATE or: [ errorCode = AGPU_SUBOPTIMAL ]) ifTrue: [
+			errorCode = AGPU_OUT_OF_DATE ifTrue: [ isOutOfDate := true].
+		] ifFalse: [ 
+			ex signal
+		]
+	]
 ]
 
 { #category : #'scale factor' }
