@@ -103,8 +103,11 @@ FormSGAGPUDrawCommandProcessor >> createRenderTargetWithExtent: extent [
 { #category : #private }
 FormSGAGPUDrawCommandProcessor >> createRenderTargetWithExtent: extent colorBuffer: colorBuffer colorBufferView: colorBufferView framebuffer: framebuffer [
 	| binding |
-	binding := context shaderSignature createShaderResourceBinding: 2.
-	binding bindSampledTextureView: 0 view: colorBufferView.
+	binding := nil.
+	colorBufferView ifNotNil: [ 
+		binding := context shaderSignature createShaderResourceBinding: 2.
+		binding bindSampledTextureView: 0 view: colorBufferView.
+	].
 	
 	^ FormSGAGPURenderTarget new
 		device: context device;
