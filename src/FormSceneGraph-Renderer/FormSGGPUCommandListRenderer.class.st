@@ -31,13 +31,11 @@ FormSGGPUCommandListRenderer class >> render: sceneNode with: commandListBuilder
 
 { #category : #visiting }
 FormSGGPUCommandListRenderer >> attemptRectangleBlittingWithPrecision: rectangle extent: surfaceExtent [
-	| attemptScaledPixelPerfectBlitting |
-	attemptScaledPixelPerfectBlitting := currentTransform hasNoRotationAndScale: surfaceScaleFactor.
 	commandList
 		beginTriangles;
 		color: Color white.
 			
-	attemptScaledPixelPerfectBlitting ifTrue: [
+	self shouldAttemptScaledPixelPerfectBlitting ifTrue: [
 		| blitRectangle |
 		blitRectangle := (currentTransform transformPoint: rectangle origin) rounded extent: surfaceExtent.
 		commandList
@@ -122,16 +120,27 @@ FormSGGPUCommandListRenderer >> render: sceneNode with: theCommandListBuilder tr
 	self render: sceneNode with: theCommandListBuilder
 ]
 
+{ #category : #asserting }
+FormSGGPUCommandListRenderer >> shouldAttemptScaledPixelPerfectBlitting [
+	^ currentTransform hasNoRotationAndScale: surfaceScaleFactor
+]
+
 { #category : #visiting }
 FormSGGPUCommandListRenderer >> validateCachedSubSceneRenderTarget: node extent: extent [
 	commandList setRenderTargetTextureWithExtent: extent for: node withModificationCount: node modificationCount renderedWith: [:subsceneCommandList |
+		| translation |
+		translation := node rectangle origin negated rounded.
+		self shouldAttemptScaledPixelPerfectBlitting ifTrue: [
+			translation := translation rounded
+		].
+		
 		self class new
 			fontTextureAtlasCache: fontTextureAtlasCache;
 			surfaceScaleFactor: surfaceScaleFactor;
 			hasDirectSubpixelBlending: hasDirectSubpixelBlending;
 			render: node clipChildNode
 				with: subsceneCommandList
-				transform: (FormSGAffineTransform scale: surfaceScaleFactor) * (FormSGAffineTransform translation: node rectangle origin negated)
+				transform: (FormSGAffineTransform scale: surfaceScaleFactor) * (FormSGAffineTransform translation: translation)
 				clippingBounds: (0@0 extent: extent).
 	].
 	^ true
@@ -317,12 +326,13 @@ FormSGGPUCommandListRenderer >> visitTextNode: node [
 		color: node color.
 
 	scaledFont := font.
+	attemptScaledPixelPerfectBlitting := self shouldAttemptScaledPixelPerfectBlitting.
 	(surfaceScaleFactor closeTo: 1.0) ifFalse: [
-		scaledFont := scaledFont withSizeIncrementedBy: (scaledFont pointSize*surfaceScaleFactor) - scaledFont pointSize
+		scaledFont := scaledFont withSizeIncrementedBy: (scaledFont pointSize*surfaceScaleFactor) - scaledFont pointSize.
+		attemptScaledPixelPerfectBlitting := attemptScaledPixelPerfectBlitting and: [scaledFont ~~ font] .
 	].
 
 	hasSubpixelAntialiasing := false.
-	attemptScaledPixelPerfectBlitting := scaledFont ~~ font and: [currentTransform hasNoRotationAndScale: surfaceScaleFactor].
 	fontTextureAtlasCache processString: node string from: node firstIndex to: node lastIndex font: font scaledFont: scaledFont subpixelAllowed: true entriesWith: [ :glyphEntry :scaledGlyphEntry :character :nextCharacter |
 		scaledGlyphEntry page ifNotNil: [ :page |
 			| glyphForm sourceRectangle destRectangle |

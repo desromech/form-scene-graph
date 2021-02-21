@@ -61,10 +61,11 @@ FormSGOSWindowGenericRenderer >> blitFontPage: page glyphEntry: glyphEntry scale
 FormSGOSWindowGenericRenderer >> drawTextNodeString: node font: font startPosition: startPosition [
 	| scaledFont attemptScaledPixelPerfectBlitting hasSubpixelAntialiasing rectangle widthAndKernedWidth destPositionX destPositionY |
 	scaledFont := font.
+	attemptScaledPixelPerfectBlitting := currentScale closeTo: surfaceScaleFactor.
 	(currentScale closeTo: 1.0) ifFalse: [
-		scaledFont := scaledFont withSizeIncrementedBy: (scaledFont pointSize*currentScale) - scaledFont pointSize
+		scaledFont := scaledFont withSizeIncrementedBy: (scaledFont pointSize*currentScale) - scaledFont pointSize.
+		attemptScaledPixelPerfectBlitting := attemptScaledPixelPerfectBlitting and: [scaledFont ~~ font]
 	].
-	attemptScaledPixelPerfectBlitting := scaledFont ~~ font and: [currentScale closeTo: surfaceScaleFactor ].
 	hasSubpixelAntialiasing := false.
 
 	rectangle := node rectangle.
