@@ -26,7 +26,8 @@ Class {
 		'radialGradientsCount',
 		'radialGradientData',
 		'linearGradientData',
-		'usedResources'
+		'usedResources',
+		'useStorageBuffersInsteadOfUniformBuffers'
 	],
 	#pools : [
 		'AGPUConstants'
@@ -82,15 +83,22 @@ FormSGAGPUFrameStateTracker >> allocateUniformStorageForSGCommandLists: sgComman
 	linearGradientData removeAll.
 	linearGradientsCount := 0.
 	
-	viewBoxTransformDataSize := expectedViewBoxTransformsCount * "4*4" 16 alignedTo: 256.
-	linearGradientDataSize := linearGradientsCount * "12*4" 48 alignedTo: 256.
-	radialGradientDataSize := radialGradientsCount * "16*4" 64 alignedTo: 256.
+	viewBoxTransformDataSize := (expectedViewBoxTransformsCount * "4*4" 16 alignedTo: 256) max: 256.
+	linearGradientDataSize := (linearGradientsCount * "12*4" 48 alignedTo: 256) max: 256.
+	radialGradientDataSize := (radialGradientsCount * "16*4" 64 alignedTo: 256) max: 256.
 	self ensureUniformBufferWithSize: viewBoxTransformDataSize + linearGradientDataSize + radialGradientDataSize.
 	
-	uniformBinding
-		bindUniformBufferRange: 0 uniform_buffer: uniformBuffer offset: 0 size: (viewBoxTransformDataSize max: 256);
+	useStorageBuffersInsteadOfUniformBuffers ifTrue: [ 
+		uniformBinding
+		bindStorageBufferRange: 0 storage_buffer: uniformBuffer offset: 0 size: viewBoxTransformDataSize;
+		bindStorageBufferRange: 1 storage_buffer: uniformBuffer offset: viewBoxTransformDataSize size: (linearGradientDataSize max: 256);
+		bindStorageBufferRange: 2 storage_buffer: uniformBuffer offset: viewBoxTransformDataSize + linearGradientDataSize size: radialGradientDataSize
+	] ifFalse: [ 
+uniformBinding
+		bindUniformBufferRange: 0 uniform_buffer: uniformBuffer offset: 0 size: viewBoxTransformDataSize;
 		bindUniformBufferRange: 1 uniform_buffer: uniformBuffer offset: viewBoxTransformDataSize size: (linearGradientDataSize max: 256);
-		bindUniformBufferRange: 2 uniform_buffer: uniformBuffer offset: viewBoxTransformDataSize + linearGradientDataSize size: (radialGradientDataSize max: 256)
+		bindUniformBufferRange: 2 uniform_buffer: uniformBuffer offset: viewBoxTransformDataSize + linearGradientDataSize size: radialGradientDataSize
+	]
 ]
 
 { #category : #'draw commands' }
@@ -122,6 +130,7 @@ FormSGAGPUFrameStateTracker >> ensureIndexBufferWithSize: requiredSize [
 
 { #category : #allocation }
 FormSGAGPUFrameStateTracker >> ensureUniformBufferWithSize: requiredSize [
+    | usageMode |
 	(uniformBuffer isNotNil and: [uniformBufferCapacity >= requiredSize]) ifTrue: [
 		^ uniformBuffer
 	].
@@ -131,16 +140,20 @@ FormSGAGPUFrameStateTracker >> ensureUniformBufferWithSize: requiredSize [
 		uniformBuffer := nil.
 	].
 
+	usageMode := useStorageBuffersInsteadOfUniformBuffers
+        ifTrue: [AGPU_STORAGE_BUFFER]
+        ifFalse: [AGPU_UNIFORM_BUFFER].
 	uniformBufferCapacity := (requiredSize max: 4096) alignedTo: 4096.
 	uniformBuffer := device createBuffer: (AGPUBufferDescription new
 		heap_type: AGPU_MEMORY_HEAP_TYPE_HOST_TO_DEVICE;
 		size: uniformBufferCapacity;
-		usage_modes: AGPU_UNIFORM_BUFFER;
-		main_usage_mode: AGPU_UNIFORM_BUFFER;
+		usage_modes: usageMode;
+		main_usage_mode: usageMode;
 		mapping_flags: AGPU_MAP_WRITE_BIT;
 		yourself) initial_data: nil.
 		
 	^ uniformBuffer
+
 ]
 
 { #category : #allocation }
@@ -182,6 +195,7 @@ FormSGAGPUFrameStateTracker >> initializeWithDrawCommandProcessor: drawCommandPr
 	vertexBinding := device createVertexBinding: drawCommandProcessor context vertexLayout.
 
 	uniformBinding := drawCommandProcessor context shaderSignature createShaderResourceBinding: 1.
+	useStorageBuffersInsteadOfUniformBuffers := drawCommandProcessor context useStorageBuffersInsteadOfUniformBuffers.
 	viewBoxTransformsData := OrderedCollection new.
 	linearGradientData := OrderedCollection new.
 	radialGradientData := OrderedCollection new.

@@ -32,7 +32,7 @@ FormSGAGPUWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectang
 	mainRenderTarget := FormSGAGPURenderTarget new
 		device: self device;
 		framebuffer: backBuffer;
-		extent: swapChainExtent;
+		extent: self drawingSurfaceExtent;
 		renderpass: self drawCommandProcessor defaultRenderPass;
 		yourself.
 
@@ -67,6 +67,10 @@ FormSGAGPUWorldRenderer >> drawCommandProcessor [
 
 { #category : #'scale factor' }
 FormSGAGPUWorldRenderer >> drawingSurfaceExtent [
+	(swapChain isNotNil and: [ swapChain isNull not ]) ifTrue: [ 
+		^ swapChain getWidth @ swapChain getHeight
+	].
+
 	^ osWindow ifNil: [ 1@1 ] ifNotNil: [ osWindow extent ]
 ]
 
@@ -97,7 +101,7 @@ FormSGAGPUWorldRenderer >> osWindowRenderer [
 { #category : #'scale factor' }
 FormSGAGPUWorldRenderer >> validateSwapChain [
 	| oldSwapChain requiredExtent swapChainInfo platformSpecificHandle |
-	requiredExtent := self drawingSurfaceExtent.
+	requiredExtent := self windowExtent.
 	(swapChain isNotNil and: [ swapChainExtent = requiredExtent and: [isOutOfDate not]]) ifTrue: [ ^ true ].
 	
 	swapChainInfo := AGPUSwapChainCreateInfo new
@@ -105,6 +109,7 @@ FormSGAGPUWorldRenderer >> validateSwapChain [
 		colorbuffer_format: self drawCommandProcessor colorBufferFormat;
 		width: requiredExtent x;
 		height: requiredExtent y;
+		flags: AGPU_SWAP_CHAIN_FLAG_APPLY_SCALE_FACTOR_FOR_HI_DPI;
 		yourself.
 
 	platformSpecificHandle := osWindow platformSpecificHandle.

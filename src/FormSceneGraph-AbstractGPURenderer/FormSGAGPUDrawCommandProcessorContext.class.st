@@ -24,7 +24,8 @@ Class {
 		'radialGradientPipelineState',
 		'premultipliedTexturedPipelineState',
 		'fullyOpaqueTexturedPipelineState',
-		'hasColorCorrection'
+		'hasColorCorrection',
+		'useStorageBuffersInsteadOfUniformBuffers'
 	],
 	#classVars : [
 		'DefaultHasColorCorrection'
@@ -78,9 +79,7 @@ FormSGAGPUDrawCommandProcessorContext >> colorBufferFormat [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> colorFragmentShader [
-	^ '
-#version 450
-
+	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;
 layout(location=0) out vec4 outColor;
 	
@@ -229,14 +228,19 @@ FormSGAGPUDrawCommandProcessorContext >> createSampler [
 
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessorContext >> createShaderSignature [
+	| bufferType |
+	bufferType := self useStorageBuffersInsteadOfUniformBuffers
+		ifTrue: [ AGPU_SHADER_BINDING_TYPE_STORAGE_BUFFER ]
+		ifFalse: [ AGPU_SHADER_BINDING_TYPE_UNIFORM_BUFFER  ].
+		 
 	shaderSignature := device createShaderSignatureBuilder
 		beginBindingBank: 1;
 		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_SAMPLER bindingPointCount: 1;
 
 		beginBindingBank: 100;
-		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_UNIFORM_BUFFER bindingPointCount: 1;
-		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_UNIFORM_BUFFER bindingPointCount: 1;
-		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_UNIFORM_BUFFER bindingPointCount: 1;
+		addBindingBankElement: bufferType bindingPointCount: 1;
+		addBindingBankElement: bufferType bindingPointCount: 1;
+		addBindingBankElement: bufferType bindingPointCount: 1;
 
 		beginBindingBank: 1000;
 		addBindingBankElement: AGPU_SHADER_BINDING_TYPE_SAMPLED_IMAGE bindingPointCount: 1;
@@ -303,9 +307,7 @@ FormSGAGPUDrawCommandProcessorContext >> fontTextureAtlasCache: aFontTextureAtla
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> fullyOpaqueTexturedFragmentShader [
-	^ '
-#version 450
-
+	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
 layout(location=1) in vec2 inTexcoord;
 
@@ -365,9 +367,7 @@ FormSGAGPUDrawCommandProcessorContext >> initializeWithDevice: theDevice [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> linearGradientFragmentShader [
-	^ '
-#version 450
-
+	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;
 layout(location=1) in vec2 inTexcoord;
 layout(location=0) out vec4 outColor;
@@ -380,9 +380,15 @@ struct LinearGradient {
 	vec4 endColor;
 };
 
+#ifdef USE_STORAGE_BUFFERS
+layout(set=1, binding=1, std140) buffer LinearGradients { 
+	LinearGradient linearGradients[];
+};	
+#else
 layout(set=1, binding=1, std140) uniform LinearGradients { 
 	LinearGradient linearGradients[1000];
 };	
+#endif
 
 layout(push_constant) uniform Indices { 
 	uint viewBoxTransformIndex;
@@ -426,9 +432,7 @@ FormSGAGPUDrawCommandProcessorContext >> linearSamplerBinding [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> premultipliedTexturedFragmentShader [
-	^ '
-#version 450
-
+	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
 layout(location=1) in vec2 inTexcoord;
 
@@ -460,9 +464,7 @@ FormSGAGPUDrawCommandProcessorContext >> projectionInvertedY [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> radialGradientFragmentShader [
-	^ '
-#version 450
-
+	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;
 layout(location=1) in vec2 inTexcoord;
 layout(location=0) out vec4 outColor;
@@ -480,9 +482,15 @@ struct RadialGradient {
 	vec4 endColor;
 };
 
-layout(set=1, binding=1, std140) uniform RadialGradients { 
+#ifdef USE_STORAGE_BUFFERS
+layout(set=1, binding=2, std140) buffer RadialGradients { 
+	RadialGradient radialGradients[];
+};	
+#else
+layout(set=1, binding=2, std140) uniform RadialGradients { 
 	RadialGradient radialGradients[1000];
 };	
+#endif
 
 layout(push_constant) uniform Indices { 
 	uint viewBoxTransformIndex;
@@ -521,6 +529,21 @@ FormSGAGPUDrawCommandProcessorContext >> renderTargetDictionary [
 	^ renderTargetDictionary
 ]
 
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> shaderFlags [
+	| result |
+	result := '#version 450
+'.
+
+	self useStorageBuffersInsteadOfUniformBuffers ifTrue: [
+		result := result , '
+#define USE_STORAGE_BUFFERS
+'
+	].
+
+	^ result
+]
+
 { #category : #accessing }
 FormSGAGPUDrawCommandProcessorContext >> shaderSignature [
 	^ shaderSignature
@@ -528,9 +551,7 @@ FormSGAGPUDrawCommandProcessorContext >> shaderSignature [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> subpixelFragmentShader [
-	^ '
-#version 450
-
+	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
 layout(location=1) in vec2 inTexcoord;
 
@@ -579,9 +600,7 @@ FormSGAGPUDrawCommandProcessorContext >> textureWithModificationCountDictionary 
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> texturedFragmentShader [
-	^ '
-#version 450
-
+	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
 layout(location=1) in vec2 inTexcoord;
 
@@ -605,6 +624,11 @@ FormSGAGPUDrawCommandProcessorContext >> texturedPipelineState [
 	^ texturedPipelineState
 ]
 
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> useStorageBuffersInsteadOfUniformBuffers [
+	^ useStorageBuffersInsteadOfUniformBuffers ifNil: [ useStorageBuffersInsteadOfUniformBuffers := Smalltalk platform isMacOSX ]
+]
+
 { #category : #accessing }
 FormSGAGPUDrawCommandProcessorContext >> vertexLayout [
 	^ vertexLayout
@@ -612,8 +636,7 @@ FormSGAGPUDrawCommandProcessorContext >> vertexLayout [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> vertexShader [
-	^ '
-#version 450
+	^ self shaderFlags , '
 layout(location=0) in vec2 inPosition;
 layout(location=1) in vec4 inColor;
 layout(location=2) in vec2 inTexcoord;
@@ -621,9 +644,15 @@ layout(location=2) in vec2 inTexcoord;
 layout(location=0) out vec4 outColor;
 layout(location=1) out vec2 outTexcoord;
 
+#ifdef USE_STORAGE_BUFFERS
+layout(set=1, binding=0, std140) buffer ViewBoxTransforms { 
+	vec4 viewBoxTransforms[];
+};	
+#else
 layout(set=1, binding=0, std140) uniform ViewBoxTransforms { 
 	vec4 viewBoxTransforms[1000];
 };	
+#endif
 
 layout(push_constant) uniform Indices { 
 	uint viewBoxTransformIndex;
