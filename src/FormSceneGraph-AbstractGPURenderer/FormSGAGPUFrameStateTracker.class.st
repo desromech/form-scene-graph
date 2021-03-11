@@ -288,7 +288,7 @@ FormSGAGPUFrameStateTracker >> submitToCommandQueue [
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> submitUniformData [
-	| destOffset copyFloatBlock uniformBufferAddress |
+	| destOffset copyFloatBlock uniformBufferAddress linearGradientDataOffset radialGradientDataOffset |
 	self assert: viewBoxTransformsCount = expectedViewBoxTransformsCount.
 	self assert: radialGradientsCount = expectedRadialGradientsCount.
 	self assert: linearGradientsCount = expectedLinearGradientsCount.
@@ -303,10 +303,10 @@ FormSGAGPUFrameStateTracker >> submitUniformData [
 	].
 
 	viewBoxTransformsData do: copyFloatBlock.
-	destOffset := destOffset alignedTo: 256.
+	linearGradientDataOffset := destOffset := (destOffset alignedTo: 256) max: 256.
 
 	linearGradientData do: copyFloatBlock.
-	destOffset := destOffset alignedTo: 256.
+	radialGradientDataOffset := destOffset := (destOffset alignedTo: 256) max: linearGradientDataOffset + 256.
 
 	radialGradientData do: copyFloatBlock.
 	destOffset := destOffset alignedTo: 256.
