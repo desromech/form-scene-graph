@@ -45,19 +45,7 @@ FormSGAGPUWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectang
 		render: newSceneGraph with: sgCommandList transform: FormSGAffineTransform identity clippingBounds: (0@0 extent: self drawingSurfaceExtent).
 	
 	self drawCommandProcessor
-		processCommandListWithDependencies: sgCommandList mainRenderTarget: mainRenderTarget.
-
-	[ 
-		swapChain swapBuffers
-	] on: AGPUError do: [ :ex |
-		| errorCode |
-		errorCode := ex errorCode.
-		(errorCode = AGPU_OUT_OF_DATE or: [ errorCode = AGPU_SUBOPTIMAL ]) ifTrue: [
-			errorCode = AGPU_OUT_OF_DATE ifTrue: [ isOutOfDate := true].
-		] ifFalse: [ 
-			ex signal
-		]
-	]
+		processCommandListWithDependencies: sgCommandList mainRenderTarget: mainRenderTarget thenCommitSurfaceWith: [ self swapBuffers ]
 ]
 
 { #category : #'scale factor' }
@@ -96,6 +84,21 @@ FormSGAGPUWorldRenderer >> newBuilderWithExtent: extent [
 { #category : #initialization }
 FormSGAGPUWorldRenderer >> osWindowRenderer [
 	^ nil
+]
+
+{ #category : #'scale factor' }
+FormSGAGPUWorldRenderer >> swapBuffers [
+	[ 
+		swapChain swapBuffers
+	] on: AGPUError do: [ :ex |
+		| errorCode |
+		errorCode := ex errorCode.
+		(errorCode = AGPU_OUT_OF_DATE or: [ errorCode = AGPU_SUBOPTIMAL ]) ifTrue: [
+			errorCode = AGPU_OUT_OF_DATE ifTrue: [ isOutOfDate := true].
+		] ifFalse: [ 
+			ex signal
+		]
+	]
 ]
 
 { #category : #'scale factor' }

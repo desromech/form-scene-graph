@@ -32,6 +32,6 @@ FormSGExternallySynchronizedAGPUFrameStateTracker >> finishPreviousExecution [
 ]
 
 { #category : #'draw commands' }
-FormSGExternallySynchronizedAGPUFrameStateTracker >> submitToCommandQueue [
-	"Nothing required here"
+FormSGExternallySynchronizedAGPUFrameStateTracker >> submitToCommandQueueThenCommitSurfaceWith: commitSurfaceBlock [
+	"Nothing is required here"
 ]

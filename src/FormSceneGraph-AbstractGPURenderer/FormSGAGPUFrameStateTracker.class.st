@@ -27,7 +27,10 @@ Class {
 		'radialGradientData',
 		'linearGradientData',
 		'usedResources',
-		'useStorageBuffersInsteadOfUniformBuffers'
+		'useStorageBuffersInsteadOfUniformBuffers',
+		'viewBoxTransformDataSize',
+		'linearGradientDataSize',
+		'radialGradientDataSize'
 	],
 	#pools : [
 		'AGPUConstants'
@@ -58,7 +61,6 @@ FormSGAGPUFrameStateTracker >> activateVerticesAndIndices [
 
 { #category : #allocation }
 FormSGAGPUFrameStateTracker >> allocateUniformStorageForSGCommandLists: sgCommandLists [
-	| viewBoxTransformDataSize linearGradientDataSize radialGradientDataSize |
 	expectedViewBoxTransformsCount := sgCommandLists size.
 	expectedLinearGradientsCount := 0.
 	expectedRadialGradientsCount := 0.
@@ -120,7 +122,7 @@ FormSGAGPUFrameStateTracker >> ensureIndexBufferWithSize: requiredSize [
 		size: indexBufferCapacity;
 		usage_modes: AGPU_ELEMENT_ARRAY_BUFFER;
 		main_usage_mode: AGPU_ELEMENT_ARRAY_BUFFER;
-		mapping_flags: AGPU_MAP_WRITE_BIT;
+		mapping_flags: AGPU_MAP_DYNAMIC_STORAGE_BIT;
 		yourself) initial_data: nil.
 		
 	indexBufferSize := requiredSize.
@@ -149,7 +151,7 @@ FormSGAGPUFrameStateTracker >> ensureUniformBufferWithSize: requiredSize [
 		size: uniformBufferCapacity;
 		usage_modes: usageMode;
 		main_usage_mode: usageMode;
-		mapping_flags: AGPU_MAP_WRITE_BIT;
+		mapping_flags: AGPU_MAP_DYNAMIC_STORAGE_BIT;
 		yourself) initial_data: nil.
 		
 	^ uniformBuffer
@@ -175,7 +177,7 @@ FormSGAGPUFrameStateTracker >> ensureVertexBufferWithSize: requiredSize [
 		size: vertexBufferCapacity;
 		usage_modes: AGPU_ARRAY_BUFFER;
 		main_usage_mode: AGPU_ARRAY_BUFFER;
-		mapping_flags: AGPU_MAP_WRITE_BIT;
+		mapping_flags: AGPU_MAP_DYNAMIC_STORAGE_BIT;
 		yourself) initial_data: nil.
 		
 	vertexBinding bindVertexBuffers: 1 vertex_buffers: (AGPU packListOfReferences: {vertexBuffer}).
@@ -282,23 +284,23 @@ FormSGAGPUFrameStateTracker >> setViewBoxScale: scale offset: offset [
 ]
 
 { #category : #'draw commands' }
-FormSGAGPUFrameStateTracker >> submitToCommandQueue [
+FormSGAGPUFrameStateTracker >> submitToCommandQueueThenCommitSurfaceWith: commitSurfaceBlock [
 	self subclassResponsibility
 ]
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> submitUniformData [
-	| destOffset copyFloatBlock uniformBufferAddress linearGradientDataOffset radialGradientDataOffset |
+	| destOffset copyFloatBlock uniformBufferAddress linearGradientDataOffset radialGradientDataOffset encodedUniformBufferData |
 	self assert: viewBoxTransformsCount = expectedViewBoxTransformsCount.
 	self assert: radialGradientsCount = expectedRadialGradientsCount.
 	self assert: linearGradientsCount = expectedLinearGradientsCount.
 	(viewBoxTransformsData isEmpty and: [ linearGradientData isEmpty and: [ radialGradientData isEmpty ] ]) ifTrue: [ ^ self ].
 
-	uniformBufferAddress := (uniformBuffer mapBuffer: AGPU_WRITE_ONLY) getHandle.
+	encodedUniformBufferData := ByteArray new: viewBoxTransformDataSize + linearGradientDataSize + radialGradientDataSize.
 
 	destOffset := 0.
 	copyFloatBlock := [ :float |
-		uniformBufferAddress float32AtOffset: destOffset put: float.
+		encodedUniformBufferData float32AtOffset: destOffset put: float.
 		destOffset := destOffset + 4
 	].
 
@@ -311,5 +313,5 @@ FormSGAGPUFrameStateTracker >> submitUniformData [
 	radialGradientData do: copyFloatBlock.
 	destOffset := destOffset alignedTo: 256.
 
-	uniformBuffer unmapBuffer.
+	uniformBuffer uploadBufferData: 0 size: encodedUniformBufferData size data: encodedUniformBufferData.
 ]

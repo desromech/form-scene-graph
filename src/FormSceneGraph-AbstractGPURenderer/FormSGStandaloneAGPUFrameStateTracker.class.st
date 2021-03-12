@@ -46,11 +46,11 @@ FormSGStandaloneAGPUFrameStateTracker >> initializeWithDrawCommandProcessor: dra
 ]
 
 { #category : #'draw commands' }
-FormSGStandaloneAGPUFrameStateTracker >> submitToCommandQueue [
+FormSGStandaloneAGPUFrameStateTracker >> submitToCommandQueueThenCommitSurfaceWith: commitSurfaceBlock [
 	fence ifNil: [
 		fence := device createFence
 	].
-	commandQueue
-		addCommandList: commandList;
-		signalFence: fence.
+	commandQueue addCommandList: commandList.
+	commitSurfaceBlock value.
+	commandQueue signalFence: fence.
 ]

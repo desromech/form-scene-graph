@@ -220,9 +220,7 @@ FormSGAGPUDrawCommandProcessor >> getOrCreateRenderTargetWithExtent: extent for:
 	| renderTarget |
 	renderTarget := context renderTargetDictionary at: keyObject
 		ifAbsentPut: [ self createRenderTargetWithExtent: extent ].
-	(renderTarget extent ~= extent or: [
-	renderTarget modificationCount isNil or: [
-	renderTarget modificationCount < modificationCount ] ]) ifTrue: [
+	renderTarget extent ~= extent ifTrue: [
 		renderTarget := context renderTargetDictionary at: keyObject put: (self createRenderTargetWithExtent: extent)
 	].
 	^ renderTarget
@@ -233,8 +231,7 @@ FormSGAGPUDrawCommandProcessor >> getOrCreateTextureWithExtent: extent for: keyO
 	| texture |
 	texture := context textureWithModificationCountDictionary at: keyObject
 		ifAbsentPut: [ self createTextureWithExtent: extent format: textureFormat ].
-	(texture extent ~= extent
-	and: [ texture modificationCount isNil or: [ texture modificationCount < modificationCount ] ]) ifTrue: [
+	texture extent ~= extent ifTrue: [
 		texture := context textureWithModificationCountDictionary at: keyObject put: (self createTextureWithExtent: extent format: textureFormat)
 	].
 	^ texture
@@ -264,6 +261,11 @@ FormSGAGPUDrawCommandProcessor >> noTexture [
 
 { #category : #api }
 FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGCommandList mainRenderTarget: mainRenderTarget [
+	self processCommandListWithDependencies: mainSGCommandList mainRenderTarget: mainRenderTarget thenCommitSurfaceWith: []
+]
+
+{ #category : #api }
+FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGCommandList mainRenderTarget: mainRenderTarget thenCommitSurfaceWith: commitSurfaceBlock [
 	| verticesOffsets indicesOffsets sortedCommandList |
 	sortedCommandList := FormSGAGPUCommandListSetBuilder new
 		drawCommandProcessor: self;
@@ -303,7 +305,7 @@ FormSGAGPUDrawCommandProcessor >> processCommandListWithDependencies: mainSGComm
 
 			] ensure: [ commandList := nil]
 		];
-		submitToCommandQueue.
+		submitToCommandQueueThenCommitSurfaceWith: commitSurfaceBlock.
 		
 	frameIndex := (frameIndex + 1) % frameStateTrackers size.
 	frameStateTracker := frameStateTrackers at: frameIndex + 1.
@@ -446,7 +448,7 @@ FormSGAGPUDrawCommandProcessor >> setScissor: command [
 
 { #category : #private }
 FormSGAGPUDrawCommandProcessor >> uploadIndicesForSGCommandsLists: sgCommandLists [
-	| requiredSize offsets indexBuffer indexBufferAddress destOffset |
+	| requiredSize offsets indexBuffer destOffset encodedIndices |
 	requiredSize := 0.
 	offsets := sgCommandLists collect: [ :each |
 		| offset |
@@ -456,18 +458,18 @@ FormSGAGPUDrawCommandProcessor >> uploadIndicesForSGCommandsLists: sgCommandList
 	].
 
 	indexBuffer := frameStateTracker ensureIndexBufferWithSize: requiredSize.
-	indexBufferAddress := (indexBuffer mapBuffer: AGPU_WRITE_ONLY) getHandle.
 
+	encodedIndices := ByteArray new: requiredSize.
 	destOffset := 0.
 	sgCommandLists do: [ :each |
 		each indices do: [ :index |
-			indexBufferAddress uint16AtOffset: destOffset put: index.
+			encodedIndices uint16AtOffset: destOffset put: index.
 			destOffset := destOffset + 2
 		]
 	].
 	self assert: destOffset = requiredSize.
-	
-	indexBuffer unmapBuffer.
+
+	indexBuffer uploadBufferData: 0 size: requiredSize data: encodedIndices.
 	^ offsets
 ]
 
@@ -481,7 +483,7 @@ FormSGAGPUDrawCommandProcessor >> uploadModifiedTextureFontCachePages [
 
 { #category : #private }
 FormSGAGPUDrawCommandProcessor >> uploadVerticesForSGCommandsLists: sgCommandLists [
-	| requiredSize offsets vertexBuffer vertexBufferAddress destOffset |
+	| requiredSize offsets vertexBuffer destOffset encodedVertices |
 	requiredSize := 0.
 	offsets := sgCommandLists collect: [ :each |
 		| offset |
@@ -491,18 +493,18 @@ FormSGAGPUDrawCommandProcessor >> uploadVerticesForSGCommandsLists: sgCommandLis
 	].
 
 	vertexBuffer := frameStateTracker ensureVertexBufferWithSize: requiredSize.
-	vertexBufferAddress := (vertexBuffer mapBuffer: AGPU_WRITE_ONLY) getHandle.
 
+	encodedVertices := ByteArray new: requiredSize.
 	destOffset := 0.
 	sgCommandLists do: [ :each |
 		each vertices do: [ :vertex |
-			vertexBufferAddress float32AtOffset: destOffset put: vertex.
+			encodedVertices float32AtOffset: destOffset put: vertex.
 			destOffset := destOffset + 4
 		]
 	].
 	self assert: destOffset = requiredSize.
-	
-	vertexBuffer unmapBuffer.
+
+	vertexBuffer uploadBufferData: 0 size: requiredSize data: encodedVertices.
 
 	^ offsets
 ]
