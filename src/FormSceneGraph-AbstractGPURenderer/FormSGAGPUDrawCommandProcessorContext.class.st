@@ -502,7 +502,8 @@ void main()
 { 
 	RadialGradient gradient = radialGradients[gradientIndex];
 	float radius = (length(inTexcoord - gradient.center) + length(inTexcoord - gradient.focalPoint))*0.5;
-	if (radius < gradient.clipInnerRadius || radius > gradient.clipOuterRadius)
+	float clipFactor = smoothstep(gradient.clipInnerRadius - 0.5, gradient.clipInnerRadius + 0.5, radius) * (1.0 - smoothstep(gradient.clipOuterRadius - 0.5, gradient.clipOuterRadius + 0.5, radius));
+	if (clipFactor == 0.0)
 		discard;
 
 	float alpha = clamp((radius - gradient.innerRadius) / max(gradient.outerRadius - gradient.innerRadius, 0.00001), 0.0, 1.0);
@@ -511,7 +512,7 @@ void main()
 	vec4 endColor = vec4(pow(gradient.endColor.rgb, vec3(colorGamma)), gradient.endColor.a);
 	vec4 resultColor = mix(startColor, endColor, alpha);
 
-	outColor = vec4(resultColor.rgb*resultColor.a, resultColor.a);
+	outColor = vec4(resultColor.rgb*resultColor.a*clipFactor, resultColor.a*clipFactor);
 }
 
 '
