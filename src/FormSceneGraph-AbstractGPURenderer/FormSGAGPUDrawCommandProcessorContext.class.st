@@ -502,7 +502,8 @@ void main()
 { 
 	RadialGradient gradient = radialGradients[gradientIndex];
 	float radius = (length(inTexcoord - gradient.center) + length(inTexcoord - gradient.focalPoint))*0.5;
-	float clipFactor = smoothstep(gradient.clipInnerRadius - 0.5, gradient.clipInnerRadius + 0.5, radius) * (1.0 - smoothstep(gradient.clipOuterRadius - 0.5, gradient.clipOuterRadius + 0.5, radius));
+	float delta = fwidth(radius);
+	float clipFactor = smoothstep(gradient.clipInnerRadius - delta, gradient.clipInnerRadius, radius) * (1.0 - smoothstep(gradient.clipOuterRadius - delta, gradient.clipOuterRadius, radius));
 	if (clipFactor == 0.0)
 		discard;
 
