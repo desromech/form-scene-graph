@@ -1,7 +1,7 @@
-Extension { #name : #ToggleMenuItemShortcutWithSymbol }
+Extension { #name : #ToggleWithSymbolMenuItemShortcut }
 
 { #category : #'*FormSceneGraph-Morphic' }
-ToggleMenuItemShortcutWithSymbol >> buildSceneGraphNodeWith: builder [
+ToggleWithSymbolMenuItemShortcut >> buildSceneGraphNodeWith: builder [
 	| text keyFont keyBounds paragraph |
 	text := self text.
 	keyFont := self class symbolFont.

@@ -381,7 +381,7 @@ struct LinearGradient {
 };
 
 #ifdef USE_STORAGE_BUFFERS
-layout(set=1, binding=1, std140) buffer LinearGradients { 
+layout(set=1, binding=1, std430) buffer LinearGradients { 
 	LinearGradient linearGradients[];
 };	
 #else
@@ -483,7 +483,7 @@ struct RadialGradient {
 };
 
 #ifdef USE_STORAGE_BUFFERS
-layout(set=1, binding=2, std140) buffer RadialGradients { 
+layout(set=1, binding=2, std430) buffer RadialGradients { 
 	RadialGradient radialGradients[];
 };	
 #else
@@ -647,7 +647,7 @@ layout(location=0) out vec4 outColor;
 layout(location=1) out vec2 outTexcoord;
 
 #ifdef USE_STORAGE_BUFFERS
-layout(set=1, binding=0, std140) buffer ViewBoxTransforms { 
+layout(set=1, binding=0, std430) buffer ViewBoxTransforms { 
 	vec4 viewBoxTransforms[];
 };	
 #else
