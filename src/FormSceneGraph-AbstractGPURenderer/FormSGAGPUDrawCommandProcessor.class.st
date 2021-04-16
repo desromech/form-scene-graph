@@ -16,7 +16,9 @@ Class {
 		'frameStateTrackers',
 		'frameIndex',
 		'useSubpixelBlendingFirstPass',
-		'hasDirectSubpixelBlending'
+		'hasDirectSubpixelBlending',
+		'blendingChanged',
+		'hasTexture'
 	],
 	#pools : [
 		'AGPUConstants'
@@ -185,11 +187,13 @@ FormSGAGPUDrawCommandProcessor >> device [
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> drawElements: command [
+	self validateState.
 	commandList drawElements: command indexCount instance_count: 1 first_index: command firstIndex + baseIndex base_vertex: baseVertex base_instance: 0
 ]
 
 { #category : #private }
 FormSGAGPUDrawCommandProcessor >> enableTexturing [
+	hasTexture := true.
 	useSubpixelBlending ifTrue: [
 		hasDirectSubpixelBlending ifTrue: [ 
 			self activatePipelineState: context subpixelPipelineState
@@ -207,7 +211,7 @@ FormSGAGPUDrawCommandProcessor >> enableTexturing [
 			self activatePipelineState: context texturedPipelineState
 		].
 	].
-
+	blendingChanged := false.
 ]
 
 { #category : #accessing }
@@ -272,7 +276,9 @@ FormSGAGPUDrawCommandProcessor >> isRenderTargetCommandValidated: command [
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> noTexture [
-	self activatePipelineState: context colorPipelineState
+	hasTexture := false.
+	blendingChanged := false.
+	self activatePipelineState: context colorPipelineState.
 ]
 
 { #category : #api }
@@ -422,6 +428,7 @@ FormSGAGPUDrawCommandProcessor >> setFormTextureWithModificationCount: command [
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setLinearGradientCommand: command [
+	hasTexture := false.
 	self activatePipelineState: context linearGradientPipelineState.
 	frameStateTracker setLinearGradientStartPoint: command startPoint color: command startColor
 		endPoint: command endPoint color: command endColor
@@ -429,6 +436,7 @@ FormSGAGPUDrawCommandProcessor >> setLinearGradientCommand: command [
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> setRadialGradientCommand: command [
+	hasTexture := false.
 	self activatePipelineState: context radialGradientPipelineState.
 	frameStateTracker setRadialGradiantCenter: command center focalPoint: command focalPoint
 		clipInnerRadius: command clipInnerRadius innerRadius: command innerRadius
@@ -441,6 +449,7 @@ FormSGAGPUDrawCommandProcessor >> setRenderTargetWithModificationCount: command 
 	| renderTarget |
 	renderTarget := self getOrCreateRenderTargetWithExtent: command extent for: command keyObject modificationCount: command modificationCount.
 
+	hasTexture := false.
 	self activatePipelineState: context premultipliedTexturedPipelineState.
 	renderTarget recordOnFrameStateTracker: frameStateTracker.
 	commandList useShaderResources: renderTarget binding.
@@ -529,19 +538,21 @@ FormSGAGPUDrawCommandProcessor >> uploadVerticesForSGCommandsLists: sgCommandLis
 FormSGAGPUDrawCommandProcessor >> useCompositeAlphaBlending [
 	useSubpixelBlending := false.
 	hasFullyOpaqueBlending := false.
+	blendingChanged := true.
 ]
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useFullyOpaqueBlending [
 	useSubpixelBlending := false.
 	hasFullyOpaqueBlending := true.
+	blendingChanged := true.
 ]
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useSubpixelDualOutputBlending [
 	self assert: hasDirectSubpixelBlending. 
 	useSubpixelBlending := true.
-	useSubpixelBlendingFirstPass := false.
+	blendingChanged := true.
 	
 ]
 
@@ -550,6 +561,7 @@ FormSGAGPUDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
 	self assert: hasDirectSubpixelBlending not.
 	useSubpixelBlending := true.
 	useSubpixelBlendingFirstPass := true.
+	blendingChanged := true.
 ]
 
 { #category : #commands }
@@ -557,4 +569,13 @@ FormSGAGPUDrawCommandProcessor >> useSubpixelFontSecondPassBlending [
 	self assert: hasDirectSubpixelBlending not.
 	useSubpixelBlending := true.
 	useSubpixelBlendingFirstPass := false.
+	blendingChanged := true.
+]
+
+{ #category : #commands }
+FormSGAGPUDrawCommandProcessor >> validateState [
+	(blendingChanged and: [ hasTexture ]) ifTrue: [ 
+		self enableTexturing
+	].
+
 ]
