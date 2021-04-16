@@ -22,6 +22,11 @@ FormSGGPUDrawCommandProcessor >> endCommandRecording [
 	"Mark the end of a command recording."
 ]
 
+{ #category : #testing }
+FormSGGPUDrawCommandProcessor >> hasDirectSubpixelBlending [
+	^ false
+]
+
 { #category : #commands }
 FormSGGPUDrawCommandProcessor >> noTexture [
 	self subclassResponsibility

@@ -14,7 +14,9 @@ Class {
 		'baseVertex',
 		'viewportRectangle',
 		'frameStateTrackers',
-		'frameIndex'
+		'frameIndex',
+		'useSubpixelBlendingFirstPass',
+		'hasDirectSubpixelBlending'
 	],
 	#pools : [
 		'AGPUConstants'
@@ -189,7 +191,15 @@ FormSGAGPUDrawCommandProcessor >> drawElements: command [
 { #category : #private }
 FormSGAGPUDrawCommandProcessor >> enableTexturing [
 	useSubpixelBlending ifTrue: [
-		self activatePipelineState: context subpixelPipelineState
+		hasDirectSubpixelBlending ifTrue: [ 
+			self activatePipelineState: context subpixelPipelineState
+		] ifFalse: [
+			useSubpixelBlendingFirstPass ifTrue: [
+				self activatePipelineState: context subpixelFirstPassPipelineState
+			] ifFalse: [
+				self activatePipelineState: context subpixelSecondPassPipelineState
+			]
+		].
 	] ifFalse: [
 		hasFullyOpaqueBlending ifTrue: [ 
 			self activatePipelineState: context fullyOpaqueTexturedPipelineState
@@ -237,9 +247,15 @@ FormSGAGPUDrawCommandProcessor >> getOrCreateTextureWithExtent: extent for: keyO
 	^ texture
 ]
 
+{ #category : #testing }
+FormSGAGPUDrawCommandProcessor >> hasDirectSubpixelBlending [
+	^ hasDirectSubpixelBlending
+]
+
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessor >> initializeWithContext: theContext frameBufferingCount: frameBufferingCount [
 	context := theContext.
+	hasDirectSubpixelBlending := context hasDirectSubpixelBlending.
 	frameStateTrackers := (1 to: frameBufferingCount) collect: [ :i | self frameStateTrackerClass for: self ].
 	frameStateTracker := frameStateTrackers first.
 	frameIndex := 0.
@@ -523,16 +539,22 @@ FormSGAGPUDrawCommandProcessor >> useFullyOpaqueBlending [
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useSubpixelDualOutputBlending [
+	self assert: hasDirectSubpixelBlending. 
 	useSubpixelBlending := true.
+	useSubpixelBlendingFirstPass := false.
 	
 ]
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useSubpixelFontFirstPassBlending [
-	"This mode is unused"
+	self assert: hasDirectSubpixelBlending not.
+	useSubpixelBlending := true.
+	useSubpixelBlendingFirstPass := true.
 ]
 
 { #category : #commands }
 FormSGAGPUDrawCommandProcessor >> useSubpixelFontSecondPassBlending [
-	"This mode is unused"
+	self assert: hasDirectSubpixelBlending not.
+	useSubpixelBlending := true.
+	useSubpixelBlendingFirstPass := false.
 ]

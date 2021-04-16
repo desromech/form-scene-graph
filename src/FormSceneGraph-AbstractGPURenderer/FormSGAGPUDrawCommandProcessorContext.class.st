@@ -25,7 +25,10 @@ Class {
 		'premultipliedTexturedPipelineState',
 		'fullyOpaqueTexturedPipelineState',
 		'hasColorCorrection',
-		'useStorageBuffersInsteadOfUniformBuffers'
+		'useStorageBuffersInsteadOfUniformBuffers',
+		'hasDirectSubpixelBlending',
+		'subpixelFirstPassPipelineState',
+		'subpixelSecondPassPipelineState'
 	],
 	#classVars : [
 		'DefaultHasColorCorrection'
@@ -181,13 +184,36 @@ FormSGAGPUDrawCommandProcessorContext >> createPipelineStates [
 		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self radialGradientFragmentShader);
 		build.
 
-	subpixelPipelineState := self createPipelineStateBuilder
-		attachShader: vertexShader;
-		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFragmentShader);
-		setBlendFunction: 1
-			sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_1COLOR colorOperation: AGPU_BLENDING_OPERATION_ADD
-			sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA alphaOperation: AGPU_BLENDING_OPERATION_ADD;
-		build.
+	hasDirectSubpixelBlending := (device isFeatureSupported: AGPU_FEATURE_DUAL_SOURCE_BLENDING) ~= 0
+		"Dual source blending introduces rendering glitches in OS X with Intel Iris driver. Maybe we should only blacklist this device?"
+		and: [Smalltalk platform isMacOSX not].
+	
+	hasDirectSubpixelBlending ifTrue: [ 
+		subpixelPipelineState := self createPipelineStateBuilder
+			attachShader: vertexShader;
+			attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFragmentShader);
+			setBlendFunction: 1
+				sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_1COLOR colorOperation: AGPU_BLENDING_OPERATION_ADD
+				sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA alphaOperation: AGPU_BLENDING_OPERATION_ADD;
+			build.
+	] ifFalse: [
+		subpixelFirstPassPipelineState := self createPipelineStateBuilder
+			attachShader: vertexShader;
+			attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFirstPassFragmentShader);
+			setBlendFunction: 1
+				sourceFactor: AGPU_BLENDING_ZERO destFactor: AGPU_BLENDING_INVERTED_SRC_COLOR colorOperation: AGPU_BLENDING_OPERATION_ADD
+				sourceAlphaFactor: AGPU_BLENDING_ZERO destAlphaFactor: AGPU_BLENDING_ONE alphaOperation: AGPU_BLENDING_OPERATION_ADD;
+			build.
+		subpixelSecondPassPipelineState := self createPipelineStateBuilder
+			attachShader: vertexShader;
+			attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelSecondPassFragmentShader);
+			setBlendFunction: 1
+				sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_ONE colorOperation: AGPU_BLENDING_OPERATION_ADD
+				sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA alphaOperation: AGPU_BLENDING_OPERATION_ADD;
+			build.
+
+	].
+
 		
 ]
 
@@ -338,6 +364,11 @@ FormSGAGPUDrawCommandProcessorContext >> hasColorCorrection [
 { #category : #accessing }
 FormSGAGPUDrawCommandProcessorContext >> hasColorCorrection: aBoolean [
 	hasColorCorrection := aBoolean
+]
+
+{ #category : #accessing }
+FormSGAGPUDrawCommandProcessorContext >> hasDirectSubpixelBlending [
+	^ hasDirectSubpixelBlending
 ]
 
 { #category : #accessing }
@@ -552,6 +583,38 @@ FormSGAGPUDrawCommandProcessorContext >> shaderSignature [
 ]
 
 { #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> subpixelFirstPassFragmentShader [
+	^ self shaderFlags , '
+layout(location=0) in vec4 inColor;
+layout(location=1) in vec2 inTexcoord;
+
+layout(location=0) out vec4 outColor;
+	
+layout (set=2, binding = 0) uniform texture2D activeTexture;
+layout (set=0, binding = 0) uniform sampler activeSampler;
+
+layout(push_constant) uniform Indices { 
+	uint viewBoxTransformIndex;
+	uint gradientIndex;
+	float colorGamma;
+	float fontGamma;
+};
+
+void main()
+{
+	vec3 colorMask = pow(texture(sampler2D(activeTexture, activeSampler), inTexcoord).rgb, vec3(fontGamma)) * inColor.a;
+	outColor = vec4(colorMask, 1.0);
+}
+
+'
+]
+
+{ #category : #accessing }
+FormSGAGPUDrawCommandProcessorContext >> subpixelFirstPassPipelineState [
+	^ subpixelFirstPassPipelineState
+]
+
+{ #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> subpixelFragmentShader [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
@@ -572,11 +635,11 @@ layout(push_constant) uniform Indices {
 
 void main()
 { 
-	vec3 colorMask = pow(texture(sampler2D(activeTexture, activeSampler), inTexcoord).rgb, vec3(fontGamma));
+	vec3 colorMask = pow(texture(sampler2D(activeTexture, activeSampler), inTexcoord).rgb, vec3(fontGamma)) * inColor.a;
 	float alpha = max(colorMask.r, max(colorMask.g, colorMask.b));
 
 	outColor = vec4(inColor.rgb*colorMask, alpha);
-	outColorMask = vec4(colorMask, alpha);
+	outColorMask = vec4(colorMask, alpha)*inColor.a;
 }
 
 '
@@ -586,6 +649,39 @@ void main()
 FormSGAGPUDrawCommandProcessorContext >> subpixelPipelineState [
 
 	^ subpixelPipelineState
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> subpixelSecondPassFragmentShader [
+	^ self shaderFlags , '
+layout(location=0) in vec4 inColor;
+layout(location=1) in vec2 inTexcoord;
+
+layout(location=0) out vec4 outColor;
+	
+layout (set=2, binding = 0) uniform texture2D activeTexture;
+layout (set=0, binding = 0) uniform sampler activeSampler;
+
+layout(push_constant) uniform Indices { 
+	uint viewBoxTransformIndex;
+	uint gradientIndex;
+	float colorGamma;
+	float fontGamma;
+};
+
+void main()
+{
+	vec3 colorMask = pow(texture(sampler2D(activeTexture, activeSampler), inTexcoord).rgb, vec3(fontGamma)) * inColor.a;
+	float alpha = max(max(colorMask.r, colorMask.g), colorMask.b);
+	outColor = vec4(inColor.rgb*colorMask, alpha);
+}
+
+'
+]
+
+{ #category : #accessing }
+FormSGAGPUDrawCommandProcessorContext >> subpixelSecondPassPipelineState [
+	^ subpixelSecondPassPipelineState
 ]
 
 { #category : #accessing }

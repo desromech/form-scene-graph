@@ -41,7 +41,7 @@ FormSGAGPUWorldRenderer >> displayNewSceneGraph: newSceneGraph withDamageRectang
 	FormSGAGPUCommandListRenderer new
 		surfaceScaleFactor: self scaleFactor;
 		fontTextureAtlasCache: self drawCommandProcessor fontTextureAtlasCache;
-		hasDirectSubpixelBlending: true;
+		hasDirectSubpixelBlending: self drawCommandProcessor hasDirectSubpixelBlending;
 		render: newSceneGraph with: sgCommandList transform: FormSGAffineTransform identity clippingBounds: (0@0 extent: self drawingSurfaceExtent).
 	
 	self drawCommandProcessor
