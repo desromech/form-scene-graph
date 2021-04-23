@@ -115,6 +115,13 @@ FormSGAGPUWorldRenderer >> validateSwapChain [
 		flags: AGPU_SWAP_CHAIN_FLAG_APPLY_SCALE_FACTOR_FOR_HI_DPI;
 		yourself.
 
+	AGPU shouldUseVSync ifTrue: [ 
+		swapChainInfo presentation_mode: AGPU_SWAP_CHAIN_PRESENTATION_MODE_FIFO
+	] ifFalse: [ 
+		swapChainInfo presentation_mode: AGPU_SWAP_CHAIN_PRESENTATION_MODE_MAILBOX.
+		swapChainInfo fallback_presentation_mode: AGPU_SWAP_CHAIN_PRESENTATION_MODE_IMMEDIATE.
+	].
+
 	platformSpecificHandle := osWindow platformSpecificHandle.
 	platformSpecificHandle window ifNotNil: [ :handle | swapChainInfo window: handle ].
 	platformSpecificHandle surface ifNotNil: [ :handle | swapChainInfo surface: handle ].
