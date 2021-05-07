@@ -440,8 +440,6 @@ FormSGBuilder >> withTransform: transform build: aBlock [
 	oldClippingBounds := clippingBounds.
 	clippingBounds := transform inverseTransformRectangle: clippingBounds.
 	child := aBlock ensure: [ clippingBounds := oldClippingBounds ].
-
-	child := aBlock value.
 	^ child isNullNode
 		ifTrue: [ child ]
 		ifFalse: [ self transform: child with: transform ].
