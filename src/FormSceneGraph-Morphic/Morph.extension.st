@@ -10,7 +10,7 @@ Morph >> buildCachedFullSceneGraphWith: builder [
 	
 	cachedSubSceneBounds := self fullBounds.
 	
-	invalidSceneGraph ifTrue: [
+	(invalidSceneGraph or: [ cachedSubSceneNode hasValidSubSceneCreationSession not ]) ifTrue: [
 		cachedSubSceneNode
 			child: (self doBuildFullSceneGraphWith: builder) rectangle: cachedSubSceneBounds.
 		self setProperty: #invalidSceneGraph toValue: false.

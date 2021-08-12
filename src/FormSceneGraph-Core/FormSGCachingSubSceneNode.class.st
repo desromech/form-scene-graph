@@ -13,7 +13,8 @@ Class {
 		'cachedSubSceneFormValidationCount',
 		'cachedSubSceneAthensCairoSurface',
 		'cachedSubSceneAthensCairoSurfaceValidationCount',
-		'cachedSubSceneAthensCairoSurfaceSession'
+		'cachedSubSceneAthensCairoSurfaceSession',
+		'subSceneCreationSession'
 	],
 	#category : #'FormSceneGraph-Core-Nodes'
 }
@@ -30,6 +31,7 @@ FormSGCachingSubSceneNode >> boundingBox [
 
 { #category : #updating }
 FormSGCachingSubSceneNode >> changed [
+	subSceneCreationSession := Smalltalk session.
 	modificationCount := modificationCount + 1.
 ]
 
@@ -70,6 +72,11 @@ FormSGCachingSubSceneNode >> extent: anExtent [
 	self rectangle: (0@0 extent: anExtent)
 ]
 
+{ #category : #accessing }
+FormSGCachingSubSceneNode >> hasValidSubSceneCreationSession [
+	^ subSceneCreationSession == Smalltalk session
+]
+
 { #category : #initialization }
 FormSGCachingSubSceneNode >> initialize [
 	super initialize.
@@ -99,6 +106,11 @@ FormSGCachingSubSceneNode >> rectangle [
 FormSGCachingSubSceneNode >> rectangle: aRectangle [
 	clipChildNode rectangle = aRectangle ifFalse: [ self changed ].
 	clipChildNode rectangle: aRectangle
+]
+
+{ #category : #accessing }
+FormSGCachingSubSceneNode >> subSceneCreationSession [
+	^ subSceneCreationSession
 ]
 
 { #category : #'rendering helpers' }
