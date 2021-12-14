@@ -11,6 +11,7 @@ execute the following script in a playground:
 Metacello new
    baseline: 'FormSceneGraph';
    repository: 'github://ronsaldo/form-scene-graph';
+   onConflictUseIncoming;
    load.
 ```
 
@@ -22,6 +23,7 @@ to load it with the following script in a playground, and then select it in the 
 Metacello new
    baseline: 'FormSceneGraph';
    repository: 'github://ronsaldo/form-scene-graph';
+   onConflictUseIncoming;
    load: #AcceleratedOpenGL.
 ```
 
@@ -33,6 +35,7 @@ to load it with the following script in a playground, and then select it in the 
 Metacello new
    baseline: 'FormSceneGraph';
    repository: 'github://ronsaldo/form-scene-graph';
+   onConflictUseIncoming;
    load: #AcceleratedAbstractGPU.
 ```
 
