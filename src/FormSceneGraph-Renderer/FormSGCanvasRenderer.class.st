@@ -43,7 +43,7 @@ FormSGCanvasRenderer >> visitBorderNode: node [
 	node color isTransparent ifTrue: [ ^ self ].
 	
 	node borderRectanglesDo: [ :rect |
-		canvas fillRectangle: rect color: node color
+		canvas fillRectangle: (currentTransform transformRectangle: rect) color: node color
 	].
 ]
 
@@ -87,7 +87,7 @@ FormSGCanvasRenderer >> visitClipNode: node [
 
 { #category : #visiting }
 FormSGCanvasRenderer >> visitColorNode: node [
-	canvas fillRectangle: node rectangle color: node color
+	canvas fillRectangle: (currentTransform transformRectangle: node rectangle) color: node color
 ]
 
 { #category : #visiting }
@@ -103,7 +103,7 @@ FormSGCanvasRenderer >> visitNullNode: node [
 { #category : #visiting }
 FormSGCanvasRenderer >> visitTextNode: node [
 	canvas drawString: node string from: node firstIndex to: node lastIndex
-		in: node rectangle
+		in: (currentTransform transformRectangle: node rectangle)
 		font: node font color: node color
 		underline: node underline underlineColor: node underlineColor
 		strikethrough: node strikethrough strikethroughColor: node strikethroughColor
@@ -114,9 +114,9 @@ FormSGCanvasRenderer >> visitTextNode: node [
 { #category : #visiting }
 FormSGCanvasRenderer >> visitTextureNode: node [
 	node isFullyOpaque ifTrue: [
-		canvas drawImage: node form at: node rectangle origin
+		canvas drawImage: node form at: (currentTransform transformPoint: node rectangle origin)
 	] ifFalse: [ 
-		canvas translucentImage: node form at: node rectangle origin
+		canvas translucentImage: node form at: (currentTransform transformPoint: node rectangle origin)
 	].
 
 
@@ -124,20 +124,22 @@ FormSGCanvasRenderer >> visitTextureNode: node [
 
 { #category : #visiting }
 FormSGCanvasRenderer >> visitTransformNode: node [
-	canvas transformBy: node transform asDisplayTransform clippingTo: node boundingBox during: [:transformedCanvas |
-		self withCanvas: transformedCanvas do: [
-			self visitNode: node child
-		].
-	]
+	| oldTransform |
+	oldTransform := currentTransform.
+	currentTransform := currentTransform transformTransform: node transform.
+	[ 
+		self visitNode: node child
+	] ensure: [ currentTransform := oldTransform ].
 ]
 
 { #category : #visiting }
 FormSGCanvasRenderer >> visitTranslationNode: node [
-	canvas translateBy: node translation during: [:translatedCanvas |
-		self withCanvas: translatedCanvas do: [
-			self visitNode: node child
-		].
-	]
+	| oldTransform |
+	oldTransform := currentTransform.
+	currentTransform := currentTransform transformTransform: (FormSGAffineTransform translation: node translation).
+	[ 
+		self visitNode: node child
+	] ensure: [ currentTransform := oldTransform ].
 ]
 
 { #category : #visiting }
