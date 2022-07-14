@@ -14,7 +14,6 @@ BaselineOfFormSceneGraph >> baseline: spec [
 
 { #category : #baselines }
 BaselineOfFormSceneGraph >> baselineForPharo: spec [
-	<baseline>
 	spec 
 		baseline: 'UFFIOpenGL' with: [
 			spec repository: 'github://ronsaldo/uffi-opengl'
@@ -28,7 +27,7 @@ BaselineOfFormSceneGraph >> baselineForPharo: spec [
 		package: 'FormSceneGraph-Renderer' with: [ spec requires: 'FormSceneGraph-Core' ];
 		package: 'FormSceneGraph-RendererAthens' with: [ spec requires: 'FormSceneGraph-Renderer' ];
 		package: 'FormSceneGraph-RendererOSWindow' with: [ spec requires: 'FormSceneGraph-Renderer' ];
-		package: 'FormSceneGraph-Morphic' with: [ spec requires: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer' ''FormSceneGraph-RendererAthens'' 'FormSceneGraph-RendererOSWindow') ];
+		package: 'FormSceneGraph-Morphic' with: [ spec requires: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer' 'FormSceneGraph-RendererAthens' 'FormSceneGraph-RendererOSWindow') ];
 		package: 'FormSceneGraph-Roassal' with: [ spec requires: 'FormSceneGraph-Morphic' ];
 		package: 'FormSceneGraph-OpenGLESRenderer' with: [ spec requires: #('FormSceneGraph-Renderer' 'UFFIOpenGL') ];
 		package: 'FormSceneGraph-AbstractGPURenderer' with: [ spec requires: #('FormSceneGraph-Renderer' 'AbstractGPU') ];
@@ -49,7 +48,6 @@ BaselineOfFormSceneGraph >> baselineForPharo: spec [
 
 { #category : #baselines }
 BaselineOfFormSceneGraph >> baselineForSqueak: spec [
-	<baseline>
 	spec 
 		baseline: 'AbstractGPU' with: [
 			spec repository: 'github://ronsaldo/abstract-gpu'
