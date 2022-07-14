@@ -59,11 +59,11 @@ BaselineOfFormSceneGraph >> baselineForSqueak: spec [
 		package: 'FormSceneGraph-Renderer' with: [ spec requires: 'FormSceneGraph-Core' ];
 		package: 'FormSceneGraph-AbstractGPURenderer' with: [ spec requires: #('FormSceneGraph-Renderer' 'AbstractGPU') ];
 		
-		group: 'default' with: #('Core' 'Tests' 'UI');
+		group: 'default' with: #('Core' 'Tests');
 		group: 'Core' with: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer');
 		group: 'Tests' with: #('FormSceneGraph-Core-Tests');
 		group: 'AbstractGPURenderer' with: #('FormSceneGraph-AbstractGPURenderer');
 
-		group: 'AcceleratedAbstractGPU' with: #(Core UI Tests AbstractGPURenderer);
+		group: 'AcceleratedAbstractGPU' with: #(Core Tests AbstractGPURenderer);
 		group: 'Accelerated' with: #(AcceleratedAbstractGPU)
 ]
