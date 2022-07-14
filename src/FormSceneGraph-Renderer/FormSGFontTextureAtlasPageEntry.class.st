@@ -36,7 +36,7 @@ FormSGFontTextureAtlasPageEntry >> hasSubpixelAntialiasing: anObject [
 
 { #category : #testing }
 FormSGFontTextureAtlasPageEntry >> hasValidGlyphForm [
-	^ glyphForm isNotNil and: [ glyphForm width > 0 and: [glyphForm height > 0]]
+	^ glyphForm notNil and: [ glyphForm width > 0 and: [glyphForm height > 0]]
 ]
 
 { #category : #accessing }

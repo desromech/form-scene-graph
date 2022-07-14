@@ -17,8 +17,8 @@ RubParagraphDecorator >> buildSceneGraphNodeWith: builder bounds: aRectangle col
 { #category : #'*FormSceneGraph-Morphic' }
 RubParagraphDecorator >> canBuildDecoratorsSceneGraphWith: builder [
 	^self drawingEnabled and: [ 
-		self selectionStart isNotNil and: [ 
-			self selectionStop isNotNil
+		self selectionStart notNil and: [ 
+			self selectionStop notNil
 		]
 	]
 ]

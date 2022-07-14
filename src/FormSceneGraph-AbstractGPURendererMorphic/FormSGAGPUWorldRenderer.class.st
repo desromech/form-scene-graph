@@ -55,7 +55,7 @@ FormSGAGPUWorldRenderer >> drawCommandProcessor [
 
 { #category : #'scale factor' }
 FormSGAGPUWorldRenderer >> drawingSurfaceExtent [
-	(swapChain isNotNil and: [ swapChain isNull not ]) ifTrue: [ 
+	(swapChain notNil and: [ swapChain isNull not ]) ifTrue: [ 
 		^ swapChain getWidth @ swapChain getHeight
 	].
 
@@ -105,7 +105,7 @@ FormSGAGPUWorldRenderer >> swapBuffers [
 FormSGAGPUWorldRenderer >> validateSwapChain [
 	| oldSwapChain requiredExtent swapChainInfo platformSpecificHandle |
 	requiredExtent := self windowExtent.
-	(swapChain isNotNil and: [ swapChainExtent = requiredExtent and: [isOutOfDate not]]) ifTrue: [ ^ true ].
+	(swapChain notNil and: [ swapChainExtent = requiredExtent and: [isOutOfDate not]]) ifTrue: [ ^ true ].
 	
 	swapChainInfo := AGPUSwapChainCreateInfo new
 		buffer_count: 2;
@@ -137,5 +137,5 @@ FormSGAGPUWorldRenderer >> validateSwapChain [
 	oldSwapChain ifNotNil: [ oldSwapChain release ].
 	isOutOfDate := false.
 
-	^ swapChain isNotNil
+	^ swapChain notNil
 ]

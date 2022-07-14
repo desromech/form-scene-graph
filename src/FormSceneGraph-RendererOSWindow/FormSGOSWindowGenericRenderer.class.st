@@ -200,7 +200,7 @@ FormSGOSWindowGenericRenderer >> transformVector: aVector [
 FormSGOSWindowGenericRenderer >> validateCachedSubSceneRenderTarget: node extent: surfaceExtent [
 	| renderTarget |
 	renderTarget := renderer getOrCreateRenderTargetTextureFor: node withExtent: surfaceExtent.
-	(renderTarget modificationCount isNotNil and: [ renderTarget modificationCount >= node modificationCount ]) ifTrue: [ ^ renderTarget ].
+	(renderTarget modificationCount notNil and: [ renderTarget modificationCount >= node modificationCount ]) ifTrue: [ ^ renderTarget ].
 
 	self renderCachedSubScene: node onRenderTarget: renderTarget.
 	renderTarget modificationCount: node modificationCount.

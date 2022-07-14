@@ -212,7 +212,7 @@ FormSGAbstractWorldRenderer >> drawingSurfaceBounds [
 
 { #category : #'scale factor' }
 FormSGAbstractWorldRenderer >> drawingSurfaceExtent [
-	^ (osWindow isNotNil and: [ osWindow renderer isNotNil ])
+	^ (osWindow notNil and: [ osWindow renderer notNil ])
 		ifTrue: [ osWindow renderer pixelExtent ]
 		ifFalse: [ self windowExtent ]
 ]

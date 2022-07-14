@@ -269,7 +269,7 @@ FormSGAGPUDrawCommandProcessor >> initializeWithContext: theContext frameBufferi
 FormSGAGPUDrawCommandProcessor >> isRenderTargetCommandValidated: command [
 	| renderTarget |
 	renderTarget := context renderTargetDictionary at: command keyObject ifAbsent: [ ^ false ].
-	^ renderTarget modificationCount isNotNil and: [
+	^ renderTarget modificationCount notNil and: [
 	renderTarget modificationCount >= command modificationCount and: [
 	renderTarget extent = command extent ]]
 ]
@@ -377,7 +377,7 @@ FormSGAGPUDrawCommandProcessor >> processSGCommandList: sgCommandList renderTarg
 
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessor >> setAGPUTextureNode: textureNode [
-	self assert: textureNode binding isNotNil.
+	self assert: textureNode binding notNil.
 	frameStateTracker
 		recordUsedResource: textureNode texture;
 		recordUsedResource: textureNode view;

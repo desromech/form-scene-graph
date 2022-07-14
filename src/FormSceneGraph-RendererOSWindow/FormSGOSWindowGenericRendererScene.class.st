@@ -107,11 +107,11 @@ FormSGOSWindowGenericRendererScene >> validateRenderTargetFor: renderer [
 	"This optimization is not working yet."
 	| requiredExtent |
 	requiredExtent := renderer pixelExtent.
-	(renderTarget isNotNil and: [ renderTargetExtent = requiredExtent ]) ifTrue: [ ^ true ].
+	(renderTarget notNil and: [ renderTargetExtent = requiredExtent ]) ifTrue: [ ^ true ].
 	
 	renderTarget := renderer createRenderTargetTextureWithExtent: requiredExtent.
 	renderTargetExtent := requiredExtent.
-	^ renderTarget isNotNil
+	^ renderTarget notNil
 ]
 
 { #category : #rendering }

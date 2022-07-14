@@ -110,7 +110,7 @@ FormSGAGPUFrameStateTracker >> buildCommandListWith: aBlock [
 
 { #category : #allocation }
 FormSGAGPUFrameStateTracker >> ensureIndexBufferWithSize: requiredSize [
-	(indexBuffer isNotNil and: [indexBufferCapacity >= requiredSize]) ifTrue: [
+	(indexBuffer notNil and: [indexBufferCapacity >= requiredSize]) ifTrue: [
 		indexBufferSize := requiredSize.
 		^ indexBuffer
 	].
@@ -133,7 +133,7 @@ FormSGAGPUFrameStateTracker >> ensureIndexBufferWithSize: requiredSize [
 { #category : #allocation }
 FormSGAGPUFrameStateTracker >> ensureUniformBufferWithSize: requiredSize [
     | usageMode |
-	(uniformBuffer isNotNil and: [uniformBufferCapacity >= requiredSize]) ifTrue: [
+	(uniformBuffer notNil and: [uniformBufferCapacity >= requiredSize]) ifTrue: [
 		^ uniformBuffer
 	].
 
@@ -160,7 +160,7 @@ FormSGAGPUFrameStateTracker >> ensureUniformBufferWithSize: requiredSize [
 
 { #category : #allocation }
 FormSGAGPUFrameStateTracker >> ensureVertexBufferWithSize: requiredSize [
-	(vertexBuffer isNotNil and: [vertexBufferCapacity >= requiredSize]) ifTrue: [
+	(vertexBuffer notNil and: [vertexBufferCapacity >= requiredSize]) ifTrue: [
 		vertexBufferSize := requiredSize.
 		^ vertexBuffer
 	].

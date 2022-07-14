@@ -24,7 +24,7 @@ FormSGFontTextureAtlasPageColumn >> initialize [
 FormSGFontTextureAtlasPageColumn >> insertEntry: newEntry [
 	| glyphForm destPosition pageExtent |
 	glyphForm := newEntry glyphForm.
-	self assert: (glyphForm isNotNil and: [ glyphForm width <= width and: [ glyphForm height <= remainingHeight ] ]).
+	self assert: (glyphForm notNil and: [ glyphForm width <= width and: [ glyphForm height <= remainingHeight ] ]).
 	
 	destPosition := offset @ nextRow.
 	pageExtent := page form extent.

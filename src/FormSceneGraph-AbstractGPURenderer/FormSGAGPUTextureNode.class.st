@@ -98,7 +98,7 @@ FormSGAGPUTextureNode >> texture: anObject [
 { #category : #accessing }
 FormSGAGPUTextureNode >> validSourceRectangle [
 	^ sourceRectangle ifNil: [
-		self assert: extent isNotNil.
+		self assert: extent notNil.
 		sourceRectangle := 0@0 extent: extent
 	]
 ]

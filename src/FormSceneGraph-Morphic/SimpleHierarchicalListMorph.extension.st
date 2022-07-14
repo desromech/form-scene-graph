@@ -12,7 +12,7 @@ SimpleHierarchicalListMorph >> buildSceneGraphNodeWith: builder [
 	
 	| result |
 	result := super buildSceneGraphNodeWith: builder.
-	(searchedElement isNotNil or: [selectedMorph isNotNil]) ifTrue: [ 
+	(searchedElement notNil or: [selectedMorph notNil]) ifTrue: [ 
 		result := result , (builder clip: (
 			(searchedElement
 				ifNil: [builder null]

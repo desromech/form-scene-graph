@@ -25,9 +25,9 @@ FormSGOSWindowGenericRendererTextPreparationVisitor >> visitCachedSubScene: node
 	| renderTarget requiredExtent |
 	renderTarget := renderer getRenderTargetTextureForObjectOrNil: node.
 	requiredExtent := (node rectangle extent * surfaceScaleFactor) ceiling.
-	(renderTarget isNotNil and: [
+	(renderTarget notNil and: [
 	requiredExtent = renderTarget extent and: [
-	renderTarget modificationCount isNotNil and: [
+	renderTarget modificationCount notNil and: [
 	renderTarget modificationCount >= node modificationCount ]]]) ifTrue: [ ^ self ].
 
 	^ super visitCachedSubScene: node

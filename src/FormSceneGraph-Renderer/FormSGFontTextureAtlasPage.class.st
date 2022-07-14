@@ -72,7 +72,7 @@ FormSGFontTextureAtlasPage >> modificationCount [
 FormSGFontTextureAtlasPage >> tryToInsertEntry: entry [
 	| glyphForm |
 	glyphForm := entry glyphForm.
-	self assert: glyphForm isNotNil.
+	self assert: glyphForm notNil.
 	columns do: [ :eachColumn |
 		(eachColumn width >= glyphForm width and: [ eachColumn remainingHeight >= glyphForm height ]) ifTrue: [
 			eachColumn insertEntry: entry.

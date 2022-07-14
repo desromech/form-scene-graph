@@ -92,7 +92,7 @@ FormSGAthensNode >> surface: anObject [
 FormSGAthensNode >> validAthensCairoSurfaceWithExtent: requiredExtent [
 	| logicalExtent |
 	(surfaceSession == Smalltalk session and: [
-	surface isNotNil and: [
+	surface notNil and: [
 	surface extent = requiredExtent]]) ifFalse: [
 		surface := AthensCairoSurface extent: requiredExtent.
 		isSurfaceValidated := false.
