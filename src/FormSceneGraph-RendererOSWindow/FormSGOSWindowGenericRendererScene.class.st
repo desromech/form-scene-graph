@@ -11,7 +11,7 @@ Class {
 		'renderTargetExtent',
 		'surfaceScaleFactor'
 	],
-	#category : #'FormSceneGraph-Renderer-Basic'
+	#category : #'FormSceneGraph-RendererOSWindow'
 }
 
 { #category : #rendering }

@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'renderer'
 	],
-	#category : #'FormSceneGraph-Renderer-Basic'
+	#category : #'FormSceneGraph-RendererOSWindow'
 }
 
 { #category : #accessing }

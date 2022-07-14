@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'device'
 	],
-	#category : #'FormSceneGraph-AbstractGPURenderer'
+	#category : #'FormSceneGraph-AbstractGPURendererMorphic'
 }
 
 { #category : #hooks }

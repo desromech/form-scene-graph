@@ -14,7 +14,7 @@ Class {
 	#pools : [
 		'AGPUConstants'
 	],
-	#category : #'FormSceneGraph-AbstractGPURenderer'
+	#category : #'FormSceneGraph-AbstractGPURendererMorphic'
 }
 
 { #category : #'scale factor' }

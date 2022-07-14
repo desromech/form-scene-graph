@@ -11,7 +11,7 @@ Class {
 		'currentScale',
 		'fontTextureAtlasCache'
 	],
-	#category : #'FormSceneGraph-Renderer-Basic'
+	#category : #'FormSceneGraph-RendererOSWindow'
 }
 
 { #category : #rendering }

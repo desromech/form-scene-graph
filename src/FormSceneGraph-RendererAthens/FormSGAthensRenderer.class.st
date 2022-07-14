@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'canvas'
 	],
-	#category : #'FormSceneGraph-Renderer-Basic'
+	#category : #'FormSceneGraph-RendererAthens'
 }
 
 { #category : #rendering }
