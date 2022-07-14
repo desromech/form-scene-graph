@@ -1,11 +1,11 @@
 Extension { #name : #GlyphForm }
 
-{ #category : #'*FormSceneGraph-Renderer' }
+{ #category : #'*FormSceneGraph-FreeTypeFontSupport' }
 GlyphForm >> asTextureRenderingGlyphForm [
 	^ self
 ]
 
-{ #category : #'*FormSceneGraph-Renderer' }
+{ #category : #'*FormSceneGraph-FreeTypeFontSupport' }
 GlyphForm >> inverted [
 	| result |
 	result := super inverted.

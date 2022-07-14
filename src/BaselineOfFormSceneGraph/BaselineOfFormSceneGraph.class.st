@@ -24,7 +24,8 @@ BaselineOfFormSceneGraph >> baselineForPharo: spec [
 
 		package: 'FormSceneGraph-Core';
 		package: 'FormSceneGraph-Core-Tests' with: [ spec requires: 'FormSceneGraph-Core' ];
-		package: 'FormSceneGraph-Renderer' with: [ spec requires: 'FormSceneGraph-Core' ];
+		package: 'FormSceneGraph-FreeTypeFontSupport' with: [ spec requires: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer')];
+		package: 'FormSceneGraph-Renderer' with: [ spec requires: #('FormSceneGraph-Core')];
 		package: 'FormSceneGraph-RendererAthens' with: [ spec requires: 'FormSceneGraph-Renderer' ];
 		package: 'FormSceneGraph-RendererOSWindow' with: [ spec requires: 'FormSceneGraph-Renderer' ];
 		package: 'FormSceneGraph-Morphic' with: [ spec requires: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer' 'FormSceneGraph-RendererAthens' 'FormSceneGraph-RendererOSWindow') ];
@@ -34,7 +35,7 @@ BaselineOfFormSceneGraph >> baselineForPharo: spec [
 		package: 'FormSceneGraph-AbstractGPURendererMorphic' with: [ spec requires: #('FormSceneGraph-AbstractGPURenderer') ];
 		
 		group: 'default' with: #('Core' 'Tests' 'UI');
-		group: 'Core' with: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer' 'FormSceneGraph-RendererAthens' 'FormSceneGraph-RendererOSWindow');
+		group: 'Core' with: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer' 'FormSceneGraph-RendererAthens' 'FormSceneGraph-RendererOSWindow' 'FormSceneGraph-FreeTypeFontSupport');
 		group: 'Tests' with: #('FormSceneGraph-Core-Tests');
 		group: 'UI' with: #('FormSceneGraph-Morphic' 'FormSceneGraph-Roassal');
 		group: 'OpenGL' with: #('FormSceneGraph-OpenGLESRenderer');
