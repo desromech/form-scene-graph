@@ -3,7 +3,7 @@ A FormSGAffineTransformTest is a test class for testing the behavior of FormSGAf
 "
 Class {
 	#name : #FormSGAffineTransformTest,
-	#superclass : #TestCase,
+	#superclass : #FormSGATestCase,
 	#category : #'FormSceneGraph-Core-Tests'
 }
 

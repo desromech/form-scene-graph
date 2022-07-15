@@ -3,7 +3,7 @@ A FormSGBuilderTest is a test class for testing the behavior of FormSGBuilder
 "
 Class {
 	#name : #FormSGBuilderTest,
-	#superclass : #TestCase,
+	#superclass : #FormSGATestCase,
 	#instVars : [
 		'builder'
 	],
@@ -29,7 +29,7 @@ FormSGBuilderTest >> testBorderRectangle [
 	self assert: node rightWidth equals: 2.
 	self assert: node bottomWidth equals: 2.
 	self assert: node topWidth equals: 2.
-	self assert: node borderRectangles equals: { 
+	self assert: node borderRectangles asArray equals: { 
 		(0@0) corner: (250@2).
 		(0@248) corner: (250@250).
 		(0@2) corner: (2@248).
@@ -51,7 +51,7 @@ FormSGBuilderTest >> testBorderRectangle2 [
 	self assert: node rightWidth equals: 2.
 	self assert: node bottomWidth equals: 3.
 	self assert: node topWidth equals: 4.
-	self assert: node borderRectangles equals: { 
+	self assert: node borderRectangles asArray equals: { 
 		(0@0) corner: (250@3).
 		(0@246) corner: (250@250).
 		(0@3) corner: (1@246).
@@ -337,6 +337,8 @@ FormSGBuilderTest >> testRadiantGradientRectangle2 [
 { #category : #tests }
 FormSGBuilderTest >> testRectangleDrawWithAthens [
 	| rectangle node drawBlock |
+	Smalltalk at: #AthensCairoSurface ifAbsent: [^ self skip].
+	
 	rectangle := 0@0 extent: 250@250.
 	drawBlock := [ :surface | ].
 	node := builder rectangle: rectangle drawWithAthens: drawBlock.
@@ -350,8 +352,9 @@ FormSGBuilderTest >> testRectangleDrawWithAthens [
 { #category : #tests }
 FormSGBuilderTest >> testRectangleSurfaceDrawWithAthens [
 	| rectangle node drawBlock surface |
+	
 	rectangle := 0@0 extent: 250@250.
-	surface := AthensCairoSurface extent: 32@32.
+	surface := (Smalltalk at: #AthensCairoSurface ifAbsent: [^ self skip]) extent: 32@32.
 	drawBlock := [ :drawSurface | ].
 	node := builder rectangle: rectangle surface: surface drawWithAthens: drawBlock.
 	self assert: node isRectangleNode.
