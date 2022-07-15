@@ -53,7 +53,8 @@ BaselineOfFormSceneGraph >> baselineForSqueak: spec [
 		baseline: 'AbstractGPU' with: [
 			spec repository: 'github://ronsaldo/abstract-gpu'
 		];
-		package: 'FormSceneGraph-Core';
+		package: 'FormSceneGraph-SqueakCompatibility';
+		package: 'FormSceneGraph-Core' with: [ spec requires: 'FormSceneGraph-SqueakCompatibility' ];
 		package: 'FormSceneGraph-Core-Tests' with: [ spec requires: 'FormSceneGraph-Core' ];
 		package: 'FormSceneGraph-Renderer' with: [ spec requires: 'FormSceneGraph-Core' ];
 		package: 'FormSceneGraph-AbstractGPURenderer' with: [ spec requires: #('FormSceneGraph-Renderer' 'AbstractGPU') ];

@@ -8,11 +8,3 @@ Class {
 FormSGATestCase class >> isAbstract [
 	^ self == FormSGATestCase
 ]
-
-{ #category : #asserting }
-FormSGATestCase >> assert: actualNumber closeTo: expectedNumber [
-	"Method copied for Squeak compatiblity."
-	^ self
-		assert: (actualNumber closeTo: expectedNumber)
-		description: [self comparingStringBetween: actualNumber and: expectedNumber]
-]
