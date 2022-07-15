@@ -6,3 +6,8 @@ TestCase >> assert: actualNumber closeTo: expectedNumber [
 		assert: (actualNumber closeTo: expectedNumber)
 		description: [self comparingStringBetween: actualNumber and: expectedNumber]
 ]
+
+{ #category : #'*FormSceneGraph-SqueakCompatibility' }
+TestCase >> skip [
+	"Stub for skipping the test."
+]
