@@ -10,7 +10,7 @@ execute the following script in a playground:
 "Scene graph rendering framework"
 Metacello new
    baseline: 'FormSceneGraph';
-   repository: 'github://ronsaldo/form-scene-graph';
+   repository: 'github://desromech/form-scene-graph';
    onConflictUseIncoming;
    load.
 ```
@@ -22,7 +22,7 @@ to load it with the following script in a playground, and then select it in the 
 "Scene graph rendering framework"
 Metacello new
    baseline: 'FormSceneGraph';
-   repository: 'github://ronsaldo/form-scene-graph';
+   repository: 'github://desromech/form-scene-graph';
    onConflictUseIncoming;
    load: #AcceleratedOpenGL.
 ```
