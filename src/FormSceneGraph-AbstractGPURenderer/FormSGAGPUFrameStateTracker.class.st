@@ -39,6 +39,12 @@ Class {
 }
 
 { #category : #'instance creation' }
+FormSGAGPUFrameStateTracker class >> floatArray [
+
+	^ Float32Array
+]
+
+{ #category : #'instance creation' }
 FormSGAGPUFrameStateTracker class >> for: drawCommandProcessor [
 	^ self basicNew initializeWithDrawCommandProcessor: drawCommandProcessor
 ]
@@ -213,13 +219,13 @@ FormSGAGPUFrameStateTracker >> recordUsedResource: resource [
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> setColorGamma: gamma [
-	commandList pushConstants: 8 size: 4 values: (FloatArray with: gamma).
+	commandList pushConstants: 8 size: 4 values: (self class floatArray with: gamma).
 
 ]
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> setFontGamma: gamma [
-	commandList pushConstants: 12 size: 4 values: (FloatArray with: gamma).
+	commandList pushConstants: 12 size: 4 values: (self class floatArray with: gamma).
 
 ]
 
