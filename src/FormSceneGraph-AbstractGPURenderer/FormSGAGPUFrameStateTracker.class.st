@@ -32,11 +32,19 @@ Class {
 		'linearGradientDataSize',
 		'radialGradientDataSize'
 	],
+	#classVars : [
+		'FloatArrayClass'
+	],
 	#pools : [
 		'AGPUConstants'
 	],
 	#category : #'FormSceneGraph-AbstractGPURenderer'
 }
+
+{ #category : #'as yet unclassified' }
+FormSGAGPUFrameStateTracker class >> floatArrayClass [
+	^ FloatArrayClass ifNil: [FloatArrayClass := Smalltalk at: #Float32Array ifAbsent: [ Smalltalk at: #FloatArray ] ]
+]
 
 { #category : #'instance creation' }
 FormSGAGPUFrameStateTracker class >> for: drawCommandProcessor [
@@ -213,13 +221,13 @@ FormSGAGPUFrameStateTracker >> recordUsedResource: resource [
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> setColorGamma: gamma [
-	commandList pushConstants: 8 size: 4 values: (FloatArray with: gamma).
+	commandList pushConstants: 8 size: 4 values: (self class floatArrayClass with: gamma).
 
 ]
 
 { #category : #'draw commands' }
 FormSGAGPUFrameStateTracker >> setFontGamma: gamma [
-	commandList pushConstants: 12 size: 4 values: (FloatArray with: gamma).
+	commandList pushConstants: 12 size: 4 values: (self class floatArrayClass with: gamma).
 
 ]
 
