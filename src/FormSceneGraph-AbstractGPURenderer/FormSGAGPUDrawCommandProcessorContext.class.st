@@ -28,7 +28,17 @@ Class {
 		'useStorageBuffersInsteadOfUniformBuffers',
 		'hasDirectSubpixelBlending',
 		'subpixelFirstPassPipelineState',
-		'subpixelSecondPassPipelineState'
+		'subpixelSecondPassPipelineState',
+		'vertexShader',
+		'colorFragmentShader',
+		'texturedFragmentShader',
+		'premultipliedTexturedFragmentShader',
+		'fullyOpaqueTexturedFragmentShader',
+		'linearGradientFragmentShader',
+		'radialGradientFragmentShader',
+		'subpixelFragmentShader',
+		'subpixelFirstPassFragmentShader',
+		'subpixelSecondPassFragmentShader'
 	],
 	#classVars : [
 		'DefaultHasColorCorrection'
@@ -80,8 +90,13 @@ FormSGAGPUDrawCommandProcessorContext >> colorBufferFormat [
 		ifFalse: [ AGPU_TEXTURE_FORMAT_B8G8R8A8_UNORM ]
 ]
 
-{ #category : #shaders }
+{ #category : #accessing }
 FormSGAGPUDrawCommandProcessorContext >> colorFragmentShader [
+	^ colorFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> colorFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;
 layout(location=0) out vec4 outColor;
@@ -149,39 +164,44 @@ FormSGAGPUDrawCommandProcessorContext >> createPipelineStateBuilder [
 
 { #category : #initialization }
 FormSGAGPUDrawCommandProcessorContext >> createPipelineStates [
-	| vertexShader |
-	vertexShader := self compileShader: AGPU_VERTEX_SHADER source: self vertexShader.
+	vertexShader := self compileShader: AGPU_VERTEX_SHADER source: self vertexShaderSource.
+	colorFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self colorFragmentShaderSource.
 	colorPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
-		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self colorFragmentShader);
+		attachShader: colorFragmentShader;
 		build.
 
+	texturedFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self texturedFragmentShaderSource.
 	texturedPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
-		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self texturedFragmentShader);
+		attachShader: texturedFragmentShader;
 		build.
 
+	fullyOpaqueTexturedFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self fullyOpaqueTexturedFragmentShaderSource.
 	fullyOpaqueTexturedPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
-		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self fullyOpaqueTexturedFragmentShader);
+		attachShader: fullyOpaqueTexturedFragmentShader;
 		setBlendFunction: 1
 			sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_ZERO colorOperation: AGPU_BLENDING_OPERATION_ADD
 			sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_ZERO alphaOperation: AGPU_BLENDING_OPERATION_ADD;
 		build.
 		
+	premultipliedTexturedFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self premultipliedTexturedFragmentShaderSource.
 	premultipliedTexturedPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
-		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self premultipliedTexturedFragmentShader);
+		attachShader: premultipliedTexturedFragmentShader;
 		build.
 		
+	linearGradientFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self linearGradientFragmentShaderSource.
 	linearGradientPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
-		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self linearGradientFragmentShader);
+		attachShader: linearGradientFragmentShader;
 		build.
 
+	radialGradientFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self radialGradientFragmentShaderSource.
 	radialGradientPipelineState := self createPipelineStateBuilder
 		attachShader: vertexShader;
-		attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self radialGradientFragmentShader);
+		attachShader: radialGradientFragmentShader;
 		build.
 
 	hasDirectSubpixelBlending := (device isFeatureSupported: AGPU_FEATURE_DUAL_SOURCE_BLENDING) ~= 0
@@ -189,24 +209,28 @@ FormSGAGPUDrawCommandProcessorContext >> createPipelineStates [
 		and: [Smalltalk platform isMacOSX not].
 	
 	hasDirectSubpixelBlending ifTrue: [ 
+		subpixelFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFragmentShaderSource.
 		subpixelPipelineState := self createPipelineStateBuilder
 			attachShader: vertexShader;
-			attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFragmentShader);
+			attachShader: subpixelFragmentShader;
 			setBlendFunction: 1
 				sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_1COLOR colorOperation: AGPU_BLENDING_OPERATION_ADD
 				sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA alphaOperation: AGPU_BLENDING_OPERATION_ADD;
 			build.
 	] ifFalse: [
+		subpixelFirstPassFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFirstPassFragmentShaderSource.
 		subpixelFirstPassPipelineState := self createPipelineStateBuilder
 			attachShader: vertexShader;
-			attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFirstPassFragmentShader);
+			attachShader: subpixelFirstPassFragmentShader;
 			setBlendFunction: 1
 				sourceFactor: AGPU_BLENDING_ZERO destFactor: AGPU_BLENDING_INVERTED_SRC_COLOR colorOperation: AGPU_BLENDING_OPERATION_ADD
 				sourceAlphaFactor: AGPU_BLENDING_ZERO destAlphaFactor: AGPU_BLENDING_ONE alphaOperation: AGPU_BLENDING_OPERATION_ADD;
 			build.
+
+		subpixelSecondPassFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelSecondPassFragmentShaderSource.
 		subpixelSecondPassPipelineState := self createPipelineStateBuilder
 			attachShader: vertexShader;
-			attachShader: (self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelSecondPassFragmentShader);
+			attachShader: subpixelSecondPassFragmentShader;
 			setBlendFunction: 1
 				sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_ONE colorOperation: AGPU_BLENDING_OPERATION_ADD
 				sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA alphaOperation: AGPU_BLENDING_OPERATION_ADD;
@@ -333,6 +357,11 @@ FormSGAGPUDrawCommandProcessorContext >> fontTextureAtlasCache: aFontTextureAtla
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> fullyOpaqueTexturedFragmentShader [
+	^ fullyOpaqueTexturedFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> fullyOpaqueTexturedFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
 layout(location=1) in vec2 inTexcoord;
@@ -398,6 +427,11 @@ FormSGAGPUDrawCommandProcessorContext >> initializeWithDevice: theDevice [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> linearGradientFragmentShader [
+	^ linearGradientFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> linearGradientFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;
 layout(location=1) in vec2 inTexcoord;
@@ -461,8 +495,13 @@ FormSGAGPUDrawCommandProcessorContext >> linearSamplerBinding [
 	^ linearSamplerBinding
 ]
 
-{ #category : #shaders }
+{ #category : #accessing }
 FormSGAGPUDrawCommandProcessorContext >> premultipliedTexturedFragmentShader [
+	^ premultipliedTexturedFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> premultipliedTexturedFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
 layout(location=1) in vec2 inTexcoord;
@@ -495,6 +534,11 @@ FormSGAGPUDrawCommandProcessorContext >> projectionInvertedY [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> radialGradientFragmentShader [
+	^ radialGradientFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> radialGradientFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;
 layout(location=1) in vec2 inTexcoord;
@@ -584,6 +628,11 @@ FormSGAGPUDrawCommandProcessorContext >> shaderSignature [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> subpixelFirstPassFragmentShader [
+	^ subpixelFirstPassFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> subpixelFirstPassFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;
 layout(location=1) in vec2 inTexcoord;
@@ -616,6 +665,11 @@ FormSGAGPUDrawCommandProcessorContext >> subpixelFirstPassPipelineState [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> subpixelFragmentShader [
+	^ subpixelFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> subpixelFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
 layout(location=1) in vec2 inTexcoord;
@@ -653,6 +707,11 @@ FormSGAGPUDrawCommandProcessorContext >> subpixelPipelineState [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> subpixelSecondPassFragmentShader [
+	^ subpixelSecondPassFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> subpixelSecondPassFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;
 layout(location=1) in vec2 inTexcoord;
@@ -696,8 +755,13 @@ FormSGAGPUDrawCommandProcessorContext >> textureWithModificationCountDictionary 
 	^ textureWithModificationCountDictionary
 ]
 
-{ #category : #shaders }
+{ #category : #accessing }
 FormSGAGPUDrawCommandProcessorContext >> texturedFragmentShader [
+	^ texturedFragmentShader
+]
+
+{ #category : #shaders }
+FormSGAGPUDrawCommandProcessorContext >> texturedFragmentShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec4 inColor;	
 layout(location=1) in vec2 inTexcoord;
@@ -732,8 +796,13 @@ FormSGAGPUDrawCommandProcessorContext >> vertexLayout [
 	^ vertexLayout
 ]
 
-{ #category : #shaders }
+{ #category : #accessing }
 FormSGAGPUDrawCommandProcessorContext >> vertexShader [
+	^ vertexShader
+]
+
+{ #category : #accessing }
+FormSGAGPUDrawCommandProcessorContext >> vertexShaderSource [
 	^ self shaderFlags , '
 layout(location=0) in vec2 inPosition;
 layout(location=1) in vec4 inColor;
