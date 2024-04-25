@@ -206,7 +206,7 @@ FormSGAGPUDrawCommandProcessorContext >> createPipelineStates [
 
 	hasDirectSubpixelBlending := (device isFeatureSupported: AGPU_FEATURE_DUAL_SOURCE_BLENDING) ~= 0
 		"Dual source blending introduces rendering glitches in OS X with Intel Iris driver. Maybe we should only blacklist this device?"
-		and: [Smalltalk platform isMacOSX not].
+		and: [self isInMacOSX].
 	
 	hasDirectSubpixelBlending ifTrue: [ 
 		subpixelFragmentShader := self compileShader: AGPU_FRAGMENT_SHADER source: self subpixelFragmentShaderSource.
@@ -323,7 +323,7 @@ FormSGAGPUDrawCommandProcessorContext >> createVertexLayout [
 			getHandle).
 	
 	strideBuffer := ByteArray new: 4.
-	strideBuffer uint32AtOffset: 0 put: 32.
+	strideBuffer unsignedLongAt: 1 put: 32.
 	
 	vertexLayout := device createVertexLayout.
 	vertexLayout addVertexAttributeBindings: 1 vertex_strides: strideBuffer attribute_count: 3 attributes: (AGPUVertexAttribDescription fromHandle: layoutSpec)
@@ -423,6 +423,11 @@ FormSGAGPUDrawCommandProcessorContext >> initializeWithDevice: theDevice [
 	textureFromFormDictionary := WeakKeyDictionary new.
 	textureWithModificationCountDictionary := WeakKeyDictionary new.
 	renderTargetDictionary := WeakKeyDictionary new.
+]
+
+{ #category : #testing }
+FormSGAGPUDrawCommandProcessorContext >> isInMacOSX [
+	^ Smalltalk platformName = 'Mac OS'
 ]
 
 { #category : #shaders }
@@ -788,7 +793,7 @@ FormSGAGPUDrawCommandProcessorContext >> texturedPipelineState [
 
 { #category : #shaders }
 FormSGAGPUDrawCommandProcessorContext >> useStorageBuffersInsteadOfUniformBuffers [
-	^ useStorageBuffersInsteadOfUniformBuffers ifNil: [ useStorageBuffersInsteadOfUniformBuffers := Smalltalk platform isMacOSX ]
+	^ useStorageBuffersInsteadOfUniformBuffers ifNil: [ useStorageBuffersInsteadOfUniformBuffers := self isInMacOSX ]
 ]
 
 { #category : #accessing }
