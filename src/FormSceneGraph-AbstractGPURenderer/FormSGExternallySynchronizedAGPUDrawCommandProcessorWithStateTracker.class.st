@@ -13,7 +13,7 @@ FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> enableTe
 	useSubpixelBlending ifTrue: [
 		hasDirectSubpixelBlending ifTrue: [ 
 			commandList
-				setFragmentStage: context subpixelFragmentShader entryPoint: 'main';
+				setFragmentStageWithMain: context subpixelFragmentShader;
 				setBlendState: -1 enabled: 1;
 				setBlendFunction: 1
 					sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_1COLOR colorOperation: AGPU_BLENDING_OPERATION_ADD
@@ -21,14 +21,14 @@ FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> enableTe
 		] ifFalse: [
 			useSubpixelBlendingFirstPass ifTrue: [
 				commandList
-					setFragmentStage: context subpixelFirstPassFragmentShader entryPoint: 'main';
+					setFragmentStageWithMain: context subpixelFirstPassFragmentShader;
 					setBlendState: -1 enabled: 1;
 					setBlendFunction: 1
 						sourceFactor: AGPU_BLENDING_ZERO destFactor: AGPU_BLENDING_INVERTED_SRC_COLOR colorOperation: AGPU_BLENDING_OPERATION_ADD
 						sourceAlphaFactor: AGPU_BLENDING_ZERO destAlphaFactor: AGPU_BLENDING_ONE alphaOperation: AGPU_BLENDING_OPERATION_ADD
 			] ifFalse: [
 				commandList
-					setFragmentStage: context subpixelSecondPassFragmentShader entryPoint: 'main';
+					setFragmentStageWithMain: context subpixelSecondPassFragmentShader;
 					setBlendState: -1 enabled: 1;
 					setBlendFunction: 1
 						sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_ONE colorOperation: AGPU_BLENDING_OPERATION_ADD
@@ -38,14 +38,14 @@ FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> enableTe
 	] ifFalse: [
 		hasFullyOpaqueBlending ifTrue: [ 
 			commandList
-				setFragmentStage: context fullyOpaqueTexturedFragmentShader entryPoint: 'main';
+				setFragmentStageWithMain: context fullyOpaqueTexturedFragmentShader;
 				setBlendState: -1 enabled: 0;
 				setBlendFunction: 1
 					sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_ZERO colorOperation: AGPU_BLENDING_OPERATION_ADD
 					sourceAlphaFactor: AGPU_BLENDING_ONE destAlphaFactor: AGPU_BLENDING_ZERO alphaOperation: AGPU_BLENDING_OPERATION_ADD
 		] ifFalse: [
 			commandList
-				setFragmentStage: context texturedFragmentShader entryPoint: 'main';
+				setFragmentStageWithMain: context texturedFragmentShader;
 				setBlendState: -1 enabled: 1;
 				setBlendFunction: 1
 					sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA colorOperation: AGPU_BLENDING_OPERATION_ADD
@@ -60,7 +60,7 @@ FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> noTextur
 	hasTexture := false.
 	blendingChanged := false.
 	commandList
-		setFragmentStage: context colorFragmentShader entryPoint: 'main';
+		setFragmentStageWithMain: context colorFragmentShader;
 		setBlendState: -1 enabled: 1;
 		setBlendFunction: 1
 			sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA colorOperation: AGPU_BLENDING_OPERATION_ADD
@@ -89,7 +89,7 @@ FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> processC
 					resetGraphicsPipeline;
 					setShaderSignature: context shaderSignature;
 					useShaderResources: context linearSamplerBinding;
-					setVertexStage: context vertexShader entryPoint: 'main';
+					setVertexStageWithMain: context vertexShader;
 					setVertexLayout: context vertexLayout;
 					setPrimitiveType: AGPU_TRIANGLES.
 				frameStateTracker
@@ -122,7 +122,8 @@ FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> processC
 { #category : #private }
 FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> setLinearGradientCommand: command [
 	hasTexture := false.
-	commandList setFragmentStage: context linearGradientFragmentShader entryPoint: 'main';
+	commandList
+		setFragmentStageWithMain: context linearGradientFragmentShader;
 		setBlendState: -1 enabled: 1;
 		setBlendFunction: 1
 			sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA colorOperation: AGPU_BLENDING_OPERATION_ADD
@@ -134,7 +135,8 @@ FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> setLinea
 { #category : #private }
 FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> setRadialGradientCommand: command [
 	hasTexture := false.
-	commandList setFragmentStage: context radialGradientFragmentShader entryPoint: 'main';
+	commandList
+		setFragmentStageWithMain: context radialGradientFragmentShader;
 		setBlendState: -1 enabled: 1;
 		setBlendFunction: 1
 			sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA colorOperation: AGPU_BLENDING_OPERATION_ADD
@@ -152,7 +154,7 @@ FormSGExternallySynchronizedAGPUDrawCommandProcessorWithStateTracker >> setRende
 
 	hasTexture := false.
 	commandList
-		setFragmentStage: context premultipliedTexturedFragmentShader entryPoint: 'main';
+		setFragmentStageWithMain: context premultipliedTexturedFragmentShader;
 		setBlendState: -1 enabled: 1;
 		setBlendFunction: 1
 			sourceFactor: AGPU_BLENDING_ONE destFactor: AGPU_BLENDING_INVERTED_SRC_ALPHA colorOperation: AGPU_BLENDING_OPERATION_ADD
