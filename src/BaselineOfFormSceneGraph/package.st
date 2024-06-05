@@ -1,1 +1,1 @@
-Package { #name : #BaselineOfFormSceneGraph }
+Package { #name : 'BaselineOfFormSceneGraph' }
