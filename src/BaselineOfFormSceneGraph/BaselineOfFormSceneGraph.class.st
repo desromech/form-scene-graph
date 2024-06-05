@@ -69,7 +69,7 @@ BaselineOfFormSceneGraph >> baselineForPharo: spec [
 		package: 'FormSceneGraph-Roassal' with: [ spec requires: 'FormSceneGraph-Morphic' ];
 		package: 'FormSceneGraph-OpenGLESRenderer' with: [ spec requires: #('FormSceneGraph-Renderer' 'UFFIOpenGL') ];
 		package: 'FormSceneGraph-AbstractGPURenderer' with: [ spec requires: #('FormSceneGraph-Renderer' 'AbstractGPU') ];
-		package: 'FormSceneGraph-AbstractGPURendererMorphicP12' with: [ spec requires: #('FormSceneGraph-AbstractGPURenderer') ];
+		package: 'FormSceneGraph-AbstractGPURendererMorphic' with: [ spec requires: #('FormSceneGraph-AbstractGPURenderer') ];
 		
 		group: 'default' with: #('Core' 'Tests' 'UI');
 		group: 'Core' with: #('FormSceneGraph-Core' 'FormSceneGraph-Renderer' 'FormSceneGraph-RendererAthens' 'FormSceneGraph-RendererOSWindow' 'FormSceneGraph-FreeTypeFontSupport');
